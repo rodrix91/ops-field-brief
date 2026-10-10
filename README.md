@@ -6,9 +6,11 @@ A small standard-library Python CLI that answers three questions about one opera
 - Does the business key repeat?
 - Which groups account for the rows?
 
-It is a complement to [csv-quality-report](https://github.com/rodrix91/csv-quality-report), not a replacement. Use that project to profile types, locales, and ranges. Use this one when the question is operational completeness.
+It is a complement to [csv-quality-report](https://github.com/rodrix91/csv-quality-report), not a replacement. Use that project to profile types, locales, and ranges. Use this one when the question is operational completeness (fill rate, repeated keys, top groups).
 
 Status: 0.1.0, verified by the tests in this repository. It is not a production pipeline.
+
+Suggested topics: `csv`, `data-quality`, `operations`, `cli`, `python`, `standard-library`.
 
 ## Install and run
 
