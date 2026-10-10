@@ -12,6 +12,10 @@ Status: 0.1.0, verified by the tests in this repository. It is not a production 
 
 Suggested topics: `csv`, `data-quality`, `operations`, `cli`, `python`, `standard-library`.
 
+## Why this exists
+
+Operational extracts (shipments, orders, inventory movements) often need a fast check before they enter a process: are the required fields present, does the business key repeat, and which counterparties dominate the file? This tool answers those three questions with one command and a clear exit code.
+
 ## Install and run
 
 Python 3.10 or newer. No third-party packages.
