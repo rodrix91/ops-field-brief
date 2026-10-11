@@ -1,1 +1,0 @@
-The suite covers fill counts, repeated keys, unknown columns, a passing CLI run, a semicolon export, a cp1252 file, an unknown encoding, and `--max-missing` allowing a share of blanks. It uses the standard library only. CI runs the same suite on Python 3.10 through 3.13.
