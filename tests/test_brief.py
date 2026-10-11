@@ -559,6 +559,16 @@ class BriefTests(unittest.TestCase):
         self.assertIn("B: 1", completed.stdout)
         self.assertNotIn("C: 1", completed.stdout)
 
+    def test_three_identical_keys_count_as_two_extra_rows(self):
+        rows = [
+            {"shipment": "S1", "buyer": "Andes"},
+            {"shipment": "S1", "buyer": "Andes"},
+            {"shipment": "S1", "buyer": "Andes"},
+        ]
+        brief = build_brief(rows, ["shipment", "buyer"], key="shipment")
+        self.assertEqual(brief.duplicate_keys, 2)
+        self.assertEqual(brief.rows, 3)
+
 
 if __name__ == "__main__":
     unittest.main()
