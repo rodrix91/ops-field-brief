@@ -693,6 +693,37 @@ class BriefTests(unittest.TestCase):
         self.assertIn('Andes "Norte"', completed.stdout)
         self.assertIn("Rows: 1", completed.stdout)
 
+    def test_multiline_quoted_field_stays_one_row(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "quoted.csv"
+            path.write_text(
+                'shipment,buyer\nS1,"Andes\nLa Paz"\n',
+                encoding="utf-8",
+            )
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                    "--group",
+                    "buyer",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Rows: 1", completed.stdout)
+        self.assertIn("Andes", completed.stdout)
+        self.assertIn("La Paz", completed.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
