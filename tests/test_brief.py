@@ -331,6 +331,38 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(payload["rows"], 2)
         self.assertEqual(payload["failed_fields"], [])
 
+    def test_unknown_key_exits_2(self):
+        path = ROOT / "examples" / "shipments.csv"
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(ROOT / "src")
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "ops_field_brief",
+                str(path),
+                "--required",
+                "shipment",
+                "--key",
+                "invoice",
+            ],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 2)
+        self.assertIn("invoice", completed.stderr)
+
+    def test_blank_group_is_named(self):
+        rows = [
+            {"shipment": "S1", "buyer": "Andes"},
+            {"shipment": "S2", "buyer": " "},
+        ]
+        brief = build_brief(rows, ["shipment", "buyer"], group="buyer")
+        self.assertEqual(brief.top, (("Andes", 1), ("(blank)", 1)))
+
 
 if __name__ == "__main__":
     unittest.main()
