@@ -8,7 +8,7 @@ A small standard-library Python CLI that answers three questions about one opera
 
 It is a complement to [csv-quality-report](https://github.com/rodrix91/csv-quality-report), not a replacement. Use that project to profile types, locales, and ranges. Use this one when the question is operational completeness (fill rate, repeated keys, top groups).
 
-Status: 0.1.0, verified by the tests in this repository. It is not a production pipeline.
+Status: 0.1.0, verified by the tests in this repository. It is not a production pipeline. See [CHANGELOG.md](CHANGELOG.md).
 
 Suggested topics: `csv`, `data-quality`, `operations`, `cli`, `python`, `standard-library`.
 
@@ -30,6 +30,8 @@ python -m ops_field_brief shipments.csv \
 Exit code `0` means every required field is within `--max-missing` (default `0`). Exit code `1` means at least one required field is too empty. Exit code `2` means the file or the arguments could not be used.
 
 `--json` writes the same brief as JSON. `--delimiter` accepts `comma` (default), `semicolon`, `tab`, or `pipe`. The default keeps the original comma behavior.
+
+`--encoding` defaults to `utf-8`. For a Windows Excel export in Spanish, pass `--encoding cp1252` or `--encoding latin-1`.
 
 Semicolon exports, common in Spanish and Latin American spreadsheets:
 
@@ -57,7 +59,7 @@ python -m ops_field_brief examples/shipments.csv \
 PYTHONPATH=src python -m unittest discover -s tests
 ```
 
-The suite covers fill counts, repeated keys, unknown columns, a passing CLI run, and a semicolon export. It uses the standard library only.
+The suite covers fill counts, repeated keys, unknown columns, a passing CLI run, a semicolon export, and a cp1252 file. It uses the standard library only.
 
 ## Maintenance
 
