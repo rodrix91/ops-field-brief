@@ -29,7 +29,7 @@ python -m ops_field_brief shipments.csv \
 
 After `pip install .`, the same command is available as `ops-field-brief`.
 
-Exit code `0` means every required field is within `--max-missing` (default `0`). Exit code `1` means at least one required field is too empty. Exit code `2` means the file or the arguments could not be used, including an unknown `--encoding` or a `--max-missing` outside 0 to 1.
+Exit code `0` means every required field is within `--max-missing` (default `0`). Exit code `1` means at least one required field is too empty. Exit code `2` means the file or the arguments could not be used, including an unknown `--encoding`, a `--max-missing` outside 0 to 1, or an empty `--required` list.
 
 `--json` writes the same brief as JSON. `--delimiter` accepts `comma` (default), `semicolon`, `tab`, or `pipe`. The default keeps the original comma behavior.
 
@@ -61,7 +61,7 @@ python -m ops_field_brief examples/shipments.csv \
 PYTHONPATH=src python -m unittest discover -s tests
 ```
 
-The suite covers fill counts, repeated keys, unknown columns, a passing CLI run, a semicolon export, a cp1252 file, an unknown encoding, `--max-missing` allowing a share of blanks, and `--max-missing` outside 0 to 1. It uses the standard library only. CI runs the same suite on Python 3.10 through 3.13.
+The suite covers fill counts, repeated keys, unknown columns, a passing CLI run, semicolon and pipe exports, a cp1252 file, an unknown encoding, an empty required list, `--max-missing` allowing a share of blanks, and `--max-missing` outside 0 to 1. It uses the standard library only. CI runs the same suite on Python 3.10 through 3.13.
 
 ## Maintenance
 
@@ -69,7 +69,7 @@ The tool is intentionally small and focused. Changes are kept additive. Existing
 
 ## Contributing
 
-Issues and pull requests are welcome. Please keep changes small and additive. The project uses the standard library only and is intentionally focused. Bug and feature forms ask for the command or the problem, and the expected result.
+Issues and pull requests are welcome. Please keep changes small and additive. The project uses the standard library only and is intentionally focused. Bug and feature forms ask for the command or the problem, and the expected result. A pull request template asks for the summary and the local test check.
 
 Report a security problem through [SECURITY.md](SECURITY.md), not in a public issue.
 
