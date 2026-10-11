@@ -1,0 +1,3 @@
+def read_csv(path: Path, delimiter: str = ",", encoding: str = "utf-8") -> list[dict[str, str]]:
+    with path.open(newline="", encoding=encoding) as handle:
+        return list(csv.DictReader(handle, delimiter=delimiter))
