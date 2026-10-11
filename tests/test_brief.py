@@ -113,6 +113,34 @@ class BriefTests(unittest.TestCase):
         self.assertIn("Rows: 2", completed.stdout)
         self.assertIn("envio", completed.stdout)
 
+    def test_cp1252_encoding(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "excel.csv"
+            path.write_bytes("comprador,eta\nPeñaflor,2026-10-01\n".encode("cp1252"))
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "comprador,eta",
+                    "--encoding",
+                    "cp1252",
+                    "--group",
+                    "comprador",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Peñaflor", completed.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
