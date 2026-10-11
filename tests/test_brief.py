@@ -468,6 +468,18 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertIn("Rows: 1", completed.stdout)
 
+    def test_missing_tokens_are_counted(self):
+        rows = [
+            {"shipment": "S1", "buyer": "N/A"},
+            {"shipment": "S2", "buyer": "none"},
+            {"shipment": "S3", "buyer": "-"},
+            {"shipment": "S4", "buyer": "Andes"},
+        ]
+        brief = build_brief(rows, ["shipment", "buyer"])
+        buyer = brief.fields[1]
+        self.assertEqual(buyer.missing, 3)
+        self.assertEqual(buyer.filled, 1)
+
 
 if __name__ == "__main__":
     unittest.main()
