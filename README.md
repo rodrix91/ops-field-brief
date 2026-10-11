@@ -71,7 +71,7 @@ The tool is intentionally small and focused. Changes are kept additive. Existing
 
 ## Contributing
 
-Issues and pull requests are welcome. Please keep changes small and additive. The project uses the standard library only and is intentionally focused. Bug and feature forms ask for the command or the problem, and the expected result. Blank issues are disabled. A pull request template asks for the summary and the local test check.
+Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the setup, the test command, and the guidelines. Please keep changes small and additive. The project uses the standard library only and is intentionally focused. Bug and feature forms ask for the command or the problem, and the expected result. Blank issues are disabled. A pull request template asks for the summary and the local test check.
 
 Report a security problem through [SECURITY.md](SECURITY.md), not in a public issue.
 
