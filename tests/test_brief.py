@@ -822,6 +822,32 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 2)
         self.assertIn("invalid choice", completed.stderr)
 
+    def test_duplicate_header_uses_the_last_value(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "dup.csv"
+            path.write_text("shipment,buyer,shipment\nS1,Andes,S1b\n", encoding="utf-8")
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                    "--key",
+                    "shipment",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Rows: 1", completed.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
