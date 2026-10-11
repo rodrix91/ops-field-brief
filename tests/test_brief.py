@@ -504,6 +504,28 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(len(brief.top), 5)
         self.assertEqual(brief.rows, 7)
 
+    def test_stdin_reads_a_pipe(self):
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(ROOT / "src")
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "ops_field_brief",
+                "-",
+                "--required",
+                "shipment,buyer",
+            ],
+            cwd=ROOT,
+            env=env,
+            input="shipment,buyer\nS1,Andes\n",
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Rows: 1", completed.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
