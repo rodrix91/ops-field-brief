@@ -609,6 +609,30 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(brief.duplicate_keys, 2)
         self.assertEqual(brief.rows, 4)
 
+    def test_negative_top_exits_2(self):
+        path = ROOT / "examples" / "shipments.csv"
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(ROOT / "src")
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "ops_field_brief",
+                str(path),
+                "--required",
+                "shipment",
+                "--top",
+                "-1",
+            ],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 2)
+        self.assertIn("top", completed.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
