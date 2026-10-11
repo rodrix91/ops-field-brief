@@ -35,7 +35,7 @@ Exit code `0` means every required field is within `--max-missing` (default `0`)
 
 `--encoding` defaults to `utf-8`. A UTF-8 BOM, common in Excel exports, is stripped so the first column name stays usable. For a Windows Excel export in Spanish, pass `--encoding cp1252` or `--encoding latin-1`.
 
-A blank `--group` value is reported as `(blank)`. A blank `--key` is not counted as a repeat. Repeated keys are counted as extra rows: three identical keys count as two, and two different keys each repeated once also count as two. Top groups are limited to five. `--top` can lower that limit. `--top 0` reports no groups. A negative `--top` exits `2`. A quoted field that contains a comma stays one field. An escaped quote stays in the field. A multiline quoted field stays one row. A header-only file and an empty file report `0` rows and exit `0`. A path of `-` reads the CSV from stdin.
+A blank `--group` value is reported as `(blank)`. A blank `--key` is not counted as a repeat. Repeated keys are counted as extra rows: three identical keys count as two, and two different keys each repeated once also count as two. Top groups are limited to five. `--top` can lower that limit. `--top 0` reports no groups. A negative `--top` exits `2`. A quoted field that contains a comma stays one field. An escaped quote stays in the field. A multiline quoted field stays one row. A trailing comma does not break the row. A header-only file and an empty file report `0` rows and exit `0`. A path of `-` reads the CSV from stdin.
 
 Semicolon exports, common in Spanish and Latin American spreadsheets:
 
@@ -63,7 +63,7 @@ python -m ops_field_brief examples/shipments.csv \
 PYTHONPATH=src python -m unittest discover -s tests
 ```
 
-The suite covers fill counts, repeated keys, three identical keys, two repeated keys, blank keys, missing tokens including `N/D` and `s.d.`, unknown columns, an unknown key and an unknown group, a passing CLI run, semicolon, tab and pipe exports, a cp1252 file, a UTF-8 BOM, an unknown encoding, an empty required list, `--json`, blank groups, a five-group limit, `--top`, `--top 0`, a negative `--top`, a quoted field with a comma, an escaped quote, a multiline quoted field, a header-only file, an empty file, stdin, `--max-missing` allowing a share of blanks, and `--max-missing` outside 0 to 1. It uses the standard library only. CI runs the same suite on Python 3.10 through 3.13.
+The suite covers fill counts, repeated keys, three identical keys, two repeated keys, blank keys, missing tokens including `N/D` and `s.d.`, unknown columns, an unknown key and an unknown group, a passing CLI run, semicolon, tab and pipe exports, a cp1252 file, a UTF-8 BOM, an unknown encoding, an empty required list, `--json`, blank groups, a five-group limit, `--top`, `--top 0`, a negative `--top`, a quoted field with a comma, an escaped quote, a multiline quoted field, a trailing comma, a header-only file, an empty file, stdin, `--max-missing` allowing a share of blanks, and `--max-missing` outside 0 to 1. It uses the standard library only. CI runs the same suite on Python 3.10 through 3.13.
 
 ## Maintenance
 
