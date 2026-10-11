@@ -569,6 +569,35 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(brief.duplicate_keys, 2)
         self.assertEqual(brief.rows, 3)
 
+    def test_top_zero_reports_no_groups(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "groups.csv"
+            path.write_text("shipment,buyer\nS1,A\nS2,B\n", encoding="utf-8")
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                    "--group",
+                    "buyer",
+                    "--top",
+                    "0",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertNotIn("Top groups", completed.stdout)
+        self.assertIn("Rows: 2", completed.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
