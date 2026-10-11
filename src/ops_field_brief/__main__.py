@@ -13,7 +13,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Report fill rate, repeated business keys, and top groups in a CSV."
     )
-    parser.add_argument("csv", type=Path, help="CSV with a header row")
+    parser.add_argument("csv", type=Path, help="CSV with a header row. Use - to read from stdin.")
     parser.add_argument(
         "--encoding",
         default="utf-8",
@@ -54,6 +54,7 @@ def main(argv: list[str] | None = None) -> int:
             args.csv,
             delimiter=DELIMITERS[args.delimiter],
             encoding=args.encoding,
+            stdin=sys.stdin if str(args.csv) == "-" else None,
         )
         brief = build_brief(
             rows,
