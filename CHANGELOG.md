@@ -8,7 +8,7 @@
 - An unknown encoding exits `2` and names the codec.
 - `--max-missing` can allow a share of blanks. The default remains `0`. A value outside 0 to 1 exits `2`.
 - An empty `--required` list exits `2`.
-- An unknown `--key` exits `2` and names the column.
+- An unknown `--key` or `--group` exits `2` and names the column.
 - A blank group value is reported as `(blank)`.
 - `--json` writes the same brief as JSON.
 - Missing tokens include empty cells, `NA`, `null`, and `s/d`.
