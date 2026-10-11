@@ -17,6 +17,7 @@
 - Top groups are limited to five. `--top` can lower that limit. `--top 0` reports no groups. A negative `--top` exits `2`.
 - A path of `-` reads the CSV from stdin.
 - Repeated keys are counted as extra rows. Three identical keys count as two extra rows. Two different keys, each repeated once, also count as two.
+- A quoted field that contains a comma stays one field.
 - Exit codes: `0` within the fill limit, `1` fill check failed, `2` file or arguments could not be used.
 - CI uses `actions/checkout@v7` and `actions/setup-python@v7` on Python 3.10 through 3.13.
 - `SECURITY.md` explains how to report a problem in the local CLI.
