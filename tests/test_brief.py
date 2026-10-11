@@ -724,6 +724,30 @@ class BriefTests(unittest.TestCase):
         self.assertIn("Andes", completed.stdout)
         self.assertIn("La Paz", completed.stdout)
 
+    def test_trailing_comma_does_not_break_the_row(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "trailing.csv"
+            path.write_text("shipment,buyer,\nS1,Andes,\n", encoding="utf-8")
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Rows: 1", completed.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
