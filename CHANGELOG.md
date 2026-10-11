@@ -20,6 +20,7 @@
 - A quoted field that contains a comma stays one field. An escaped quote stays in the field. A multiline quoted field stays one row.
 - A trailing comma does not break the row.
 - A field that is only whitespace counts as missing. A field that is only a tab also counts as missing.
+- A duplicate column name in the header uses the last value, following the standard library CSV reader.
 - Exit codes: `0` within the fill limit, `1` fill check failed, `2` file or arguments could not be used.
 - CI uses `actions/checkout@v7` and `actions/setup-python@v7` on Python 3.10 through 3.13.
 - `SECURITY.md` explains how to report a problem in the local CLI.
