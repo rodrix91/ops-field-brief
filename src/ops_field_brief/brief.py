@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-MISSING = {"", "na", "n/a", "null", "none", "s/d", "-"}
+MISSING = {"", "na", "n/a", "null", "none", "s/d", "n/d", "-"}
 
 DELIMITERS = {
     "comma": ",",
