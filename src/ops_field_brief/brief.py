@@ -86,6 +86,8 @@ def build_brief(
 ) -> Brief:
     if max_missing < 0 or max_missing > 1:
         raise ValueError("max_missing must be between 0 and 1")
+    if top_n < 0:
+        raise ValueError("top must be 0 or greater")
     if not rows and not required:
         raise ValueError("required fields are needed when the file has no header row")
 
