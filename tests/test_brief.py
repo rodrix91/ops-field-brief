@@ -86,6 +86,33 @@ class BriefTests(unittest.TestCase):
         )
         self.assertEqual(missing.returncode, 2)
 
+    def test_semicolon_delimiter(self):
+        path = ROOT / "examples" / "shipments-semicolon.csv"
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(ROOT / "src")
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "ops_field_brief",
+                str(path),
+                "--required",
+                "envio,comprador,eta",
+                "--delimiter",
+                "semicolon",
+                "--key",
+                "envio",
+            ],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 1, completed.stderr)
+        self.assertIn("Rows: 2", completed.stdout)
+        self.assertIn("envio", completed.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

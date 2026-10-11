@@ -29,7 +29,16 @@ python -m ops_field_brief shipments.csv \
 
 Exit code `0` means every required field is within `--max-missing` (default `0`). Exit code `1` means at least one required field is too empty. Exit code `2` means the file or the arguments could not be used.
 
-`--json` writes the same brief as JSON.
+`--json` writes the same brief as JSON. `--delimiter` accepts `comma` (default), `semicolon`, `tab`, or `pipe`. The default keeps the original comma behavior.
+
+Semicolon exports, common in Spanish and Latin American spreadsheets:
+
+```bash
+python -m ops_field_brief examples/shipments-semicolon.csv \
+  --required envio,comprador,eta \
+  --delimiter semicolon \
+  --key envio
+```
 
 ## Example
 
@@ -48,7 +57,7 @@ python -m ops_field_brief examples/shipments.csv \
 PYTHONPATH=src python -m unittest discover -s tests
 ```
 
-The suite covers fill counts, repeated keys, unknown columns, and a passing CLI run. It uses the standard library only.
+The suite covers fill counts, repeated keys, unknown columns, a passing CLI run, and a semicolon export. It uses the standard library only.
 
 ## Maintenance
 
