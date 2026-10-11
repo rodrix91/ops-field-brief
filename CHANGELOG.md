@@ -15,6 +15,7 @@
 - `--json` writes the same brief as JSON.
 - Missing tokens include empty cells, `NA`, `N/A`, `null`, `none`, `s/d`, `s.d.`, `N/D`, `N.D.`, and `-`.
 - Top groups are limited to five.
+- A path of `-` reads the CSV from stdin.
 - Exit codes: `0` within the fill limit, `1` fill check failed, `2` file or arguments could not be used.
 - CI uses `actions/checkout@v7` and `actions/setup-python@v7` on Python 3.10 through 3.13.
 - `SECURITY.md` explains how to report a problem in the local CLI.
