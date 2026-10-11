@@ -61,7 +61,7 @@ python -m ops_field_brief examples/shipments.csv \
 PYTHONPATH=src python -m unittest discover -s tests
 ```
 
-The suite covers fill counts, repeated keys, unknown columns, a passing CLI run, a semicolon export, a cp1252 file, and an unknown encoding. It uses the standard library only. CI runs the same suite on Python 3.10 through 3.13.
+The suite covers fill counts, repeated keys, unknown columns, a passing CLI run, a semicolon export, a cp1252 file, an unknown encoding, and `--max-missing` allowing a share of blanks. It uses the standard library only. CI runs the same suite on Python 3.10 through 3.13.
 
 ## Maintenance
 
@@ -69,7 +69,7 @@ The tool is intentionally small and focused. Changes are kept additive. Existing
 
 ## Contributing
 
-Issues and pull requests are welcome. Please keep changes small and additive. The project uses the standard library only and is intentionally focused.
+Issues and pull requests are welcome. Please keep changes small and additive. The project uses the standard library only and is intentionally focused. A bug report form asks for the command, the expected result, and the actual result.
 
 Report a security problem through [SECURITY.md](SECURITY.md), not in a public issue.
 
