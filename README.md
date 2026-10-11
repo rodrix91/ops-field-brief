@@ -10,7 +10,7 @@ It is a complement to [csv-quality-report](https://github.com/rodrix91/csv-quali
 
 Status: 0.1.0, verified by the tests in this repository. It is not a production pipeline. See [CHANGELOG.md](CHANGELOG.md).
 
-Suggested topics: `csv`, `data-quality`, `operations`, `cli`, `python`, `standard-library`.
+Suggested topics: `csv`, `data-quality`, `operations`, `cli`, `python`, `standard-library`. These are listed for discoverability. They are not yet set on the repository About section.
 
 ## Why this exists
 
