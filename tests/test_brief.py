@@ -165,6 +165,47 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 2)
         self.assertIn("not-a-codec", completed.stderr)
 
+    def test_max_missing_allows_a_share(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "partial.csv"
+            path.write_text("shipment,buyer\nS1,Andes\nS2,\n", encoding="utf-8")
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            allowed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                    "--max-missing",
+                    "0.5",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            strict = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(allowed.returncode, 0, allowed.stderr)
+        self.assertEqual(strict.returncode, 1, strict.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
