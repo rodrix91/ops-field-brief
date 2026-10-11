@@ -526,6 +526,39 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertIn("Rows: 1", completed.stdout)
 
+    def test_top_flag_limits_groups(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "groups.csv"
+            path.write_text(
+                "shipment,buyer\nS1,A\nS2,B\nS3,C\nS4,D\n",
+                encoding="utf-8",
+            )
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                    "--group",
+                    "buyer",
+                    "--top",
+                    "2",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("A: 1", completed.stdout)
+        self.assertIn("B: 1", completed.stdout)
+        self.assertNotIn("C: 1", completed.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
