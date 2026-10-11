@@ -598,6 +598,17 @@ class BriefTests(unittest.TestCase):
         self.assertNotIn("Top groups", completed.stdout)
         self.assertIn("Rows: 2", completed.stdout)
 
+    def test_two_repeated_keys_sum_their_extra_rows(self):
+        rows = [
+            {"shipment": "S1", "buyer": "Andes"},
+            {"shipment": "S1", "buyer": "Andes"},
+            {"shipment": "S2", "buyer": "Paz"},
+            {"shipment": "S2", "buyer": "Paz"},
+        ]
+        brief = build_brief(rows, ["shipment", "buyer"], key="shipment")
+        self.assertEqual(brief.duplicate_keys, 2)
+        self.assertEqual(brief.rows, 4)
+
 
 if __name__ == "__main__":
     unittest.main()
