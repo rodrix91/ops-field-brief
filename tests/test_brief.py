@@ -848,6 +848,21 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertIn("Rows: 1", completed.stdout)
 
+    def test_help_exits_0(self):
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(ROOT / "src")
+        completed = subprocess.run(
+            [sys.executable, "-m", "ops_field_brief", "--help"],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 0)
+        self.assertIn("--required", completed.stdout)
+        self.assertIn("--delimiter", completed.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
