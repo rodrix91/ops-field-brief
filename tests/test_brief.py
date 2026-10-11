@@ -278,6 +278,59 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertIn("Rows: 2", completed.stdout)
 
+    def test_tab_delimiter(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "tab.csv"
+            path.write_text("shipment\tbuyer\nS1\tAndes\nS2\tPaz\n", encoding="utf-8")
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                    "--delimiter",
+                    "tab",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Rows: 2", completed.stdout)
+
+    def test_json_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "ok.csv"
+            path.write_text("shipment,buyer\nS1,Andes\nS2,Paz\n", encoding="utf-8")
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                    "--json",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        payload = json.loads(completed.stdout)
+        self.assertEqual(payload["rows"], 2)
+        self.assertEqual(payload["failed_fields"], [])
+
 
 if __name__ == "__main__":
     unittest.main()
