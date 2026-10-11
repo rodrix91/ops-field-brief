@@ -480,6 +480,13 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(buyer.missing, 3)
         self.assertEqual(buyer.filled, 1)
 
+    def test_spanish_nd_is_missing(self):
+        rows = [{"shipment": "S1", "buyer": "N/D"}, {"shipment": "S2", "buyer": "Andes"}]
+        brief = build_brief(rows, ["shipment", "buyer"])
+        buyer = brief.fields[1]
+        self.assertEqual(buyer.missing, 1)
+        self.assertEqual(buyer.filled, 1)
+
 
 if __name__ == "__main__":
     unittest.main()
