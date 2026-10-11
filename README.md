@@ -18,7 +18,7 @@ Operational extracts (shipments, orders, inventory movements) often need a fast 
 
 ## Install and run
 
-Python 3.10 or newer. No third-party packages.
+Python 3.10 or newer. No third-party packages. From a checkout:
 
 ```bash
 python -m ops_field_brief shipments.csv \
@@ -27,7 +27,9 @@ python -m ops_field_brief shipments.csv \
   --group buyer
 ```
 
-Exit code `0` means every required field is within `--max-missing` (default `0`). Exit code `1` means at least one required field is too empty. Exit code `2` means the file or the arguments could not be used.
+After `pip install .`, the same command is available as `ops-field-brief`.
+
+Exit code `0` means every required field is within `--max-missing` (default `0`). Exit code `1` means at least one required field is too empty. Exit code `2` means the file or the arguments could not be used, including an unknown `--encoding`.
 
 `--json` writes the same brief as JSON. `--delimiter` accepts `comma` (default), `semicolon`, `tab`, or `pipe`. The default keeps the original comma behavior.
 
@@ -59,7 +61,7 @@ python -m ops_field_brief examples/shipments.csv \
 PYTHONPATH=src python -m unittest discover -s tests
 ```
 
-The suite covers fill counts, repeated keys, unknown columns, a passing CLI run, a semicolon export, and a cp1252 file. It uses the standard library only. CI runs the same suite on Python 3.10 through 3.13.
+The suite covers fill counts, repeated keys, unknown columns, a passing CLI run, a semicolon export, a cp1252 file, and an unknown encoding. It uses the standard library only. CI runs the same suite on Python 3.10 through 3.13.
 
 ## Maintenance
 
