@@ -26,6 +26,6 @@
 - CI uses `actions/checkout@v7` and `actions/setup-python@v7` on Python 3.10 through 3.13.
 - `SECURITY.md` explains how to report a problem in the local CLI.
 - `CONTRIBUTING.md` explains the setup, the test command, and the guidelines.
-- `pyproject.toml` declares Homepage, Changelog, and Issues. `MANIFEST.in` includes the license, examples, and tests.
+- `pyproject.toml` declares Homepage, Changelog, Issues, and Contributing. `MANIFEST.in` includes the license, examples, and tests.
 - Bug and feature request forms ask for the command or the problem, and the expected result. Blank issues are disabled.
 - A pull request template asks for the summary and the local test check.
