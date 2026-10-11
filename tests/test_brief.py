@@ -498,6 +498,12 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(buyer.missing, 2)
         self.assertEqual(buyer.filled, 1)
 
+    def test_top_groups_are_limited_to_five(self):
+        rows = [{"shipment": "S%d" % i, "buyer": "B%d" % i} for i in range(7)]
+        brief = build_brief(rows, ["shipment", "buyer"], group="buyer")
+        self.assertEqual(len(brief.top), 5)
+        self.assertEqual(brief.rows, 7)
+
 
 if __name__ == "__main__":
     unittest.main()
