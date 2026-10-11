@@ -133,7 +133,9 @@ def build_brief(
 
 
 def read_csv(path: Path, delimiter: str = ",", encoding: str = "utf-8") -> list[dict[str, str]]:
-    with path.open(newline="", encoding=encoding) as handle:
+    # Excel UTF-8 exports often start with a BOM. utf-8-sig strips it and still reads plain utf-8.
+    codec = "utf-8-sig" if encoding.lower().replace("_", "-") == "utf-8" else encoding
+    with path.open(newline="", encoding=codec) as handle:
         return list(csv.DictReader(handle, delimiter=delimiter))
 
 
