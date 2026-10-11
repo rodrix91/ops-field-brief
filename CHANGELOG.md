@@ -7,3 +7,5 @@
 - `--encoding` accepts a Python codec. Default is `utf-8`. Use `cp1252` or `latin-1` for Windows Excel exports.
 - Missing tokens include empty cells, `NA`, `null`, and `s/d`.
 - Exit codes: `0` within the fill limit, `1` fill check failed, `2` file or arguments could not be used.
+- CI uses `actions/checkout@v7` and `actions/setup-python@v7` on Python 3.10 through 3.13.
+- `SECURITY.md` explains how to report a problem in the local CLI.
