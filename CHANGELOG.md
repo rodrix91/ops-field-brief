@@ -10,6 +10,7 @@
 - An empty `--required` list exits `2`.
 - An unknown `--key` or `--group` exits `2` and names the column.
 - A blank group value is reported as `(blank)`. A blank key is not counted as a repeat.
+- A header-only file and an empty file report `0` rows and exit `0`.
 - `--json` writes the same brief as JSON.
 - Missing tokens include empty cells, `NA`, `null`, and `s/d`.
 - Exit codes: `0` within the fill limit, `1` fill check failed, `2` file or arguments could not be used.
