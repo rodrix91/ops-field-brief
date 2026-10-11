@@ -16,6 +16,13 @@ from pathlib import Path
 
 MISSING = {"", "na", "n/a", "null", "none", "s/d", "-"}
 
+DELIMITERS = {
+    "comma": ",",
+    "semicolon": ";",
+    "tab": "\t",
+    "pipe": "|",
+}
+
 
 @dataclass(frozen=True)
 class FieldFill:
@@ -125,9 +132,9 @@ def build_brief(
     )
 
 
-def read_csv(path: Path) -> list[dict[str, str]]:
+def read_csv(path: Path, delimiter: str = ",") -> list[dict[str, str]]:
     with path.open(newline="", encoding="utf-8") as handle:
-        return list(csv.DictReader(handle))
+        return list(csv.DictReader(handle, delimiter=delimiter))
 
 
 def render_markdown(brief: Brief) -> str:

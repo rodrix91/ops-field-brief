@@ -6,7 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from ops_field_brief.brief import build_brief, read_csv, render
+from ops_field_brief.brief import DELIMITERS, build_brief, read_csv, render
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -28,6 +28,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Fail if a required field is missing more than this share (0 to 1)",
     )
     parser.add_argument("--top", type=int, default=5)
+    parser.add_argument(
+        "--delimiter",
+        choices=sorted(DELIMITERS),
+        default="comma",
+        help="Field separator. Default comma keeps the original behavior.",
+    )
     parser.add_argument("--json", action="store_true", help="Write JSON instead of Markdown")
     return parser.parse_args(argv)
 
@@ -39,7 +45,7 @@ def main(argv: list[str] | None = None) -> int:
         print("at least one required field is needed", file=sys.stderr)
         return 2
     try:
-        rows = read_csv(args.csv)
+        rows = read_csv(args.csv, delimiter=DELIMITERS[args.delimiter])
         brief = build_brief(
             rows,
             required,
