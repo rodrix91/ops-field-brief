@@ -132,8 +132,8 @@ def build_brief(
     )
 
 
-def read_csv(path: Path, delimiter: str = ",") -> list[dict[str, str]]:
-    with path.open(newline="", encoding="utf-8") as handle:
+def read_csv(path: Path, delimiter: str = ",", encoding: str = "utf-8") -> list[dict[str, str]]:
+    with path.open(newline="", encoding=encoding) as handle:
         return list(csv.DictReader(handle, delimiter=delimiter))
 
 
