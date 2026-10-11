@@ -17,6 +17,7 @@ keywords = ["csv", "data-quality", "operations", "cli"]
 Homepage = "https://github.com/rodrix91/ops-field-brief"
 Changelog = "https://github.com/rodrix91/ops-field-brief/blob/main/CHANGELOG.md"
 Issues = "https://github.com/rodrix91/ops-field-brief/issues"
+Contributing = "https://github.com/rodrix91/ops-field-brief/blob/main/CONTRIBUTING.md"
 
 [project.scripts]
 ops-field-brief = "ops_field_brief.__main__:main"
