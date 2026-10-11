@@ -387,6 +387,15 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 2)
         self.assertIn("region", completed.stderr)
 
+    def test_blank_keys_are_not_duplicates(self):
+        rows = [
+            {"shipment": " ", "buyer": "Andes"},
+            {"shipment": "", "buyer": "Paz"},
+            {"shipment": "S1", "buyer": "Andes"},
+        ]
+        brief = build_brief(rows, ["shipment", "buyer"], key="shipment")
+        self.assertEqual(brief.duplicate_keys, 0)
+
 
 if __name__ == "__main__":
     unittest.main()
