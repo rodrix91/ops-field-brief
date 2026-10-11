@@ -363,6 +363,30 @@ class BriefTests(unittest.TestCase):
         brief = build_brief(rows, ["shipment", "buyer"], group="buyer")
         self.assertEqual(brief.top, (("Andes", 1), ("(blank)", 1)))
 
+    def test_unknown_group_exits_2(self):
+        path = ROOT / "examples" / "shipments.csv"
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(ROOT / "src")
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "ops_field_brief",
+                str(path),
+                "--required",
+                "shipment",
+                "--group",
+                "region",
+            ],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 2)
+        self.assertIn("region", completed.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
