@@ -3,7 +3,7 @@
 ## 0.1.0
 
 - Operational brief: fill rate, repeated business keys, and top groups.
-- `--delimiter` accepts `comma` (default), `semicolon`, `tab`, and `pipe`. Comma stays the default.
+- `--delimiter` accepts `comma` (default), `semicolon`, `tab`, and `pipe`. Comma stays the default. An unknown delimiter exits `2`.
 - `--encoding` accepts a Python codec. Default is `utf-8`. Use `cp1252` or `latin-1` for Windows Excel exports.
 - A UTF-8 BOM, common in Excel exports, is stripped so the first column name stays usable.
 - An unknown encoding exits `2` and names the codec.
