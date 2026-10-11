@@ -633,6 +633,36 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 2)
         self.assertIn("top", completed.stderr)
 
+    def test_quoted_field_with_a_comma_stays_one_field(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "quoted.csv"
+            path.write_text(
+                'shipment,buyer\nS1,"Andes, La Paz"\n',
+                encoding="utf-8",
+            )
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                    "--group",
+                    "buyer",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Andes, La Paz", completed.stdout)
+        self.assertIn("Rows: 1", completed.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
