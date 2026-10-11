@@ -13,7 +13,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Report fill rate, repeated business keys, and top groups in a CSV."
     )
-    parser.add_argument("csv", type=Path, help="UTF-8 CSV with a header row")
+    parser.add_argument("csv", type=Path, help="CSV with a header row")
+    parser.add_argument(
+        "--encoding",
+        default="utf-8",
+        help="File encoding. Default utf-8. Use cp1252 or latin-1 for Windows Excel exports.",
+    )
     parser.add_argument(
         "--required",
         required=True,
@@ -45,7 +50,11 @@ def main(argv: list[str] | None = None) -> int:
         print("at least one required field is needed", file=sys.stderr)
         return 2
     try:
-        rows = read_csv(args.csv, delimiter=DELIMITERS[args.delimiter])
+        rows = read_csv(
+            args.csv,
+            delimiter=DELIMITERS[args.delimiter],
+            encoding=args.encoding,
+        )
         brief = build_brief(
             rows,
             required,
@@ -54,7 +63,7 @@ def main(argv: list[str] | None = None) -> int:
             max_missing=args.max_missing,
             top_n=args.top,
         )
-    except (OSError, ValueError, csv_error()) as exc:
+    except (OSError, ValueError, LookupError, csv_error()) as exc:
         print(str(exc), file=sys.stderr)
         return 2
     sys.stdout.write(render(brief, args.json))
