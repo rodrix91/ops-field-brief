@@ -35,7 +35,7 @@ Exit code `0` means every required field is within `--max-missing` (default `0`)
 
 `--encoding` defaults to `utf-8`. For a Windows Excel export in Spanish, pass `--encoding cp1252` or `--encoding latin-1`.
 
-A blank `--group` value is reported as `(blank)`. A blank `--key` is not counted as a repeat.
+A blank `--group` value is reported as `(blank)`. A blank `--key` is not counted as a repeat. A header-only file and an empty file report `0` rows and exit `0`.
 
 Semicolon exports, common in Spanish and Latin American spreadsheets:
 
@@ -63,7 +63,7 @@ python -m ops_field_brief examples/shipments.csv \
 PYTHONPATH=src python -m unittest discover -s tests
 ```
 
-The suite covers fill counts, repeated keys, blank keys, unknown columns, an unknown key and an unknown group, a passing CLI run, semicolon, tab and pipe exports, a cp1252 file, an unknown encoding, an empty required list, `--json`, blank groups, `--max-missing` allowing a share of blanks, and `--max-missing` outside 0 to 1. It uses the standard library only. CI runs the same suite on Python 3.10 through 3.13.
+The suite covers fill counts, repeated keys, blank keys, unknown columns, an unknown key and an unknown group, a passing CLI run, semicolon, tab and pipe exports, a cp1252 file, an unknown encoding, an empty required list, `--json`, blank groups, a header-only file, an empty file, `--max-missing` allowing a share of blanks, and `--max-missing` outside 0 to 1. It uses the standard library only. CI runs the same suite on Python 3.10 through 3.13.
 
 ## Maintenance
 
