@@ -396,6 +396,54 @@ class BriefTests(unittest.TestCase):
         brief = build_brief(rows, ["shipment", "buyer"], key="shipment")
         self.assertEqual(brief.duplicate_keys, 0)
 
+    def test_header_only_exits_0(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "header.csv"
+            path.write_text("shipment,buyer\n", encoding="utf-8")
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Rows: 0", completed.stdout)
+
+    def test_empty_file_reports_zero_rows(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "empty.csv"
+            path.write_text("", encoding="utf-8")
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Rows: 0", completed.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
