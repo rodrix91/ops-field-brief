@@ -9,8 +9,14 @@ description = "Report fill rate, repeated business keys, and top groups in one C
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
+license-files = ["LICENSE"]
 authors = [{name = "Rodrigo Pantoja Navajas"}]
 keywords = ["csv", "data-quality", "operations", "cli"]
+
+[project.urls]
+Homepage = "https://github.com/rodrix91/ops-field-brief"
+Changelog = "https://github.com/rodrix91/ops-field-brief/blob/main/CHANGELOG.md"
+Issues = "https://github.com/rodrix91/ops-field-brief/issues"
 
 [project.scripts]
 ops-field-brief = "ops_field_brief.__main__:main"
