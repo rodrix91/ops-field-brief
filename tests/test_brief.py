@@ -773,6 +773,31 @@ class BriefTests(unittest.TestCase):
         self.assertIn("Failed fill check", completed.stdout)
         self.assertIn("buyer", completed.stdout)
 
+    def test_tab_only_field_is_missing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "tab.csv"
+            path.write_text("shipment,buyer\nS1,\t\n", encoding="utf-8")
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 1, completed.stderr)
+        self.assertIn("Failed fill check", completed.stdout)
+        self.assertIn("buyer", completed.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
