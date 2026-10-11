@@ -230,6 +230,54 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 2)
         self.assertIn("max_missing", completed.stderr)
 
+    def test_empty_required_exits_2(self):
+        path = ROOT / "examples" / "shipments.csv"
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(ROOT / "src")
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "ops_field_brief",
+                str(path),
+                "--required",
+                " , ",
+            ],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 2)
+        self.assertIn("at least one required field", completed.stderr)
+
+    def test_pipe_delimiter(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "pipe.csv"
+            path.write_text("shipment|buyer\nS1|Andes\nS2|Paz\n", encoding="utf-8")
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                    "--delimiter",
+                    "pipe",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Rows: 2", completed.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
