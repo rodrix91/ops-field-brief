@@ -29,3 +29,4 @@
 - `pyproject.toml` declares Homepage, Changelog, Issues, and Contributing. `MANIFEST.in` includes the license, examples, and tests.
 - Bug and feature request forms ask for the command or the problem, and the expected result. Blank issues are disabled.
 - A pull request template asks for the summary and the local test check.
+- The README notes that the suggested topics are not yet set on the repository About section.
