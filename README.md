@@ -2,7 +2,7 @@
 
 A small standard-library Python CLI that answers three questions about one operational CSV:
 
-- Are the required fields filled? Empty cells and tokens such as `NA`, `null`, and `s/d` count as missing.
+- Are the required fields filled? Empty cells and tokens such as `NA`, `N/A`, `null`, `none`, `s/d`, and `-` count as missing.
 - Does the business key repeat?
 - Which groups account for the rows?
 
@@ -63,7 +63,7 @@ python -m ops_field_brief examples/shipments.csv \
 PYTHONPATH=src python -m unittest discover -s tests
 ```
 
-The suite covers fill counts, repeated keys, blank keys, unknown columns, an unknown key and an unknown group, a passing CLI run, semicolon, tab and pipe exports, a cp1252 file, a UTF-8 BOM, an unknown encoding, an empty required list, `--json`, blank groups, a header-only file, an empty file, `--max-missing` allowing a share of blanks, and `--max-missing` outside 0 to 1. It uses the standard library only. CI runs the same suite on Python 3.10 through 3.13.
+The suite covers fill counts, repeated keys, blank keys, missing tokens, unknown columns, an unknown key and an unknown group, a passing CLI run, semicolon, tab and pipe exports, a cp1252 file, a UTF-8 BOM, an unknown encoding, an empty required list, `--json`, blank groups, a header-only file, an empty file, `--max-missing` allowing a share of blanks, and `--max-missing` outside 0 to 1. It uses the standard library only. CI runs the same suite on Python 3.10 through 3.13.
 
 ## Maintenance
 
