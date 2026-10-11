@@ -50,6 +50,10 @@ PYTHONPATH=src python -m unittest discover -s tests
 
 The suite covers fill counts, repeated keys, unknown columns, and a passing CLI run. It uses the standard library only.
 
+## Maintenance
+
+The tool is intentionally small and focused. Changes are kept additive. Existing behavior and history are preserved.
+
 ## Contributing
 
 Issues and pull requests are welcome. Please keep changes small and additive. The project uses the standard library only and is intentionally focused.
