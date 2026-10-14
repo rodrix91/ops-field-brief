@@ -141,9 +141,13 @@ def read_csv(
     stdin=None,
 ) -> list[dict[str, str]]:
     # Excel UTF-8 exports often start with a BOM. utf-8-sig strips it and still reads plain utf-8.
-    codec = "utf-8-sig" if encoding.lower().replace("_", "-") == "utf-8" else encoding
+    is_utf8 = encoding.lower().replace("_", "-") in ("utf-8", "utf8", "utf-8-sig")
+    codec = "utf-8-sig" if is_utf8 else encoding
     if stdin is not None:
-        return list(csv.DictReader(stdin, delimiter=delimiter))
+        reader = csv.DictReader(stdin, delimiter=delimiter)
+        if is_utf8 and reader.fieldnames and reader.fieldnames[0].startswith("\ufeff"):
+            reader.fieldnames[0] = reader.fieldnames[0].lstrip("\ufeff")
+        return list(reader)
     with path.open(newline="", encoding=codec) as handle:
         return list(csv.DictReader(handle, delimiter=delimiter))
 

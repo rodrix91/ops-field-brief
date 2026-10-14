@@ -863,6 +863,28 @@ class BriefTests(unittest.TestCase):
         self.assertIn("--required", completed.stdout)
         self.assertIn("--delimiter", completed.stdout)
 
+    def test_utf8_bom_on_stdin_is_stripped(self):
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(ROOT / "src")
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "ops_field_brief",
+                "-",
+                "--required",
+                "shipment,buyer",
+            ],
+            cwd=ROOT,
+            env=env,
+            input="\ufeffshipment,buyer\nS1,Andes\n",
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Rows: 1", completed.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
