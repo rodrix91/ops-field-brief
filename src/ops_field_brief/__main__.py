@@ -39,6 +39,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default="comma",
         help="Field separator. Default comma keeps the original behavior.",
     )
+    parser.add_argument(
+        "--max-duplicates",
+        type=int,
+        default=None,
+        help="Fail if extra rows from a repeated key exceed this count",
+    )
     parser.add_argument("--json", action="store_true", help="Write JSON instead of Markdown")
     return parser.parse_args(argv)
 
@@ -63,12 +69,13 @@ def main(argv: list[str] | None = None) -> int:
             group=args.group,
             max_missing=args.max_missing,
             top_n=args.top,
+            max_duplicates=args.max_duplicates,
         )
     except (OSError, ValueError, LookupError, csv_error()) as exc:
         print(str(exc), file=sys.stderr)
         return 2
     sys.stdout.write(render(brief, args.json))
-    return 1 if brief.failed_fields else 0
+    return 1 if (brief.failed_fields or brief.failed_duplicates) else 0
 
 
 def csv_error() -> type[Exception]:

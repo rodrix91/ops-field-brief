@@ -885,6 +885,118 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertIn("Rows: 1", completed.stdout)
 
+    def test_max_duplicates_allows_under_limit(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "dups.csv"
+            path.write_text("shipment,buyer\nS1,Andes\nS1,Andes\nS2,Paz\n", encoding="utf-8")
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                    "--key",
+                    "shipment",
+                    "--max-duplicates",
+                    "1",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Max allowed duplicate extra rows: 1", completed.stdout)
+
+    def test_max_duplicates_fails_when_exceeded(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "dups.csv"
+            path.write_text("shipment,buyer\nS1,Andes\nS1,Andes\nS1,Andes\n", encoding="utf-8")
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                    "--key",
+                    "shipment",
+                    "--max-duplicates",
+                    "0",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 1, completed.stderr)
+        self.assertIn("Failed duplicate check", completed.stdout)
+        self.assertIn("exceed the limit (0)", completed.stdout)
+
+    def test_negative_max_duplicates_exits_2(self):
+        path = ROOT / "examples" / "shipments.csv"
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(ROOT / "src")
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "ops_field_brief",
+                str(path),
+                "--required",
+                "shipment",
+                "--max-duplicates",
+                "-1",
+            ],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 2)
+        self.assertIn("max_duplicates", completed.stderr)
+
+    def test_max_duplicates_in_json(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "dups.csv"
+            path.write_text("shipment,buyer\nS1,Andes\nS1,Andes\n", encoding="utf-8")
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                    "--key",
+                    "shipment",
+                    "--max-duplicates",
+                    "0",
+                    "--json",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 1, completed.stderr)
+        payload = json.loads(completed.stdout)
+        self.assertEqual(payload["max_duplicates"], 0)
+        self.assertTrue(payload["failed_duplicates"])
+
 
 if __name__ == "__main__":
     unittest.main()

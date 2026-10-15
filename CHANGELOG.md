@@ -8,6 +8,7 @@
 - A UTF-8 BOM, common in Excel exports, is stripped so the first column name stays usable, including on stdin.
 - An unknown encoding exits `2` and names the codec.
 - `--max-missing` can allow a share of blanks. The default remains `0`. A value outside 0 to 1 exits `2`.
+- `--max-duplicates` sets a quality gate on repeated business keys: fails with exit code `1` if extra rows from a repeated key exceed the threshold. A negative value exits `2`.
 - An empty `--required` list exits `2`.
 - An unknown `--key` or `--group` exits `2` and names the column.
 - A blank group value is reported as `(blank)`. A blank key is not counted as a repeat.
@@ -22,7 +23,7 @@
 - A field that is only whitespace counts as missing. A field that is only a tab also counts as missing.
 - A duplicate column name in the header uses the last value, following the standard library CSV reader.
 - `--help` exits `0` and lists the arguments.
-- Exit codes: `0` within the fill limit, `1` fill check failed, `2` file or arguments could not be used.
+- Exit codes: `0` within the fill and duplicate limits, `1` fill check or duplicate check failed, `2` file or arguments could not be used.
 - CI uses `actions/checkout@v7` and `actions/setup-python@v7` on Python 3.10 through 3.13.
 - `SECURITY.md` explains how to report a problem in the local CLI.
 - `CONTRIBUTING.md` explains the setup, the test command, and the guidelines.

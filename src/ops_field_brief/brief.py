@@ -46,12 +46,16 @@ class Brief:
     fields: tuple[FieldFill, ...]
     top: tuple[tuple[str, int], ...]
     failed_fields: tuple[str, ...]
+    max_duplicates: int | None = None
+    failed_duplicates: bool = False
 
     def to_dict(self) -> dict:
         return {
             "rows": self.rows,
             "key": self.key,
             "duplicate_keys": self.duplicate_keys,
+            "max_duplicates": self.max_duplicates,
+            "failed_duplicates": self.failed_duplicates,
             "fields": [
                 {
                     "name": field.name,
@@ -83,11 +87,14 @@ def build_brief(
     group: str | None = None,
     max_missing: float = 0.0,
     top_n: int = 5,
+    max_duplicates: int | None = None,
 ) -> Brief:
     if max_missing < 0 or max_missing > 1:
         raise ValueError("max_missing must be between 0 and 1")
     if top_n < 0:
         raise ValueError("top must be 0 or greater")
+    if max_duplicates is not None and max_duplicates < 0:
+        raise ValueError("max_duplicates must be 0 or greater")
     if not rows and not required:
         raise ValueError("required fields are needed when the file has no header row")
 
@@ -124,6 +131,8 @@ def build_brief(
 
     fields = tuple(fills[name] for name in required)
     failed = tuple(field.name for field in fields if field.missing_rate > max_missing)
+    failed_duplicates = bool(max_duplicates is not None and duplicate_keys > max_duplicates)
+
     return Brief(
         rows=len(rows),
         key=key,
@@ -131,6 +140,8 @@ def build_brief(
         fields=fields,
         top=tuple(groups.most_common(top_n)),
         failed_fields=failed,
+        max_duplicates=max_duplicates,
+        failed_duplicates=failed_duplicates,
     )
 
 
@@ -159,12 +170,16 @@ def render_markdown(brief: Brief) -> str:
         f"- Rows: {brief.rows}",
         f"- Business key: {brief.key or 'not set'}",
         f"- Extra rows from a repeated key: {brief.duplicate_keys}",
+    ]
+    if brief.max_duplicates is not None:
+        lines.append(f"- Max allowed duplicate extra rows: {brief.max_duplicates}")
+    lines.extend([
         "",
         "## Required fields",
         "",
         "| Field | Filled | Missing | Missing rate |",
         "|---|---:|---:|---:|",
-    ]
+    ])
     for field in brief.fields:
         lines.append(
             f"| {field.name} | {field.filled} | {field.missing} | {field.missing_rate:.1%} |"
@@ -176,6 +191,13 @@ def render_markdown(brief: Brief) -> str:
     if brief.failed_fields:
         lines.extend(["", "## Failed fill check", ""])
         lines.append(", ".join(brief.failed_fields))
+    if brief.failed_duplicates:
+        lines.extend([
+            "",
+            "## Failed duplicate check",
+            "",
+            f"Extra rows from a repeated key ({brief.duplicate_keys}) exceed the limit ({brief.max_duplicates}).",
+        ])
     return "\n".join(lines) + "\n"
 
 
