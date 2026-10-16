@@ -3,3 +3,4 @@ include CHANGELOG.md
 include SECURITY.md
 graft examples
 graft tests
+graft scripts

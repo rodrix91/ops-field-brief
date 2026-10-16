@@ -25,8 +25,9 @@
 - `--help` exits `0` and lists the arguments.
 - Exit codes: `0` within the fill and duplicate limits, `1` fill check or duplicate check failed, `2` file or arguments could not be used.
 - CI uses `actions/checkout@v7` and `actions/setup-python@v7` on Python 3.10 through 3.13.
+- Autonomous daily engineering cycle workflow in GitHub Actions (`.github/workflows/autonomous-daily.yml`) running daily at 09:00 (13:00 UTC) with `scripts/autonomous_agent.py`.
 - `SECURITY.md` explains how to report a problem in the local CLI.
 - `CONTRIBUTING.md` explains the setup, the test command, and the guidelines.
-- `pyproject.toml` declares Homepage, Changelog, Issues, and Contributing. `MANIFEST.in` includes the license, examples, and tests.
+- `pyproject.toml` declares Homepage, Changelog, Issues, and Contributing. `MANIFEST.in` includes the license, examples, tests, and scripts.
 - Bug and feature request forms ask for the command or the problem, and the expected result. Blank issues are disabled.
 - A pull request template asks for the summary and the local test check.
