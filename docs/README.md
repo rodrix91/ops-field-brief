@@ -9,10 +9,10 @@ Practical, reproducible checks for CSV extracts used in shipping, order processi
 | Operational question | CLI option | Interpretation |
 |---|---|---|
 | Are mandatory cells present? | `--required shipment,buyer,eta --max-missing 0` | Exit `1` when a named field has missing values; missing is evaluated per field |
-| Does a business key repeat? | `--key shipment --max-duplicates 0` | Counts extra rows after the first occurrence of each nonblank complete key |
-| Are business keys incomplete? | `--key order_id,line_id --max-incomplete-keys 0` | Exit `1` when any row has an empty or whitespace-only key component; duplicate counting still ignores incomplete keys |
+| Does a business key repeat? | `--key shipment --max-duplicates 0` | Counts extra rows after the first occurrence of each complete key (no blank or missing-value token) |
+| Are business keys incomplete? | `--key order_id,line_id --max-incomplete-keys 0` | Exit `1` when any row has a blank or known missing-value token in a key component; duplicate counting ignores incomplete keys |
 | Is the extract unexpectedly small? | `--min-rows 100` | Exit `1` when the data-row count is below the threshold |
-| Is the data concentrated in one group? | `--group buyer --max-group-share 0.60` | Exit `1` if the largest group accounts for more than 60% of data rows |
+| Is the data concentrated in one group? | `--group buyer --max-group-share 0.60` | Exit `1` if the largest group exceeds 60% of rows; blank, `NA`, `N/A`, `s/d` etc. share the `(blank)` bucket |
 | Are columns structurally consistent? | `--strict-csv` | Exit `2` on duplicate or blank headers and rows with the wrong number of fields |
 | Is a composite key unique? | `--key order_id,line_id --max-duplicates 0` | Repeats are checked on complete tuples, not on each column in isolation |
 
@@ -60,7 +60,7 @@ PYTHONPATH=src python -m ops_field_brief examples/orders-incomplete-keys.csv \
   --key order_id,line_id --max-incomplete-keys 1 --json
 ```
 
-The five-row synthetic fixture includes two rows with a blank key component and one extra duplicate complete key. The limit of one incomplete key fails independently of the duplicate count. Blank means empty or whitespace-only after trimming; placeholders such as `N/A` are not blank keys in the existing key logic. Specify `--required order_id,line_id` with an appropriate `--max-missing` when placeholders must also be rejected. Without `--max-incomplete-keys`, incomplete keys are reported but do not by themselves fail the command.
+The five-row synthetic fixture includes two rows with a blank key component and one extra duplicate complete key. The limit of one incomplete key fails independently of the duplicate count. Blank or missing includes empty/whitespace-only components and known placeholders such as `NA`, `N/A`, `null` and `s/d`. Incomplete keys are excluded from duplicate counting, and `--max-incomplete-keys` is the independent gate for them. Required-field checks share the same missing-value rules. Without `--max-incomplete-keys`, incomplete keys are reported but do not by themselves fail the command.
 
 ## 3. Interpret the outcome
 
