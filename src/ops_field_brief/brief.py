@@ -195,7 +195,7 @@ def build_brief(
                 fills[name] = FieldFill(name, current.filled + 1, current.missing)
         if effective_key_fields:
             key_value = tuple(_clean(row.get(name, "")) for name in effective_key_fields)
-            if all(key_value):
+            if all(not _is_missing(value) for value in key_value):
                 keys.append(key_value)
             else:
                 incomplete_key_rows += 1
