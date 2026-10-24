@@ -200,8 +200,8 @@ def build_brief(
             else:
                 incomplete_key_rows += 1
         if group:
-            label = _clean(row.get(group, "")) or "(blank)"
-            groups[label] += 1
+            label = _clean(row.get(group, ""))
+            groups["(blank)" if _is_missing(label) else label] += 1
 
     duplicate_keys = 0
     if effective_key_fields:

@@ -59,7 +59,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--max-incomplete-keys",
         type=int,
         default=None,
-        help="Fail when more than N rows have an empty component in the --key value",
+        help="Fail when more than N rows have a missing component in the --key value",
     )
     parser.add_argument(
         "--min-rows",
