@@ -17,6 +17,8 @@ Status: 0.3.0 with additional Unreleased work, verified by the tests in this rep
 
 Topics (set on the repository): `csv`, `data-quality`, `operations`, `cli`, `python`, `standard-library`.
 
+For a concise checklist of operational gates, example commands, and safe CI integration, see the [operations playbook](docs/README.md).
+
 ## Why this exists
 
 Operational extracts (shipments, orders, inventory movements) often need a fast check before they enter a process: are the required fields present, does the business key repeat, which counterparties dominate the file, and did the extract contain enough rows to be plausible? This tool answers those questions with one command and a clear exit code.
@@ -178,7 +180,7 @@ python -m ops_field_brief examples/shipments.csv \
 PYTHONPATH=src python -m unittest discover -s tests
 ```
 
-The suite covers fill counts, repeated keys, three identical keys, two repeated keys, blank keys, `--max-duplicates` allowing repeated keys within limits and failing when exceeded, a negative `--max-duplicates`, missing tokens including `N/D` and `s.d.`, unknown columns, an unknown key and an unknown group, a passing CLI run, semicolon, tab and pipe exports, an unknown delimiter, a cp1252 file, a UTF-8 BOM, a UTF-8 BOM on stdin, an unknown encoding, an empty required list, `--json`, blank groups, a five-group limit, `--top`, `--top 0`, a negative `--top`, a quoted field with a comma, an escaped quote, a multiline quoted field, a trailing comma, a whitespace-only field, a tab-only field, a duplicate header, a header-only file, an empty file, stdin, `--help`, `--max-missing` allowing a share of blanks, and `--max-missing` outside 0 to 1, `--min-rows` passing/failing row-count gates, JSON gate metadata, and a negative `--min-rows`. Strict CSV validation is covered for duplicate or blank headers and ragged rows. Seventy-six tests. It uses the standard library only. The installed package ships a PEP 561 `py.typed` marker so downstream type checkers can consume its inline annotations. CI runs the suite on Python 3.10 through 3.13 on Ubuntu, plus Python 3.10 and 3.13 on Windows and macOS.
+The suite covers fill counts, repeated keys, three identical keys, two repeated keys, blank keys, `--max-duplicates` allowing repeated keys within limits and failing when exceeded, a negative `--max-duplicates`, missing tokens including `N/D` and `s.d.`, unknown columns, an unknown key and an unknown group, a passing CLI run, semicolon, tab and pipe exports, an unknown delimiter, a cp1252 file, a UTF-8 BOM, a UTF-8 BOM on stdin, an unknown encoding, an empty required list, `--json`, blank groups, a five-group limit, `--top`, `--top 0`, a negative `--top`, a quoted field with a comma, an escaped quote, a multiline quoted field, a trailing comma, a whitespace-only field, a tab-only field, a duplicate header, a header-only file, an empty file, stdin, `--help`, `--max-missing` allowing a share of blanks, and `--max-missing` outside 0 to 1, `--min-rows` passing/failing row-count gates, JSON gate metadata, and a negative `--min-rows`. Strict CSV validation is covered for duplicate or blank headers and ragged rows. Eighty-three tests. It uses the standard library only. The installed package ships a PEP 561 `py.typed` marker so downstream type checkers can consume its inline annotations. CI runs the suite on Python 3.10 through 3.13 on Ubuntu, plus Python 3.10 and 3.13 on Windows and macOS.
 
 ## Maintenance
 
