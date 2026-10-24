@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Release checksum entries now use artifact basenames rather than `dist/`-prefixed paths, so `sha256sum -c SHA256SUMS` works directly in a download directory.
+
 - Release artifacts now include a `SHA256SUMS` file so downloaded wheels and source distributions can be independently verified.
 
 - The release job now has an explicit timeout so a stuck build, install, or release test cannot occupy a runner indefinitely.
