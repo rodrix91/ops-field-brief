@@ -1076,5 +1076,20 @@ class BriefTests(unittest.TestCase):
         self.assertIn("could not detect delimiter", completed.stderr)
 
 
+    def test_version_flag(self):
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(ROOT / "src")
+        completed = subprocess.run(
+            [sys.executable, "-m", "ops_field_brief", "--version"],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertEqual(completed.stdout, "ops-field-brief 0.2.0\n")
+
+
 if __name__ == "__main__":
     unittest.main()
