@@ -100,7 +100,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    print("=== Starting Autonomous Daily Cycle for ops-field-brief ===")
+    print("=== Starting Scheduled Engineering Audit for ops-field-brief ===")
 
     # 1. Run local test suite
     print("1. Running unit test suite...")
@@ -145,7 +145,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print("3. Running local-only verification; external API access is disabled by default.")
 
-    print("=== Autonomous Daily Cycle Completed Successfully ===")
+    print("=== Scheduled Engineering Audit Completed Successfully ===")
     return 0
 
 
