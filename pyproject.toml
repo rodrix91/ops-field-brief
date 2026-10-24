@@ -55,6 +55,7 @@ no_implicit_optional = true
 [tool.coverage.run]
 source = ["ops_field_brief"]
 branch = true
+patch = ["subprocess"]
 
 [tool.coverage.report]
 show_missing = true
