@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- CI now runs the full unit-test suite on Windows and macOS at the oldest and newest supported Python versions, in addition to the existing Ubuntu matrix.
+
 ## 0.3.0 - 2026-10-23
 
 - `--version` prints the installed `ops-field-brief` version and exits successfully.
