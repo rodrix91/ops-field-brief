@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Release builds now generate GitHub artifact provenance attestations for the wheel and source distribution, signed through GitHub OIDC/Sigstore and pinned to `actions/attest` v4.2.2 by commit SHA.
+
 - GitHub Actions checkouts now disable persisted Git credentials because CI, release, and scheduled audit jobs do not push repository changes.
 
 - Release checksum entries now use artifact basenames rather than `dist/`-prefixed paths, so `sha256sum -c SHA256SUMS` works directly in a download directory.
