@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- The autonomous maintenance script now requires both `--allow-external-api` and `GEMINI_API_KEY` before any external API call; an API key alone stays local-only. Three regression tests enforce both safe-default paths and the explicitly enabled mocked path.
+
 - CI now has a dedicated quality gate with branch coverage (minimum 90%), Ruff lint/format checks, and mypy type checking. Development tools are pinned separately and do not become runtime dependencies.
 
 - The build backend is pinned to `setuptools==84.2.1` for reproducible isolated builds, and Dependabot now tracks Python build dependencies weekly in addition to GitHub Actions.

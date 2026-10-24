@@ -28,8 +28,8 @@ jobs:
 
       - name: Run zero-cost local audit
         # Keep the scheduled cycle local-only: no external AI/API calls and no
-        # billable service usage. The script's optional API path remains
-        # available for an explicitly configured manual use outside this cron.
+        # billable service usage. The script additionally requires an explicit
+        # --allow-external-api flag before it can use any API key in its environment.
         run: python scripts/autonomous_agent.py
 
       - name: Verify test suite post-audit

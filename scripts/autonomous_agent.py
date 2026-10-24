@@ -7,6 +7,7 @@ for continuous optimization and code quality assessment.
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import subprocess
@@ -84,7 +85,21 @@ def query_gemini_api(prompt: str, api_key: str) -> str | None:
     return None
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Run the local repository audit.")
+    parser.add_argument(
+        "--allow-external-api",
+        action="store_true",
+        help=(
+            "Allow the optional Gemini assessment when GEMINI_API_KEY is also set. "
+            "Without this flag the audit remains local-only."
+        ),
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
     print("=== Starting Autonomous Daily Cycle for ops-field-brief ===")
 
     # 1. Run local test suite
@@ -103,10 +118,10 @@ def main() -> int:
         f"{len(audit['test_files'])} test modules."
     )
 
-    # 3. Query Gemini API if configured
+    # 3. External assessment is opt-in twice: explicit flag + API key.
     api_key = os.getenv("GEMINI_API_KEY")
-    if api_key:
-        print("3. Querying Gemini API for architectural assessment...")
+    if args.allow_external_api and api_key:
+        print("3. Querying Gemini API for explicitly enabled architectural assessment...")
         prompt = (
             "Analyze the following repository status for ops-field-brief:\n"
             f"{json.dumps(audit, indent=2)}\n"
@@ -117,11 +132,18 @@ def main() -> int:
             print(f"Gemini Assessment:\n{feedback.strip()}\n")
         else:
             print("Gemini API call completed without text candidate.")
-    else:
+    elif api_key:
         print(
-            "3. Note: GEMINI_API_KEY not found in environment; "
-            "running standard rule-based verification."
+            "3. External API disabled: GEMINI_API_KEY is present but "
+            "--allow-external-api was not provided; running local-only verification."
         )
+    elif args.allow_external_api:
+        print(
+            "3. External API requested but GEMINI_API_KEY is absent; "
+            "running local-only verification."
+        )
+    else:
+        print("3. Running local-only verification; external API access is disabled by default.")
 
     print("=== Autonomous Daily Cycle Completed Successfully ===")
     return 0
