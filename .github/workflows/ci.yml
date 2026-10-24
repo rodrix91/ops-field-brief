@@ -113,6 +113,7 @@ jobs:
               f"{root}/SECURITY.md",
               f"{root}/CONTRIBUTING.md",
               f"{root}/CITATION.cff",
+              f"{root}/docs/README.md",
               f"{root}/src/ops_field_brief/py.typed",
           }
           missing = required - names
