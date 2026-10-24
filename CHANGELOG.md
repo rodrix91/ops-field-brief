@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added opt-in `--strict-csv` structural validation: reject blank/duplicate header names and ragged data rows before calculating operational quality metrics. The default CSV behavior remains backward compatible; file and stdin regression tests cover both modes.
+
 - Source distributions now explicitly include `CONTRIBUTING.md`, and CI builds the sdist to verify both `SECURITY.md` and `CONTRIBUTING.md` are present.
 
 - README now documents how to verify release SHA-256 checksums and GitHub provenance attestations, while noting that historical releases may predate those guarantees.
