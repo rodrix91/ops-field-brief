@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Corrected a fail-open validation edge case: `--max-missing NaN` previously passed the 0-to-1 range checks and could suppress required-field completeness failures. Non-finite thresholds now exit 2 with a clear error, consistent with existing `--max-group-share` validation. Added library, CLI and regression coverage.
+
 - The regression suite now has 90 tests with 100% line and branch coverage.
 
 - Added optional `--max-incomplete-keys N` with `--key` to count and gate CSV rows with an empty component in a single or composite business key. Reports expose `incomplete_key_rows`, the configured limit, and the failed-gate flag; duplicate counting remains unchanged. Added a reproducible sample, CLI tests, and GitHub Action end-to-end checks.

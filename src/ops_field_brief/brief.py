@@ -133,7 +133,7 @@ def build_brief(
     max_group_share: float | None = None,
     max_incomplete_keys: int | None = None,
 ) -> Brief:
-    if max_missing < 0 or max_missing > 1:
+    if not 0 <= max_missing <= 1:
         raise ValueError("max_missing must be between 0 and 1")
     if top_n < 0:
         raise ValueError("top must be 0 or greater")
