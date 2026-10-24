@@ -211,6 +211,15 @@ jobs:
           args: --required order_id --max-missing 1 --key order_id,line_id --max-incomplete-keys 1 --json
           summary: "false"
 
+      - name: Action rejects malformed composite key fields
+        id: malformed-key
+        continue-on-error: true
+        uses: ./
+        with:
+          path: examples/orders-incomplete-keys.csv
+          args: --required order_id --key order_id,,line_id --json
+          summary: "false"
+
       - name: Action accepts the configured incomplete-key allowance
         id: incomplete-allowed
         uses: ./
@@ -250,6 +259,9 @@ jobs:
           ESCAPE_CODE: ${{ steps.escape.outputs.exit-code }}
           ESCAPE_PASSED: ${{ steps.escape.outputs.passed }}
           ESCAPE_OUTCOME: ${{ steps.escape.outcome }}
+          MALFORMED_KEY_CODE: ${{ steps.malformed-key.outputs.exit-code }}
+          MALFORMED_KEY_PASSED: ${{ steps.malformed-key.outputs.passed }}
+          MALFORMED_KEY_OUTCOME: ${{ steps.malformed-key.outcome }}
           INCOMPLETE_CODE: ${{ steps.incomplete.outputs.exit-code }}
           INCOMPLETE_PASSED: ${{ steps.incomplete.outputs.passed }}
           INCOMPLETE_OUTCOME: ${{ steps.incomplete.outcome }}
@@ -275,6 +287,9 @@ jobs:
           test "$SHORT_VERSION_CODE" = 2
           test "$SHORT_VERSION_PASSED" = false
           test "$SHORT_VERSION_OUTCOME" = failure
+          test "$MALFORMED_KEY_CODE" = 2
+          test "$MALFORMED_KEY_PASSED" = false
+          test "$MALFORMED_KEY_OUTCOME" = failure
           test "$INCOMPLETE_CODE" = 1
           test "$INCOMPLETE_PASSED" = false
           test "$INCOMPLETE_OUTCOME" = failure
