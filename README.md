@@ -34,22 +34,6 @@ python -m ops_field_brief shipments.csv \
 
 After `pip install .`, the same command is available as `ops-field-brief`. Use `ops-field-brief --version` to confirm the installed version.
 
-## Verify release artifacts
-
-Releases produced by the current release workflow include a `SHA256SUMS` file and GitHub artifact provenance attestations for the wheel and source distribution. After downloading the release files into one directory, verify the checksums:
-
-```bash
-sha256sum -c SHA256SUMS
-```
-
-Then verify provenance for each artifact with GitHub CLI:
-
-```bash
-gh attestation verify PATH/TO/ARTIFACT -R rodrix91/ops-field-brief
-```
-
-Historical releases created from older commits may predate checksums or provenance attestations; verify only the guarantees actually published with that release.
-
 Exit code `0` means every enabled quality gate passes. Exit code `1` means at least one required field is too empty, repeated keys exceed `--max-duplicates`, the data-row count is below `--min-rows`, or the largest `--group` exceeds `--max-group-share`. Exit code `2` means the file or the arguments could not be used, including an unknown `--encoding`, a `--max-missing` or `--max-group-share` outside 0 to 1, a negative `--max-duplicates` or `--min-rows`, an empty `--required` list, an unknown `--key` or `--group`, using `--max-group-share` without `--group`, a negative `--top`, or an unknown `--delimiter`.
 
 `--json` writes the same brief as JSON. `--key` accepts one field or a comma-separated composite business key such as `order_id,line_id`; duplicate rows are counted only when the complete key repeats, and rows with a blank key component are ignored for duplicate counting. `--delimiter` accepts `comma` (default), `semicolon`, `tab`, `pipe`, or `auto`. The default keeps the original comma behavior. `auto` detects those four common separators from the input and exits `2` with a clear message when detection is ambiguous. An unknown delimiter exits `2`.
@@ -96,6 +80,22 @@ python -m ops_field_brief shipments.csv \
 ```
 
 The threshold is a share from `0` to `1`. The gate is opt-in, so existing commands keep their current behavior.
+
+## Verify release artifacts
+
+Releases produced by the current release workflow include a `SHA256SUMS` file and GitHub artifact provenance attestations for the wheel and source distribution. After downloading the release files into one directory, verify the checksums:
+
+```bash
+sha256sum -c SHA256SUMS
+```
+
+Then verify provenance for each artifact with GitHub CLI:
+
+```bash
+gh attestation verify PATH/TO/ARTIFACT -R rodrix91/ops-field-brief
+```
+
+Historical releases created from older commits may predate checksums or provenance attestations; verify only the guarantees actually published with that release.
 
 ## Example
 
