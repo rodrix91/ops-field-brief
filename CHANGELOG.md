@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Business-key completeness now applies the same missing-value token rules as required-field checks: `NA`, `N/A`, `null`, `s/d` and similar placeholders count as incomplete key cells, rather than being counted as valid identifiers or duplicate business keys. Added single-key, composite-key and CLI regression tests.
+
 - Escaped CSV-derived field names, business keys and group values in Markdown output and GitHub Action summaries. Pipes and Markdown syntax no longer distort tables or create misleading links/headings; embedded CR/LF cannot add Markdown source lines. JSON values and quality-gate calculations remain unchanged, with regression tests covering single-line and multiline CSV content.
 
 - Corrected a fail-open validation edge case: `--max-missing NaN` previously passed the 0-to-1 range checks and could suppress required-field completeness failures. Non-finite thresholds now exit 2 with a clear error, consistent with existing `--max-group-share` validation. Added library, CLI and regression coverage.

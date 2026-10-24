@@ -6,7 +6,7 @@
 A small standard-library Python CLI that answers five practical questions about one operational CSV:
 
 - Are the required fields filled? Empty cells and tokens such as `NA`, `N/A`, `null`, `none`, `s/d`, `s.d.`, `N/D`, `N.D.`, and `-` count as missing.
-- Does the business key repeat?
+- Does the business key repeat? Blank keys and configured missing-value tokens (such as `NA`, `N/A`, `null` or `s/d`) are excluded from duplicate-key comparisons and counted as incomplete business-key rows when a key is selected.
 - Which groups account for the rows?
 - Does one group dominate more of the extract than allowed?
 - Does the extract contain at least the expected number of data rows?
