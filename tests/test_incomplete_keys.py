@@ -74,8 +74,14 @@ class IncompleteKeyTests(unittest.TestCase):
             path = Path(temp) / "empty.csv"
             path.write_text("shipment,buyer\n", encoding="utf-8")
             completed = self._run(
-                path, "--required", "shipment", "--key", "shipment",
-                "--max-incomplete-keys", "0", "--json",
+                path,
+                "--required",
+                "shipment",
+                "--key",
+                "shipment",
+                "--max-incomplete-keys",
+                "0",
+                "--json",
             )
         self.assertEqual(completed.returncode, 0, completed.stderr)
         payload = json.loads(completed.stdout)
@@ -90,19 +96,38 @@ class IncompleteKeyTests(unittest.TestCase):
                 encoding="utf-8",
             )
             base_args = (
-                "--required", "order", "--key", "order,line", "--max-missing", "1",
+                "--required",
+                "order",
+                "--key",
+                "order,line",
+                "--max-missing",
+                "1",
             )
             failed = self._run(
-                path, *base_args, "--max-incomplete-keys", "1", "--json",
+                path,
+                *base_args,
+                "--max-incomplete-keys",
+                "1",
+                "--json",
             )
             passed = self._run(
-                path, *base_args, "--max-incomplete-keys", "2",
+                path,
+                *base_args,
+                "--max-incomplete-keys",
+                "2",
             )
             no_key = self._run(
-                path, "--required", "order", "--max-incomplete-keys", "0",
+                path,
+                "--required",
+                "order",
+                "--max-incomplete-keys",
+                "0",
             )
             negative = self._run(
-                path, *base_args, "--max-incomplete-keys", "-1",
+                path,
+                *base_args,
+                "--max-incomplete-keys",
+                "-1",
             )
         self.assertEqual(failed.returncode, 1, failed.stderr)
         report = json.loads(failed.stdout)
