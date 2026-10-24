@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `--max-group-share SHARE` adds an opt-in concentration gate for `--group`: the command exits `1` when the largest group exceeds the allowed share of rows. Markdown and JSON report the observed share when enabled, while existing commands and default JSON remain unchanged.
+
 - The autonomous maintenance script now requires both `--allow-external-api` and `GEMINI_API_KEY` before any external API call; an API key alone stays local-only. Three regression tests enforce both safe-default paths and the explicitly enabled mocked path.
 
 - CI now has a dedicated quality gate with branch coverage (minimum 90%), Ruff lint/format checks, and mypy type checking. Development tools are pinned separately and do not become runtime dependencies.

@@ -64,6 +64,9 @@ class Brief:
     failed_duplicates: bool = False
     min_rows: int | None = None
     failed_rows: bool = False
+    max_group_share: float | None = None
+    top_group_share: float = 0.0
+    failed_group_share: bool = False
 
     def to_dict(self) -> dict:
         return {
@@ -89,6 +92,15 @@ class Brief:
                 if self.min_rows is not None
                 else {}
             ),
+            **(
+                {
+                    "max_group_share": self.max_group_share,
+                    "top_group_share": round(self.top_group_share, 4),
+                    "failed_group_share": self.failed_group_share,
+                }
+                if self.max_group_share is not None
+                else {}
+            ),
         }
 
 
@@ -112,6 +124,7 @@ def build_brief(
     max_duplicates: int | None = None,
     key_fields: list[str] | tuple[str, ...] | None = None,
     min_rows: int | None = None,
+    max_group_share: float | None = None,
 ) -> Brief:
     if max_missing < 0 or max_missing > 1:
         raise ValueError("max_missing must be between 0 and 1")
@@ -121,6 +134,10 @@ def build_brief(
         raise ValueError("max_duplicates must be 0 or greater")
     if min_rows is not None and min_rows < 0:
         raise ValueError("min_rows must be 0 or greater")
+    if max_group_share is not None and not 0 <= max_group_share <= 1:
+        raise ValueError("max_group_share must be between 0 and 1")
+    if max_group_share is not None and not group:
+        raise ValueError("max_group_share requires --group")
     if not rows and not required:
         raise ValueError("required fields are needed when the file has no header row")
 
@@ -167,6 +184,8 @@ def build_brief(
     failed = tuple(field.name for field in fields if field.missing_rate > max_missing)
     failed_duplicates = bool(max_duplicates is not None and duplicate_keys > max_duplicates)
     failed_rows = bool(min_rows is not None and len(rows) < min_rows)
+    top_group_share = groups.most_common(1)[0][1] / len(rows) if group and rows else 0.0
+    failed_group_share = bool(max_group_share is not None and top_group_share > max_group_share)
 
     return Brief(
         rows=len(rows),
@@ -180,6 +199,9 @@ def build_brief(
         failed_duplicates=failed_duplicates,
         min_rows=min_rows,
         failed_rows=failed_rows,
+        max_group_share=max_group_share,
+        top_group_share=top_group_share,
+        failed_group_share=failed_group_share,
     )
 
 
@@ -236,6 +258,9 @@ def render_markdown(brief: Brief) -> str:
         lines.append(f"- Max allowed duplicate extra rows: {brief.max_duplicates}")
     if brief.min_rows is not None:
         lines.append(f"- Minimum rows: {brief.min_rows}")
+    if brief.max_group_share is not None:
+        lines.append(f"- Max allowed top-group share: {brief.max_group_share:.1%}")
+        lines.append(f"- Observed top-group share: {brief.top_group_share:.1%}")
     lines.extend(
         [
             "",
@@ -275,6 +300,18 @@ def render_markdown(brief: Brief) -> str:
                 "## Failed row-count check",
                 "",
                 f"Rows ({brief.rows}) are below the minimum ({brief.min_rows}).",
+            ]
+        )
+    if brief.failed_group_share:
+        lines.extend(
+            [
+                "",
+                "## Failed group-concentration check",
+                "",
+                (
+                    f"Top-group share ({brief.top_group_share:.1%}) exceeds the limit "
+                    f"({brief.max_group_share:.1%})."
+                ),
             ]
         )
     return "\n".join(lines) + "\n"
