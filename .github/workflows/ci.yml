@@ -32,9 +32,7 @@ jobs:
           coverage combine
           coverage report
       - name: Lint
-        run: |
-          ruff check --fix .
-          git diff --exit-code
+        run: ruff check .
       - name: Check formatting
         run: ruff format --check .
       - name: Type check
