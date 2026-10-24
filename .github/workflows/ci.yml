@@ -17,3 +17,30 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Run unit tests
         run: PYTHONPATH=src python -m unittest discover -s tests -v
+
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Build wheel
+        run: python -m pip wheel --disable-pip-version-check --no-deps --wheel-dir "$RUNNER_TEMP/dist" .
+      - name: Install wheel in a clean environment
+        run: |
+          python -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/python" -m pip install --disable-pip-version-check --no-deps "$RUNNER_TEMP"/dist/*.whl
+      - name: Verify installed metadata and command
+        run: |
+          "$RUNNER_TEMP/venv/bin/python" - <<'PY'
+          import importlib.metadata
+          import pathlib
+          import tomllib
+
+          expected = tomllib.loads(pathlib.Path("pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
+          actual = importlib.metadata.version("ops-field-brief")
+          assert actual == expected, (actual, expected)
+          PY
+          "$RUNNER_TEMP/venv/bin/ops-field-brief" examples/shipments.csv --required shipment --key shipment --max-duplicates 1 > /dev/null
