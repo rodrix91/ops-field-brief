@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `--key` now accepts comma-separated composite business keys such as `order_id,line_id`; duplicate counting uses the complete key and ignores rows with a blank key component. JSON output adds `key_fields` while preserving the existing `key` field.
+
+- Header-only CSV files now retain their parsed column names for `--key` and `--group` validation, so valid fields do not become false `unknown columns` errors when there are zero data rows.
+
 - CI now runs PR validation once through the `pull_request` event, limits push validation to `main`, cancels superseded runs, and declares read-only repository permissions.
 
 - Stdin is now decoded with the explicit `--encoding` instead of the host locale, fixing UTF-8 BOM and cp1252 input on Windows.

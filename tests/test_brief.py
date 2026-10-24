@@ -1118,5 +1118,117 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(completed.stdout, f"ops-field-brief {__version__}\n")
 
 
+    def test_composite_key_counts_only_repeated_complete_pairs(self):
+        rows = [
+            {"order": "O1", "line": "1"},
+            {"order": "O1", "line": "2"},
+            {"order": "O1", "line": "1"},
+            {"order": "", "line": "1"},
+            {"order": "", "line": "1"},
+        ]
+        brief = build_brief(
+            rows,
+            ["order", "line"],
+            key_fields=["order", "line"],
+            max_duplicates=0,
+        )
+        self.assertEqual(brief.key, "order,line")
+        self.assertEqual(brief.key_fields, ("order", "line"))
+        self.assertEqual(brief.duplicate_keys, 1)
+        self.assertTrue(brief.failed_duplicates)
+        self.assertEqual(brief.to_dict()["key_fields"], ["order", "line"])
+
+    def test_cli_composite_key_is_reported_in_json(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "orders.csv"
+            path.write_text(
+                "order,line,buyer\nO1,1,A\nO1,2,A\nO1,1,B\n",
+                encoding="utf-8",
+            )
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "order,line",
+                    "--key",
+                    "order,line",
+                    "--max-duplicates",
+                    "0",
+                    "--json",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 1, completed.stderr)
+        payload = json.loads(completed.stdout)
+        self.assertEqual(payload["key"], "order,line")
+        self.assertEqual(payload["key_fields"], ["order", "line"])
+        self.assertEqual(payload["duplicate_keys"], 1)
+
+    def test_empty_composite_key_argument_exits_2(self):
+        path = ROOT / "examples" / "shipments.csv"
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(ROOT / "src")
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "ops_field_brief",
+                str(path),
+                "--required",
+                "shipment",
+                "--key",
+                " , ",
+            ],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 2)
+        self.assertIn("at least one key field", completed.stderr)
+
+
+    def test_header_only_file_keeps_composite_key_columns(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "header-only.csv"
+            path.write_text("order,line,buyer\n", encoding="utf-8")
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "order",
+                    "--key",
+                    "order,line",
+                    "--group",
+                    "buyer",
+                    "--json",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        payload = json.loads(completed.stdout)
+        self.assertEqual(payload["rows"], 0)
+        self.assertEqual(payload["key_fields"], ["order", "line"])
+
+
 if __name__ == "__main__":
     unittest.main()

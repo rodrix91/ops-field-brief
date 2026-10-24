@@ -11,6 +11,7 @@ import csv
 import io
 import json
 from collections import Counter
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -23,6 +24,18 @@ DELIMITERS = {
     "tab": "\t",
     "pipe": "|",
 }
+
+
+class CsvRows(list[dict[str, str]]):
+    """CSV rows that retain the parsed header even when there are no data rows."""
+
+    def __init__(
+        self,
+        rows: Iterable[dict[str, str]],
+        fieldnames: Iterable[str | None] | None,
+    ) -> None:
+        super().__init__(rows)
+        self.fieldnames = tuple(name for name in (fieldnames or ()) if name is not None)
 
 
 @dataclass(frozen=True)
@@ -47,6 +60,7 @@ class Brief:
     fields: tuple[FieldFill, ...]
     top: tuple[tuple[str, int], ...]
     failed_fields: tuple[str, ...]
+    key_fields: tuple[str, ...] = ()
     max_duplicates: int | None = None
     failed_duplicates: bool = False
 
@@ -54,6 +68,7 @@ class Brief:
         return {
             "rows": self.rows,
             "key": self.key,
+            "key_fields": list(self.key_fields),
             "duplicate_keys": self.duplicate_keys,
             "max_duplicates": self.max_duplicates,
             "failed_duplicates": self.failed_duplicates,
@@ -89,6 +104,7 @@ def build_brief(
     max_missing: float = 0.0,
     top_n: int = 5,
     max_duplicates: int | None = None,
+    key_fields: list[str] | tuple[str, ...] | None = None,
 ) -> Brief:
     if max_missing < 0 or max_missing > 1:
         raise ValueError("max_missing must be between 0 and 1")
@@ -99,17 +115,23 @@ def build_brief(
     if not rows and not required:
         raise ValueError("required fields are needed when the file has no header row")
 
-    header = list(rows[0].keys()) if rows else required
+    if key is not None and key_fields is not None:
+        raise ValueError("use either key or key_fields, not both")
+    effective_key_fields = tuple(key_fields) if key_fields is not None else ((key,) if key else ())
+    if any(not name for name in effective_key_fields):
+        raise ValueError("key fields must not be blank")
+
+    preserved_header = list(getattr(rows, "fieldnames", ()))
+    header = preserved_header or (list(rows[0].keys()) if rows else required)
     unknown = [name for name in required if name not in header]
-    if key and key not in header:
-        unknown.append(key)
+    unknown.extend(name for name in effective_key_fields if name not in header)
     if group and group not in header:
         unknown.append(group)
     if unknown:
         raise ValueError("unknown columns: " + ", ".join(unknown))
 
     fills = {name: FieldFill(name, 0, 0) for name in required}
-    keys: list[str] = []
+    keys: list[tuple[str, ...]] = []
     groups: Counter[str] = Counter()
 
     for row in rows:
@@ -119,15 +141,17 @@ def build_brief(
                 fills[name] = FieldFill(name, current.filled, current.missing + 1)
             else:
                 fills[name] = FieldFill(name, current.filled + 1, current.missing)
-        if key:
-            keys.append(_clean(row.get(key, "")))
+        if effective_key_fields:
+            key_value = tuple(_clean(row.get(name, "")) for name in effective_key_fields)
+            if all(key_value):
+                keys.append(key_value)
         if group:
             label = _clean(row.get(group, "")) or "(blank)"
             groups[label] += 1
 
     duplicate_keys = 0
-    if key:
-        counts = Counter(value for value in keys if value)
+    if effective_key_fields:
+        counts = Counter(keys)
         duplicate_keys = sum(count - 1 for count in counts.values() if count > 1)
 
     fields = tuple(fills[name] for name in required)
@@ -136,11 +160,12 @@ def build_brief(
 
     return Brief(
         rows=len(rows),
-        key=key,
+        key=",".join(effective_key_fields) or None,
         duplicate_keys=duplicate_keys,
         fields=fields,
         top=tuple(groups.most_common(top_n)),
         failed_fields=failed,
+        key_fields=effective_key_fields,
         max_duplicates=max_duplicates,
         failed_duplicates=failed_duplicates,
     )
@@ -170,17 +195,19 @@ def read_csv(
             if is_utf8:
                 text = text.lstrip("\ufeff")
             delimiter = _detect_delimiter(text[:8192])
-            return list(csv.DictReader(io.StringIO(text), delimiter=delimiter))
+            reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
+            return CsvRows(reader, reader.fieldnames)
         reader = csv.DictReader(stdin, delimiter=delimiter)
         if is_utf8 and reader.fieldnames and reader.fieldnames[0].startswith("\ufeff"):
             reader.fieldnames[0] = reader.fieldnames[0].lstrip("\ufeff")
-        return list(reader)
+        return CsvRows(reader, reader.fieldnames)
     with path.open(newline="", encoding=codec) as handle:
         if delimiter is None:
             sample = handle.read(8192)
             delimiter = _detect_delimiter(sample)
             handle.seek(0)
-        return list(csv.DictReader(handle, delimiter=delimiter))
+        reader = csv.DictReader(handle, delimiter=delimiter)
+        return CsvRows(reader, reader.fieldnames)
 
 
 def render_markdown(brief: Brief) -> str:
