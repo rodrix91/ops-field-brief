@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Package metadata now describes the current operational checks more accurately and exposes project status, intended audience, and the repository security page in built distributions.
+
 - The release workflow now installs the explicitly pinned `build==1.6.1`, matching the declared development dependency so release builds do not depend on whatever `build` version happens to be latest at publish time.
 
 - `--max-group-share SHARE` adds an opt-in concentration gate for `--group`: the command exits `1` when the largest group exceeds the allowed share of rows. Markdown and JSON report the observed share when enabled, while existing commands and default JSON remain unchanged.
