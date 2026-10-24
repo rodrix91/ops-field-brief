@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Stdin is now decoded with the explicit `--encoding` instead of the host locale, fixing UTF-8 BOM and cp1252 input on Windows.
+
 - CI now runs the full unit-test suite on Windows and macOS at the oldest and newest supported Python versions, in addition to the existing Ubuntu matrix.
 
 ## 0.3.0 - 2026-10-23
