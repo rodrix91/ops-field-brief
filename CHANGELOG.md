@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added focused edge-case regression tests for stdin, BOM handling, API validation, Markdown group-concentration output, and strict header metadata; the suite now has 76 tests and CI enforces 100% line and branch coverage.
+
 - The installed package now ships a PEP 561 `py.typed` marker; CI verifies the marker in both the source distribution and a clean wheel installation.
 
 - Added `CITATION.cff`; the source distribution now includes it, CI verifies its presence, and package metadata links directly to citation guidance.
