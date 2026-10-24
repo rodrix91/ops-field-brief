@@ -97,7 +97,45 @@ jobs:
           python -m build --sdist --outdir "$RUNNER_TEMP/sdist" .
           tar tzf "$RUNNER_TEMP"/sdist/*.tar.gz | grep -Eq '^[^/]+/SECURITY\.md$'
           tar tzf "$RUNNER_TEMP"/sdist/*.tar.gz | grep -Eq '^[^/]+/CONTRIBUTING\.md$'
-          tar tzf "$RUNNER_TEMP"/sdist/*.tar.gz | grep -Eq '^[^/]+/CITATION\.cff$'
+          tar tzf "$RUNNER_TEMP"/sdist/*.tar.gz | grep -Eq '^[^/]+/CITATION\.cff
+      - name: Install wheel in a clean environment
+        run: |
+          python -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/python" -m pip install --disable-pip-version-check --no-deps "$RUNNER_TEMP"/dist/*.whl
+      - name: Verify installed metadata and command
+        run: |
+          "$RUNNER_TEMP/venv/bin/python" - <<'PY'
+          import importlib.metadata
+          import ops_field_brief
+
+          from pathlib import Path
+
+          installed = importlib.metadata.version("ops-field-brief")
+          runtime = ops_field_brief.__version__
+          assert installed == runtime, (installed, runtime)
+
+          marker = Path(ops_field_brief.__file__).with_name("py.typed")
+          assert marker.is_file(), marker
+          PY
+          "$RUNNER_TEMP/venv/bin/ops-field-brief" examples/shipments.csv --required shipment --key shipment --max-duplicates 1 > /dev/null
+
+          tar tzf "$RUNNER_TEMP"/sdist/*.tar.gz | grep -Eq '^[^/]+/src/ops_field_brief/py\.typed
+      - name: Install wheel in a clean environment
+        run: |
+          python -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/python" -m pip install --disable-pip-version-check --no-deps "$RUNNER_TEMP"/dist/*.whl
+      - name: Verify installed metadata and command
+        run: |
+          "$RUNNER_TEMP/venv/bin/python" - <<'PY'
+          import importlib.metadata
+          import ops_field_brief
+
+          installed = importlib.metadata.version("ops-field-brief")
+          runtime = ops_field_brief.__version__
+          assert installed == runtime, (installed, runtime)
+          PY
+          "$RUNNER_TEMP/venv/bin/ops-field-brief" examples/shipments.csv --required shipment --key shipment --max-duplicates 1 > /dev/null
+
 
       - name: Install wheel in a clean environment
         run: |
