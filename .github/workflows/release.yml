@@ -54,8 +54,9 @@ jobs:
 
       - name: Write SHA-256 checksums
         run: |
-          sha256sum dist/*.whl dist/*.tar.gz > dist/SHA256SUMS
-          sha256sum -c dist/SHA256SUMS
+          cd dist
+          sha256sum *.whl *.tar.gz > SHA256SUMS
+          sha256sum -c SHA256SUMS
 
       - name: Publish GitHub release
         env:
