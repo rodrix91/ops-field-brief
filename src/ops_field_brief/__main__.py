@@ -6,6 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from ops_field_brief import __version__
 from ops_field_brief.brief import DELIMITERS, build_brief, read_csv, render
 
 
@@ -13,6 +14,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Report fill rate, repeated business keys, and top groups in a CSV."
     )
+    parser.add_argument("--version", action="version", version=f"ops-field-brief {__version__}")
     parser.add_argument("csv", type=Path, help="CSV with a header row. Use - to read from stdin.")
     parser.add_argument(
         "--encoding",
