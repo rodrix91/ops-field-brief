@@ -56,7 +56,7 @@ class MissingGroupBucketTests(unittest.TestCase):
     def test_cli_json_gate_and_top_zero_use_all_group_rows(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "groups.csv"
-            path.write_text("buyer\nN/A\nna\n\nAndes\n", encoding="utf-8")
+            path.write_text('buyer\nN/A\nna\n""\nAndes\n', encoding="utf-8")
             env = {**os.environ, "PYTHONPATH": str(ROOT / "src")}
             cmd = [
                 sys.executable,
@@ -93,7 +93,10 @@ class MissingGroupBucketTests(unittest.TestCase):
         self.assertEqual(hidden.returncode, 1, hidden.stderr)
         payload = json.loads(response.stdout)
         self.assertEqual(payload["fields"][0]["missing"], 3)
-        self.assertEqual(payload["top"], [{"value": "(blank)", "rows": 3}, {"value": "Andes", "rows": 1}])
+        self.assertEqual(
+            payload["top"],
+            [{"value": "(blank)", "rows": 3}, {"value": "Andes", "rows": 1}],
+        )
         self.assertEqual(payload["top_group_share"], 0.75)
         self.assertTrue(payload["failed_group_share"])
         self.assertEqual(json.loads(hidden.stdout)["top"], [])
