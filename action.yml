@@ -1,0 +1,41 @@
+name: ops-field-brief
+description: Run operational CSV quality gates in a GitHub Actions workflow.
+inputs:
+  path:
+    description: CSV path relative to the workflow workspace.
+    required: true
+  args:
+    description: Additional ops-field-brief CLI arguments.
+    required: false
+    default: ""
+  python-version:
+    description: Python version used to run the action.
+    required: false
+    default: "3.12"
+  summary:
+    description: Write the CLI report to the GitHub job summary.
+    required: false
+    default: "true"
+outputs:
+  exit-code:
+    description: ops-field-brief exit code.
+    value: ${{ steps.run.outputs.exit-code }}
+  passed:
+    description: "true when every enabled quality gate passed."
+    value: ${{ steps.run.outputs.passed }}
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+      with:
+        python-version: ${{ inputs.python-version }}
+    - name: Run ops-field-brief
+      id: run
+      shell: bash
+      env:
+        OPS_FIELD_BRIEF_ACTION_PATH: ${{ github.action_path }}
+        OPS_FIELD_BRIEF_INPUT_PATH: ${{ inputs.path }}
+        OPS_FIELD_BRIEF_INPUT_ARGS: ${{ inputs.args }}
+        OPS_FIELD_BRIEF_INPUT_SUMMARY: ${{ inputs.summary }}
+      run: python "${{ github.action_path }}/scripts/run_action.py"
