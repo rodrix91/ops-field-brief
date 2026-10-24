@@ -75,15 +75,30 @@ class MarkdownEscapingTests(unittest.TestCase):
             env = dict(os.environ)
             env["PYTHONPATH"] = str(ROOT / "src")
             command = [
-                sys.executable, "-m", "ops_field_brief", str(file),
-                "--required", "shipment", "--group", "buyer",
+                sys.executable,
+                "-m",
+                "ops_field_brief",
+                str(file),
+                "--required",
+                "shipment",
+                "--group",
+                "buyer",
             ]
             markdown = subprocess.run(
-                command, cwd=ROOT, env=env, capture_output=True, text=True, check=False,
+                command,
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
             )
             data = subprocess.run(
                 [*command, "--json"],
-                cwd=ROOT, env=env, capture_output=True, text=True, check=False,
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
             )
         self.assertEqual(markdown.returncode, 0, markdown.stderr)
         self.assertEqual(data.returncode, 0, data.stderr)
