@@ -228,6 +228,14 @@ jobs:
           args: --required buyer --max-missing NaN
           summary: "false"
 
+      - name: Action renders Markdown-like CSV text safely
+        id: markdown
+        uses: ./
+        with:
+          path: examples/markdown-safety.csv
+          args: --required shipment --group buyer
+          summary: "true"
+
       - name: Verify action outputs
         env:
           HELP_CODE: ${{ steps.help.outputs.exit-code }}
@@ -250,6 +258,8 @@ jobs:
           NAN_THRESHOLD_CODE: ${{ steps.nan-threshold.outputs.exit-code }}
           NAN_THRESHOLD_PASSED: ${{ steps.nan-threshold.outputs.passed }}
           NAN_THRESHOLD_OUTCOME: ${{ steps.nan-threshold.outcome }}
+          MARKDOWN_CODE: ${{ steps.markdown.outputs.exit-code }}
+          MARKDOWN_PASSED: ${{ steps.markdown.outputs.passed }}
           OK_CODE: ${{ steps.ok.outputs.exit-code }}
           OK_PASSED: ${{ steps.ok.outputs.passed }}
           GATE_CODE: ${{ steps.gate.outputs.exit-code }}
@@ -273,6 +283,8 @@ jobs:
           test "$NAN_THRESHOLD_CODE" = 2
           test "$NAN_THRESHOLD_PASSED" = false
           test "$NAN_THRESHOLD_OUTCOME" = failure
+          test "$MARKDOWN_CODE" = 0
+          test "$MARKDOWN_PASSED" = true
           test "$OK_CODE" = 0
           test "$OK_PASSED" = true
           test "$GATE_CODE" = 1
