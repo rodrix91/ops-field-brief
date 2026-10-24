@@ -36,11 +36,10 @@ jobs:
         run: |
           "$RUNNER_TEMP/venv/bin/python" - <<'PY'
           import importlib.metadata
-          import pathlib
-          import tomllib
+          import ops_field_brief
 
-          expected = tomllib.loads(pathlib.Path("pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
-          actual = importlib.metadata.version("ops-field-brief")
-          assert actual == expected, (actual, expected)
+          installed = importlib.metadata.version("ops-field-brief")
+          runtime = ops_field_brief.__version__
+          assert installed == runtime, (installed, runtime)
           PY
           "$RUNNER_TEMP/venv/bin/ops-field-brief" examples/shipments.csv --required shipment --key shipment --max-duplicates 1 > /dev/null
