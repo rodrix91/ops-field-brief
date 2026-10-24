@@ -15,7 +15,6 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
-
 MISSING = {"", "na", "n/a", "null", "none", "s/d", "s.d.", "n/d", "n.d.", "-"}
 
 DELIMITERS = {
