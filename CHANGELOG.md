@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added `CITATION.cff`; the source distribution now includes it, CI verifies its presence, and package metadata links directly to citation guidance.
+
 - Added opt-in `--strict-csv` structural validation: reject blank/duplicate header names and ragged data rows before calculating operational quality metrics. The default CSV behavior remains backward compatible; file and stdin regression tests cover both modes.
 
 - Source distributions now explicitly include `CONTRIBUTING.md`, and CI builds the sdist to verify both `SECURITY.md` and `CONTRIBUTING.md` are present.
