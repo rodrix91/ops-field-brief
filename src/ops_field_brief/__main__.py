@@ -100,9 +100,12 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     key_fields = None
     if args.key is not None:
-        key_fields = [part.strip() for part in args.key.split(",") if part.strip()]
-        if not key_fields:
+        key_fields = [part.strip() for part in args.key.split(",")]
+        if not any(key_fields):
             print("at least one key field is needed", file=sys.stderr)
+            return 2
+        if any(not field for field in key_fields):
+            print("empty column in --key; specify every key field", file=sys.stderr)
             return 2
     try:
         rows = read_csv(
