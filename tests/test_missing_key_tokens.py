@@ -20,8 +20,12 @@ class MissingKeyTokenTests(unittest.TestCase):
             with self.subTest(token=token):
                 rows = [{"order": token}, {"order": token}, {"order": "O-1"}]
                 brief = build_brief(
-                    rows, ["order"], key="order", max_missing=0,
-                    max_incomplete_keys=1, max_duplicates=0,
+                    rows,
+                    ["order"],
+                    key="order",
+                    max_missing=0,
+                    max_incomplete_keys=1,
+                    max_duplicates=0,
                 )
                 self.assertEqual(brief.incomplete_key_rows, 2)
                 self.assertEqual(brief.duplicate_keys, 0)
@@ -41,8 +45,11 @@ class MissingKeyTokenTests(unittest.TestCase):
             {"order": "O-3", "line": "2"},
         ]
         brief = build_brief(
-            rows, ["line"], key_fields=["order", "line"],
-            max_incomplete_keys=0, max_duplicates=0,
+            rows,
+            ["line"],
+            key_fields=["order", "line"],
+            max_incomplete_keys=0,
+            max_duplicates=0,
         )
         self.assertEqual(brief.duplicate_keys, 1)
         self.assertEqual(brief.incomplete_key_rows, 2)
@@ -58,12 +65,25 @@ class MissingKeyTokenTests(unittest.TestCase):
             source.write_text("order\nN/A\nNA\nO-1\n", encoding="utf-8")
             env = {**os.environ, "PYTHONPATH": str(ROOT / "src")}
             cmd = [
-                sys.executable, "-m", "ops_field_brief", str(source),
-                "--required", "order", "--key", "order",
-                "--max-incomplete-keys", "0", "--json",
+                sys.executable,
+                "-m",
+                "ops_field_brief",
+                str(source),
+                "--required",
+                "order",
+                "--key",
+                "order",
+                "--max-incomplete-keys",
+                "0",
+                "--json",
             ]
             run = subprocess.run(
-                cmd, cwd=ROOT, env=env, capture_output=True, text=True, check=False,
+                cmd,
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
             )
         self.assertEqual(run.returncode, 1, run.stderr)
         payload = json.loads(run.stdout)
