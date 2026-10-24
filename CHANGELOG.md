@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Prevented false-green reusable Action runs when `args` contains `-h`, `--help`, `--version` or argparse-accepted abbreviated spellings: the Action now fails closed with `exit-code=2` and `passed=false`, before running the CLI. Added regression and Action end-to-end checks; standalone CLI help/version remain unchanged.
+
 - Added an operations playbook under `docs/README.md` covering quality gates, CI integration, outcomes and privacy safeguards; the repository Documentation URL now resolves to a real page, and CI verifies the page is included in source distributions. README now reflects 83 tests.
 
 - The reusable GitHub Action now validates the input CSV path against `GITHUB_WORKSPACE` before launching the CLI: absolute paths, parent traversal, symlink escapes, and stdin (`-`) are rejected with the existing exit-code/passed outputs. Added unit and end-to-end CI regression checks; normal relative paths remain supported.

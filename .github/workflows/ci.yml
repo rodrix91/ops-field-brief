@@ -175,8 +175,44 @@ jobs:
           args: --required shipment
           summary: "false"
 
+      - name: Action rejects help without reporting a CSV success
+        id: help
+        continue-on-error: true
+        uses: ./
+        with:
+          path: examples/shipments.csv
+          args: --help
+          summary: "false"
+
+      - name: Action rejects version without reporting a CSV success
+        id: version
+        continue-on-error: true
+        uses: ./
+        with:
+          path: examples/shipments.csv
+          args: --version
+          summary: "false"
+
+      - name: Action rejects abbreviated version bypass
+        id: short-version
+        continue-on-error: true
+        uses: ./
+        with:
+          path: examples/shipments.csv
+          args: --ver
+          summary: "false"
+
       - name: Verify action outputs
         env:
+          HELP_CODE: ${{ steps.help.outputs.exit-code }}
+          HELP_PASSED: ${{ steps.help.outputs.passed }}
+          HELP_OUTCOME: ${{ steps.help.outcome }}
+          VERSION_CODE: ${{ steps.version.outputs.exit-code }}
+          VERSION_PASSED: ${{ steps.version.outputs.passed }}
+          VERSION_OUTCOME: ${{ steps.version.outcome }}
+          SHORT_VERSION_CODE: ${{ steps.short-version.outputs.exit-code }}
+          SHORT_VERSION_PASSED: ${{ steps.short-version.outputs.passed }}
+          SHORT_VERSION_OUTCOME: ${{ steps.short-version.outcome }}
           ESCAPE_CODE: ${{ steps.escape.outputs.exit-code }}
           ESCAPE_PASSED: ${{ steps.escape.outputs.passed }}
           ESCAPE_OUTCOME: ${{ steps.escape.outcome }}
@@ -186,6 +222,15 @@ jobs:
           GATE_PASSED: ${{ steps.gate.outputs.passed }}
           GATE_OUTCOME: ${{ steps.gate.outcome }}
         run: |
+          test "$HELP_CODE" = 2
+          test "$HELP_PASSED" = false
+          test "$HELP_OUTCOME" = failure
+          test "$VERSION_CODE" = 2
+          test "$VERSION_PASSED" = false
+          test "$VERSION_OUTCOME" = failure
+          test "$SHORT_VERSION_CODE" = 2
+          test "$SHORT_VERSION_PASSED" = false
+          test "$SHORT_VERSION_OUTCOME" = failure
           test "$OK_CODE" = 0
           test "$OK_PASSED" = true
           test "$GATE_CODE" = 1
