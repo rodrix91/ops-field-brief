@@ -35,9 +35,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--top", type=int, default=5)
     parser.add_argument(
         "--delimiter",
-        choices=sorted(DELIMITERS),
+        choices=["auto", *sorted(DELIMITERS)],
         default="comma",
-        help="Field separator. Default comma keeps the original behavior.",
+        help=(
+            "Field separator. Use auto to detect comma, semicolon, tab, or pipe. "
+            "Default comma keeps the original behavior."
+        ),
     )
     parser.add_argument(
         "--max-duplicates",
@@ -58,7 +61,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         rows = read_csv(
             args.csv,
-            delimiter=DELIMITERS[args.delimiter],
+            delimiter=None if args.delimiter == "auto" else DELIMITERS[args.delimiter],
             encoding=args.encoding,
             stdin=sys.stdin if str(args.csv) == "-" else None,
         )

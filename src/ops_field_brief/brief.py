@@ -8,6 +8,7 @@ repeat, and which counterparties account for the rows.
 from __future__ import annotations
 
 import csv
+import io
 import json
 from collections import Counter
 from dataclasses import dataclass
@@ -145,9 +146,18 @@ def build_brief(
     )
 
 
+def _detect_delimiter(sample: str) -> str:
+    try:
+        return csv.Sniffer().sniff(sample, delimiters=",;\t|").delimiter
+    except csv.Error as exc:
+        raise ValueError(
+            "could not detect delimiter; use --delimiter comma, semicolon, tab, or pipe"
+        ) from exc
+
+
 def read_csv(
     path: Path,
-    delimiter: str = ",",
+    delimiter: str | None = ",",
     encoding: str = "utf-8",
     stdin=None,
 ) -> list[dict[str, str]]:
@@ -155,11 +165,21 @@ def read_csv(
     is_utf8 = encoding.lower().replace("_", "-") in ("utf-8", "utf8", "utf-8-sig")
     codec = "utf-8-sig" if is_utf8 else encoding
     if stdin is not None:
+        if delimiter is None:
+            text = stdin.read()
+            if is_utf8:
+                text = text.lstrip("\ufeff")
+            delimiter = _detect_delimiter(text[:8192])
+            return list(csv.DictReader(io.StringIO(text), delimiter=delimiter))
         reader = csv.DictReader(stdin, delimiter=delimiter)
         if is_utf8 and reader.fieldnames and reader.fieldnames[0].startswith("\ufeff"):
             reader.fieldnames[0] = reader.fieldnames[0].lstrip("\ufeff")
         return list(reader)
     with path.open(newline="", encoding=codec) as handle:
+        if delimiter is None:
+            sample = handle.read(8192)
+            delimiter = _detect_delimiter(sample)
+            handle.seek(0)
         return list(csv.DictReader(handle, delimiter=delimiter))
 
 

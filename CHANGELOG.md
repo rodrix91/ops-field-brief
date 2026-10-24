@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- `--delimiter auto` detects comma, semicolon, tab, or pipe for files and stdin; ambiguous input exits `2` with guidance to choose a delimiter explicitly.
+
 ## 0.1.0
 
 - Operational brief: fill rate, repeated business keys, and top groups.

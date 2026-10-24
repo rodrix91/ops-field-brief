@@ -998,5 +998,83 @@ class BriefTests(unittest.TestCase):
         self.assertTrue(payload["failed_duplicates"])
 
 
+    def test_auto_delimiter_detects_semicolon_file(self):
+        path = ROOT / "examples" / "shipments-semicolon.csv"
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(ROOT / "src")
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "ops_field_brief",
+                str(path),
+                "--required",
+                "envio,comprador,eta",
+                "--delimiter",
+                "auto",
+                "--key",
+                "envio",
+            ],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 1, completed.stderr)
+        self.assertIn("Rows: 2", completed.stdout)
+        self.assertIn("envio", completed.stdout)
+
+    def test_auto_delimiter_detects_pipe_on_stdin(self):
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(ROOT / "src")
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "ops_field_brief",
+                "-",
+                "--required",
+                "shipment,buyer",
+                "--delimiter",
+                "auto",
+            ],
+            cwd=ROOT,
+            env=env,
+            input="shipment|buyer\nS1|Andes\nS2|Paz\n",
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Rows: 2", completed.stdout)
+
+    def test_auto_delimiter_reports_ambiguous_input(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "single-column.csv"
+            path.write_text("shipment\nS1\nS2\n", encoding="utf-8")
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment",
+                    "--delimiter",
+                    "auto",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 2)
+        self.assertIn("could not detect delimiter", completed.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()
