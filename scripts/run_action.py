@@ -53,6 +53,21 @@ def _validated_csv_path(raw: str, workspace: str | None) -> Path:
     return resolved
 
 
+
+def _reject_nonexecuting_flags(args: list[str]) -> None:
+    """The reusable Action must not report success without examining a CSV."""
+    for token in args:
+        if token == "-h" or (
+            token.startswith("--")
+            and len(token) > 2
+            and any(option.startswith(token) for option in ("--help", "--version"))
+        ):
+            raise ValueError(
+                "Action args must not contain --help or --version; "
+                "run these informational options using the standalone CLI."
+            )
+
+
 def main() -> int:
     csv_path = os.getenv("OPS_FIELD_BRIEF_INPUT_PATH", "")
     if not csv_path:
@@ -64,6 +79,7 @@ def main() -> int:
     raw_args = os.getenv("OPS_FIELD_BRIEF_INPUT_ARGS", "")
     try:
         extra_args = shlex.split(raw_args)
+        _reject_nonexecuting_flags(extra_args)
     except ValueError as exc:
         print(f"Invalid action args: {exc}", file=sys.stderr)
         _append_output("exit-code", "2")
