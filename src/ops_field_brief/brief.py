@@ -185,9 +185,7 @@ def build_brief(
     failed_duplicates = bool(max_duplicates is not None and duplicate_keys > max_duplicates)
     failed_rows = bool(min_rows is not None and len(rows) < min_rows)
     top_group_share = groups.most_common(1)[0][1] / len(rows) if group and rows else 0.0
-    failed_group_share = bool(
-        max_group_share is not None and top_group_share > max_group_share
-    )
+    failed_group_share = bool(max_group_share is not None and top_group_share > max_group_share)
 
     return Brief(
         rows=len(rows),
