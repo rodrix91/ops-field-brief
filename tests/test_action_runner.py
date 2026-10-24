@@ -19,7 +19,7 @@ class ActionPathTests(unittest.TestCase):
             nested = workspace / "exports"
             nested.mkdir(parents=True)
             csv_file = nested / "shipments.csv"
-            csv_file.write_text("shipment,buyer\\nA1,B1\\n", encoding="utf-8")
+            csv_file.write_text("shipment,buyer\nA1,B1\n", encoding="utf-8")
             self.assertEqual(
                 run_action._validated_csv_path("exports/shipments.csv", str(workspace)),
                 csv_file.resolve(),
@@ -30,7 +30,7 @@ class ActionPathTests(unittest.TestCase):
             workspace = Path(temp) / "workspace"
             workspace.mkdir()
             outside = Path(temp) / "private.csv"
-            outside.write_text("secret\\n", encoding="utf-8")
+            outside.write_text("secret\n", encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "stay within GITHUB_WORKSPACE"):
                 run_action._validated_csv_path("../private.csv", str(workspace))
 
@@ -46,7 +46,7 @@ class ActionPathTests(unittest.TestCase):
             workspace = Path(temp) / "workspace"
             workspace.mkdir()
             outside = Path(temp) / "private.csv"
-            outside.write_text("secret\\n", encoding="utf-8")
+            outside.write_text("secret\n", encoding="utf-8")
             link = workspace / "linked.csv"
             try:
                 link.symlink_to(outside)
@@ -80,7 +80,7 @@ class ActionPathTests(unittest.TestCase):
                     mocked.assert_not_called()
             self.assertEqual(
                 output.read_text(encoding="utf-8"),
-                "exit-code=2\\npassed=false\\n",
+                "exit-code=2\npassed=false\n",
             )
 
     def test_main_passes_resolved_workspace_file_to_cli(self):
@@ -88,7 +88,7 @@ class ActionPathTests(unittest.TestCase):
             workspace = Path(temp) / "workspace"
             workspace.mkdir()
             csv_file = workspace / "shipments.csv"
-            csv_file.write_text("shipment,buyer\\nA1,B1\\n", encoding="utf-8")
+            csv_file.write_text("shipment,buyer\nA1,B1\n", encoding="utf-8")
             output = Path(temp) / "github-output.txt"
             env = {
                 "OPS_FIELD_BRIEF_INPUT_PATH": "shipments.csv",
@@ -107,7 +107,7 @@ class ActionPathTests(unittest.TestCase):
                     self.assertEqual(command[4:], ["--required", "shipment", "--strict-csv"])
             self.assertEqual(
                 output.read_text(encoding="utf-8"),
-                "exit-code=0\\npassed=true\\n",
+                "exit-code=0\npassed=true\n",
             )
 
 
