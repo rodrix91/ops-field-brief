@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Release artifacts now include a `SHA256SUMS` file so downloaded wheels and source distributions can be independently verified.
+
 - The release job now has an explicit timeout so a stuck build, install, or release test cannot occupy a runner indefinitely.
 
 - CI jobs now have explicit conservative timeouts so a hung test or platform runner cannot consume GitHub Actions indefinitely.
