@@ -52,6 +52,11 @@ jobs:
           cd "$RUNNER_TEMP"/sdist/*/
           PYTHONPATH=src python -m unittest discover -s tests -v
 
+      - name: Write SHA-256 checksums
+        run: |
+          sha256sum dist/*.whl dist/*.tar.gz > dist/SHA256SUMS
+          sha256sum -c dist/SHA256SUMS
+
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
