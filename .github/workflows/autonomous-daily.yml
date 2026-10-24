@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ secrets.PAT_GEMINI }}
@@ -29,10 +29,10 @@ jobs:
       - name: Run unit test suite
         run: PYTHONPATH=src python -m unittest discover -s tests -v
 
-      - name: Run autonomous agent audit & optimization
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.PAT_GEMINI }}
+      - name: Run zero-cost local audit
+        # Keep the scheduled cycle local-only: no external AI/API calls and no
+        # billable service usage. The script's optional API path remains
+        # available for an explicitly configured manual use outside this cron.
         run: python scripts/autonomous_agent.py
 
       - name: Verify test suite post-audit
