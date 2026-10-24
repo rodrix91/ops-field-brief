@@ -151,6 +151,10 @@ Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for
 
 Report a security problem through [SECURITY.md](SECURITY.md), not in a public issue.
 
+## Citation
+
+If you use `ops-field-brief` in research, teaching, or a reproducible operational workflow, cite the software using [CITATION.cff](CITATION.cff). The citation metadata is included in the source distribution and linked from the package metadata.
+
 ## License
 
 MIT. See the [LICENSE](LICENSE) file. Copyright (c) 2026 Rodrigo Pantoja Navajas.

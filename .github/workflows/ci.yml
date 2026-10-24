@@ -97,6 +97,7 @@ jobs:
           python -m build --sdist --outdir "$RUNNER_TEMP/sdist" .
           tar tzf "$RUNNER_TEMP"/sdist/*.tar.gz | grep -Eq '^[^/]+/SECURITY\.md$'
           tar tzf "$RUNNER_TEMP"/sdist/*.tar.gz | grep -Eq '^[^/]+/CONTRIBUTING\.md$'
+          tar tzf "$RUNNER_TEMP"/sdist/*.tar.gz | grep -Eq '^[^/]+/CITATION\.cff$'
 
       - name: Install wheel in a clean environment
         run: |

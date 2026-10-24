@@ -20,7 +20,7 @@ PYTHONPATH=src python -m unittest discover -s tests
 
 Before opening a pull request:
 
-1. Run `coverage run -m unittest discover -s tests && coverage report`. Branch coverage must stay at or above 90%.
+1. Run `coverage run -m unittest discover -s tests && coverage combine && coverage report`. Branch coverage must stay at or above 90%.
 2. Run `ruff check .` and `ruff format --check .`.
 3. Run `mypy`.
 4. Keep the runtime standard-library only. Development-only tools belong in `requirements-dev.txt`.
