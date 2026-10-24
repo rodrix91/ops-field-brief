@@ -64,21 +64,10 @@ def audit_repository() -> dict:
 def query_gemini_api(prompt: str, api_key: str) -> str | None:
     """Queries Google Gemini API using only the Python standard library."""
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-    payload = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": prompt}
-                ]
-            }
-        ]
-    }
+    payload = {"contents": [{"parts": [{"text": prompt}]}]}
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
-        url,
-        data=data,
-        headers={"Content-Type": "application/json"},
-        method="POST"
+        url, data=data, headers={"Content-Type": "application/json"}, method="POST"
     )
 
     try:
@@ -97,7 +86,7 @@ def query_gemini_api(prompt: str, api_key: str) -> str | None:
 
 def main() -> int:
     print("=== Starting Autonomous Daily Cycle for ops-field-brief ===")
-    
+
     # 1. Run local test suite
     print("1. Running unit test suite...")
     passed, test_log = run_tests()
