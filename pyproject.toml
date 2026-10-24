@@ -31,6 +31,7 @@ Issues = "https://github.com/rodrix91/ops-field-brief/issues"
 Contributing = "https://github.com/rodrix91/ops-field-brief/blob/main/CONTRIBUTING.md"
 Documentation = "https://github.com/rodrix91/ops-field-brief/tree/main/docs"
 Security = "https://github.com/rodrix91/ops-field-brief/security"
+Citation = "https://github.com/rodrix91/ops-field-brief/blob/main/CITATION.cff"
 
 [project.scripts]
 ops-field-brief = "ops_field_brief.__main__:main"
