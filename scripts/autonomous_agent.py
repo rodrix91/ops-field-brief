@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Autonomous Engineering Agent for ops-field-brief.
-Runs daily automated audits, verifies test suites, and interfaces with the Gemini API
-for continuous optimization and code quality assessment.
+Runs automated local audits and verifies the test suite. An optional Gemini assessment
+is available only with an explicit command-line opt-in plus an API key.
 """
 
 from __future__ import annotations
