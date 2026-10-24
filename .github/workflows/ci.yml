@@ -96,40 +96,8 @@ jobs:
           python -m pip install --disable-pip-version-check build==1.6.1
           python -m build --sdist --outdir "$RUNNER_TEMP/sdist" .
           tar tzf "$RUNNER_TEMP"/sdist/*.tar.gz | grep -Eq '^[^/]+/SECURITY\.md$'
-          tar tzf "$RUNNER_TEMP"/sdist/*.tar.gz | grep -Eq '^[^/]+/CONTRIBUTING\.md
-      - name: Install wheel in a clean environment
-        run: |
-          python -m venv "$RUNNER_TEMP/venv"
-          "$RUNNER_TEMP/venv/bin/python" -m pip install --disable-pip-version-check --no-deps "$RUNNER_TEMP"/dist/*.whl
-      - name: Verify installed metadata and command
-        run: |
-          "$RUNNER_TEMP/venv/bin/python" - <<'PY'
-          import importlib.metadata
-          import ops_field_brief
-
-          installed = importlib.metadata.version("ops-field-brief")
-          runtime = ops_field_brief.__version__
-          assert installed == runtime, (installed, runtime)
-          PY
-          "$RUNNER_TEMP/venv/bin/ops-field-brief" examples/shipments.csv --required shipment --key shipment --max-duplicates 1 > /dev/null
-
-          tar tzf "$RUNNER_TEMP"/sdist/*.tar.gz | grep -Eq '^[^/]+/CITATION\.cff
-      - name: Install wheel in a clean environment
-        run: |
-          python -m venv "$RUNNER_TEMP/venv"
-          "$RUNNER_TEMP/venv/bin/python" -m pip install --disable-pip-version-check --no-deps "$RUNNER_TEMP"/dist/*.whl
-      - name: Verify installed metadata and command
-        run: |
-          "$RUNNER_TEMP/venv/bin/python" - <<'PY'
-          import importlib.metadata
-          import ops_field_brief
-
-          installed = importlib.metadata.version("ops-field-brief")
-          runtime = ops_field_brief.__version__
-          assert installed == runtime, (installed, runtime)
-          PY
-          "$RUNNER_TEMP/venv/bin/ops-field-brief" examples/shipments.csv --required shipment --key shipment --max-duplicates 1 > /dev/null
-
+          tar tzf "$RUNNER_TEMP"/sdist/*.tar.gz | grep -Eq '^[^/]+/CONTRIBUTING\.md$'
+          tar tzf "$RUNNER_TEMP"/sdist/*.tar.gz | grep -Eq '^[^/]+/CITATION\.cff$'
 
       - name: Install wheel in a clean environment
         run: |
