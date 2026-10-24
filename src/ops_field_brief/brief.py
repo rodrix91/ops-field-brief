@@ -117,7 +117,7 @@ def build_brief(
         raise ValueError("unknown columns: " + ", ".join(unknown))
 
     fills = {name: FieldFill(name, 0, 0) for name in required}
-    keys: list[str] = []
+    keys: list[tuple[str, ...]] = []
     groups: Counter[str] = Counter()
 
     for row in rows:
