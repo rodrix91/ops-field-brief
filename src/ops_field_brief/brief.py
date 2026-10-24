@@ -31,7 +31,6 @@ def _markdown_text(value: str) -> str:
     return value.translate(_MARKDOWN_ESCAPES)
 
 
-
 DELIMITERS = {
     "comma": ",",
     "semicolon": ";",
