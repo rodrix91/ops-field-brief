@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Security documentation now distinguishes the local-only runtime CLI from the optional maintenance script, whose external Gemini assessment requires both `--allow-external-api` and `GEMINI_API_KEY`; the agent docstring now states the same safe-default behavior.
+
 - Package metadata now describes the current operational checks more accurately and exposes project status, intended audience, and the repository security page in built distributions.
 
 - The release workflow now installs the explicitly pinned `build==1.6.1`, matching the declared development dependency so release builds do not depend on whatever `build` version happens to be latest at publish time.
