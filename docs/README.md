@@ -16,6 +16,8 @@ Practical, reproducible checks for CSV extracts used in shipping, order processi
 | Are columns structurally consistent? | `--strict-csv` | Exit `2` on duplicate or blank headers and rows with the wrong number of fields |
 | Is a composite key unique? | `--key order_id,line_id --max-duplicates 0` | Repeats are checked on complete tuples, not on each column in isolation |
 
+A comma-separated `--key` must specify every component: `--key order_id,,line_id` (or a leading/trailing comma) is invalid and returns exit `2` rather than silently changing the key. This is checked by the CLI and the reusable Action.
+
 These controls are opt-in except `--required`. Gate thresholds are examples, not universal business rules. Agree on suitable limits with the data owner before using them to block a delivery.
 
 ## 2. Check an export locally
