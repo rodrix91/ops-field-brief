@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Normalize blank and missing-token (`NA`, `N/A`, `null`, `s/d`, etc.) group labels into one `(blank)` bucket before ranking groups or evaluating `--max-group-share`. This closes a false-green concentration-gate scenario when one missing group is split across placeholder spellings. Added direct and CLI regressions and synchronized the operations documentation with the existing missing business-key behavior.
+
 - Business-key completeness now applies the same missing-value token rules as required-field checks: `NA`, `N/A`, `null`, `s/d` and similar placeholders count as incomplete key cells, rather than being counted as valid identifiers or duplicate business keys. Added single-key, composite-key and CLI regression tests.
 
 - Escaped CSV-derived field names, business keys and group values in Markdown output and GitHub Action summaries. Pipes and Markdown syntax no longer distort tables or create misleading links/headings; embedded CR/LF cannot add Markdown source lines. JSON values and quality-gate calculations remain unchanged, with regression tests covering single-line and multiline CSV content.
