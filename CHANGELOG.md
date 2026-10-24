@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- GitHub Actions are pinned to the verified commit SHAs behind `actions/checkout@v7` and `actions/setup-python@v7`, while version comments keep Dependabot updates readable.
+
 - `--min-rows N` adds an opt-in row-count quality gate: the command exits `1` when the CSV contains fewer than N data rows. Markdown reports the minimum and failure; JSON adds `min_rows` and `failed_rows` only when the gate is requested, preserving default JSON output.
 
 - `--key` now accepts comma-separated composite business keys such as `order_id,line_id`; duplicate counting uses the complete key and ignores rows with a blank key component. JSON output adds `key_fields` while preserving the existing `key` field.
