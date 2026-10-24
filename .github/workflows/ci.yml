@@ -219,6 +219,15 @@ jobs:
           args: --required order_id --max-missing 1 --key order_id,line_id --max-incomplete-keys 2 --json
           summary: "false"
 
+      - name: Reject a NaN missing-data gate
+        id: nan-threshold
+        continue-on-error: true
+        uses: ./
+        with:
+          path: examples/shipments.csv
+          args: --required buyer --max-missing NaN
+          summary: "false"
+
       - name: Verify action outputs
         env:
           HELP_CODE: ${{ steps.help.outputs.exit-code }}
@@ -238,6 +247,9 @@ jobs:
           INCOMPLETE_OUTCOME: ${{ steps.incomplete.outcome }}
           INCOMPLETE_ALLOWED_CODE: ${{ steps.incomplete-allowed.outputs.exit-code }}
           INCOMPLETE_ALLOWED_PASSED: ${{ steps.incomplete-allowed.outputs.passed }}
+          NAN_THRESHOLD_CODE: ${{ steps.nan-threshold.outputs.exit-code }}
+          NAN_THRESHOLD_PASSED: ${{ steps.nan-threshold.outputs.passed }}
+          NAN_THRESHOLD_OUTCOME: ${{ steps.nan-threshold.outcome }}
           OK_CODE: ${{ steps.ok.outputs.exit-code }}
           OK_PASSED: ${{ steps.ok.outputs.passed }}
           GATE_CODE: ${{ steps.gate.outputs.exit-code }}
@@ -258,6 +270,9 @@ jobs:
           test "$INCOMPLETE_OUTCOME" = failure
           test "$INCOMPLETE_ALLOWED_CODE" = 0
           test "$INCOMPLETE_ALLOWED_PASSED" = true
+          test "$NAN_THRESHOLD_CODE" = 2
+          test "$NAN_THRESHOLD_PASSED" = false
+          test "$NAN_THRESHOLD_OUTCOME" = failure
           test "$OK_CODE" = 0
           test "$OK_PASSED" = true
           test "$GATE_CODE" = 1
