@@ -104,6 +104,45 @@ python -m ops_field_brief shipments.csv \
 
 The threshold is a share from `0` to `1`. The gate is opt-in, so existing commands keep their current behavior.
 
+## GitHub Action
+
+The repository also exposes a composite GitHub Action for operational CSV gates. It runs the same standard-library CLI directly from the checked-out Action source, so no package installation or runtime dependency is added.
+
+Until a future release includes the Action, `@main` follows Unreleased changes; pin a reviewed commit SHA instead when reproducibility matters.
+
+```yaml
+steps:
+  - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+  - name: Check shipment extract
+    id: brief
+    uses: rodrix91/ops-field-brief@main
+    with:
+      path: data/shipments.csv
+      args: --required shipment,buyer,eta --key shipment --max-duplicates 0 --strict-csv
+
+  - name: Use the result
+    run: echo "passed=${{ steps.brief.outputs.passed }}"
+```
+
+A CLI exit code other than `0` fails the Action step, so quality-gate failures naturally stop a workflow unless the caller uses `continue-on-error`. The Action still writes two outputs before returning:
+
+| Output | Meaning |
+|---|---|
+| `exit-code` | The CLI exit code (`0` pass, `1` failed quality gate, `2` unusable input/arguments) |
+| `passed` | `true` only when the CLI returned `0` |
+
+Inputs:
+
+| Input | Default | Meaning |
+|---|---|---|
+| `path` | required | CSV path relative to the caller workspace |
+| `args` | `""` | Additional CLI arguments; quoted values are parsed as arguments, never evaluated as shell code |
+| `python-version` | `3.12` | Python used by the Action |
+| `summary` | `true` | Append the Markdown report to the job summary; JSON output is fenced as JSON |
+
+The repository CI runs the Action end to end with one passing extract and one deliberate failed duplicate-key gate, and verifies both outputs.
+
 ## Verify release artifacts
 
 Releases produced by the current release workflow include a `SHA256SUMS` file and GitHub artifact provenance attestations for the wheel and source distribution. After downloading the release files into one directory, verify the checksums:
