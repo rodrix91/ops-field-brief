@@ -1230,5 +1230,85 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(payload["key_fields"], ["order", "line"])
 
 
+    def test_min_rows_gate_passes_and_fails(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "rows.csv"
+            path.write_text("shipment,buyer\nS1,A\nS2,B\n", encoding="utf-8")
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            passed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                    "--min-rows",
+                    "2",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            failed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                    "--min-rows",
+                    "3",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(passed.returncode, 0, passed.stderr)
+        self.assertIn("Minimum rows: 2", passed.stdout)
+        self.assertEqual(failed.returncode, 1, failed.stderr)
+        self.assertIn("Failed row-count check", failed.stdout)
+        self.assertIn("Rows (2) are below the minimum (3)", failed.stdout)
+
+    def test_min_rows_is_explicit_in_json_only_when_requested(self):
+        rows = [{"shipment": "S1"}]
+        plain = build_brief(rows, ["shipment"]).to_dict()
+        gated = build_brief(rows, ["shipment"], min_rows=2).to_dict()
+        self.assertNotIn("min_rows", plain)
+        self.assertNotIn("failed_rows", plain)
+        self.assertEqual(gated["min_rows"], 2)
+        self.assertTrue(gated["failed_rows"])
+
+    def test_negative_min_rows_exits_2(self):
+        path = ROOT / "examples" / "shipments.csv"
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(ROOT / "src")
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "ops_field_brief",
+                str(path),
+                "--required",
+                "shipment",
+                "--min-rows",
+                "-1",
+            ],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 2)
+        self.assertIn("min_rows must be 0 or greater", completed.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()
