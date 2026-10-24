@@ -31,7 +31,7 @@ After `pip install .`, the same command is available as `ops-field-brief`.
 
 Exit code `0` means every required field is within `--max-missing` (default `0`) and any duplicate business keys are within `--max-duplicates` (if set). Exit code `1` means at least one required field is too empty or repeated keys exceed `--max-duplicates`. Exit code `2` means the file or the arguments could not be used, including an unknown `--encoding`, a `--max-missing` outside 0 to 1, a negative `--max-duplicates`, an empty `--required` list, an unknown `--key` or `--group`, a negative `--top`, or an unknown `--delimiter`.
 
-`--json` writes the same brief as JSON. `--delimiter` accepts `comma` (default), `semicolon`, `tab`, or `pipe`. The default keeps the original comma behavior. An unknown delimiter exits `2`.
+`--json` writes the same brief as JSON. `--delimiter` accepts `comma` (default), `semicolon`, `tab`, `pipe`, or `auto`. The default keeps the original comma behavior. `auto` detects those four common separators from the input and exits `2` with a clear message when detection is ambiguous. An unknown delimiter exits `2`.
 
 `--encoding` defaults to `utf-8`. A UTF-8 BOM, common in Excel exports, is stripped so the first column name stays usable, including on stdin. For a Windows Excel export in Spanish, pass `--encoding cp1252` or `--encoding latin-1`.
 
@@ -44,6 +44,15 @@ python -m ops_field_brief examples/shipments-semicolon.csv \
   --required envio,comprador,eta \
   --delimiter semicolon \
   --key envio
+```
+
+
+When the separator is not known in advance, let the CLI detect comma, semicolon, tab, or pipe:
+
+```bash
+python -m ops_field_brief export.csv \
+  --required shipment,buyer,eta \
+  --delimiter auto
 ```
 
 ## Example
@@ -63,7 +72,7 @@ python -m ops_field_brief examples/shipments.csv \
 PYTHONPATH=src python -m unittest discover -s tests
 ```
 
-The suite covers fill counts, repeated keys, three identical keys, two repeated keys, blank keys, `--max-duplicates` allowing repeated keys within limits and failing when exceeded, a negative `--max-duplicates`, missing tokens including `N/D` and `s.d.`, unknown columns, an unknown key and an unknown group, a passing CLI run, semicolon, tab and pipe exports, an unknown delimiter, a cp1252 file, a UTF-8 BOM, a UTF-8 BOM on stdin, an unknown encoding, an empty required list, `--json`, blank groups, a five-group limit, `--top`, `--top 0`, a negative `--top`, a quoted field with a comma, an escaped quote, a multiline quoted field, a trailing comma, a whitespace-only field, a tab-only field, a duplicate header, a header-only file, an empty file, stdin, `--help`, `--max-missing` allowing a share of blanks, and `--max-missing` outside 0 to 1. Forty-four tests. It uses the standard library only. CI runs the same suite on Python 3.10 through 3.13.
+The suite covers fill counts, repeated keys, three identical keys, two repeated keys, blank keys, `--max-duplicates` allowing repeated keys within limits and failing when exceeded, a negative `--max-duplicates`, missing tokens including `N/D` and `s.d.`, unknown columns, an unknown key and an unknown group, a passing CLI run, semicolon, tab and pipe exports, an unknown delimiter, a cp1252 file, a UTF-8 BOM, a UTF-8 BOM on stdin, an unknown encoding, an empty required list, `--json`, blank groups, a five-group limit, `--top`, `--top 0`, a negative `--top`, a quoted field with a comma, an escaped quote, a multiline quoted field, a trailing comma, a whitespace-only field, a tab-only field, a duplicate header, a header-only file, an empty file, stdin, `--help`, `--max-missing` allowing a share of blanks, and `--max-missing` outside 0 to 1. Forty-seven tests. It uses the standard library only. CI runs the same suite on Python 3.10 through 3.13.
 
 ## Maintenance
 
