@@ -44,7 +44,7 @@ class BriefTests(unittest.TestCase):
             env = dict(os.environ)
             env["PYTHONPATH"] = str(ROOT / "src")
             completed = subprocess.run(
-                [sys.executable, "-m", "ops_field_brief", str(path), "--required", "shipment,buyer"],
+                [\n                    sys.executable,\n                    "-m",\n                    "ops_field_brief",\n                    str(path),\n                    "--required",\n                    "shipment,buyer",\n                ],
                 cwd=ROOT,
                 env=env,
                 capture_output=True,
@@ -500,7 +500,7 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(buyer.filled, 1)
 
     def test_top_groups_are_limited_to_five(self):
-        rows = [{"shipment": "S%d" % i, "buyer": "B%d" % i} for i in range(7)]
+        rows = [{"shipment": f"S{i}", "buyer": f"B{i}"} for i in range(7)]
         brief = build_brief(rows, ["shipment", "buyer"], group="buyer")
         self.assertEqual(len(brief.top), 5)
         self.assertEqual(brief.rows, 7)
