@@ -1,6 +1,6 @@
 # Contributing
 
-Project status: 0.2.0, maintained by rodrix91. Small, focused, additive changes with tests are welcome.
+Project status: 0.3.0, maintained by rodrix91. Small, focused, additive changes with tests are welcome.
 
 ## Setup
 

@@ -2,8 +2,13 @@
 
 ## Unreleased
 
-- Package metadata now reads the version from `ops_field_brief.__version__`, removing duplicated version declarations.
+## 0.3.0 - 2026-10-23
+
 - `--version` prints the installed `ops-field-brief` version and exits successfully.
+- Package metadata now reads the version from `ops_field_brief.__version__`, removing duplicated version declarations.
+- CI now smoke-tests the built wheel in a clean environment and validates installed metadata against the runtime package version.
+- A tag-driven release workflow validates version tags, builds and tests wheel and source distributions, and publishes only GitHub release artifacts. It does not publish to PyPI.
+- The version CLI regression test derives its expected value from the package version, so future release bumps do not require a hard-coded test edit.
 
 ## 0.2.0
 

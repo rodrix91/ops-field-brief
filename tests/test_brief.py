@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from ops_field_brief import __version__
 from ops_field_brief.brief import build_brief, render
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -1088,7 +1089,7 @@ class BriefTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(completed.returncode, 0, completed.stderr)
-        self.assertEqual(completed.stdout, "ops-field-brief 0.2.0\n")
+        self.assertEqual(completed.stdout, f"ops-field-brief {__version__}\n")
 
 
 if __name__ == "__main__":
