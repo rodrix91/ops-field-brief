@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- CI now runs PR validation once through the `pull_request` event, limits push validation to `main`, cancels superseded runs, and declares read-only repository permissions.
+
 - Stdin is now decoded with the explicit `--encoding` instead of the host locale, fixing UTF-8 BOM and cp1252 input on Windows.
 
 - CI now runs the full unit-test suite on Windows and macOS at the oldest and newest supported Python versions, in addition to the existing Ubuntu matrix.
