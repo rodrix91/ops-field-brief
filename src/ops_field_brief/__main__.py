@@ -56,6 +56,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Fail if extra rows from a repeated key exceed this count",
     )
     parser.add_argument(
+        "--max-incomplete-keys",
+        type=int,
+        default=None,
+        help="Fail when more than N rows have an empty component in the --key value",
+    )
+    parser.add_argument(
         "--min-rows",
         type=int,
         default=None,
@@ -115,6 +121,7 @@ def main(argv: list[str] | None = None) -> int:
             max_missing=args.max_missing,
             top_n=args.top,
             max_duplicates=args.max_duplicates,
+            max_incomplete_keys=args.max_incomplete_keys,
             min_rows=args.min_rows,
             max_group_share=args.max_group_share,
         )
@@ -127,6 +134,7 @@ def main(argv: list[str] | None = None) -> int:
         if (
             brief.failed_fields
             or brief.failed_duplicates
+            or brief.failed_incomplete_keys
             or brief.failed_rows
             or brief.failed_group_share
         )

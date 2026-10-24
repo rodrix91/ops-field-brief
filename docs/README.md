@@ -10,6 +10,7 @@ Practical, reproducible checks for CSV extracts used in shipping, order processi
 |---|---|---|
 | Are mandatory cells present? | `--required shipment,buyer,eta --max-missing 0` | Exit `1` when a named field has missing values; missing is evaluated per field |
 | Does a business key repeat? | `--key shipment --max-duplicates 0` | Counts extra rows after the first occurrence of each nonblank complete key |
+| Are business keys incomplete? | `--key order_id,line_id --max-incomplete-keys 0` | Exit `1` when any row has an empty or whitespace-only key component; duplicate counting still ignores incomplete keys |
 | Is the extract unexpectedly small? | `--min-rows 100` | Exit `1` when the data-row count is below the threshold |
 | Is the data concentrated in one group? | `--group buyer --max-group-share 0.60` | Exit `1` if the largest group accounts for more than 60% of data rows |
 | Are columns structurally consistent? | `--strict-csv` | Exit `2` on duplicate or blank headers and rows with the wrong number of fields |
@@ -50,6 +51,16 @@ PYTHONPATH=src python -m ops_field_brief examples/shipments-semicolon.csv \
 ```
 
 Use `--delimiter auto` only when the separator varies, and specify `--encoding cp1252` or `latin-1` explicitly if the source file uses that encoding.
+
+For an extract with a composite order-line identifier, separate missing-key risk from repeated-key risk:
+
+```bash
+PYTHONPATH=src python -m ops_field_brief examples/orders-incomplete-keys.csv \
+  --required order_id --max-missing 1 \
+  --key order_id,line_id --max-incomplete-keys 1 --json
+```
+
+The five-row synthetic fixture includes two rows with a blank key component and one extra duplicate complete key. The limit of one incomplete key fails independently of the duplicate count. Blank means empty or whitespace-only after trimming; placeholders such as `N/A` are not blank keys in the existing key logic. Specify `--required order_id,line_id` with an appropriate `--max-missing` when placeholders must also be rejected. Without `--max-incomplete-keys`, incomplete keys are reported but do not by themselves fail the command.
 
 ## 3. Interpret the outcome
 

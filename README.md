@@ -23,6 +23,23 @@ For a concise checklist of operational gates, example commands, and safe CI inte
 
 Operational extracts (shipments, orders, inventory movements) often need a fast check before they enter a process: are the required fields present, does the business key repeat, which counterparties dominate the file, and did the extract contain enough rows to be plausible? This tool answers those questions with one command and a clear exit code.
 
+## Incomplete business keys (opt-in)
+
+Duplicate-key checks exclude rows where any key component is blank, so a file can pass `--max-duplicates 0` while containing orders that cannot be joined to their line items. Add `--max-incomplete-keys N` with `--key` to set a separate limit for those rows:
+
+```bash
+PYTHONPATH=src python -m ops_field_brief examples/orders-incomplete-keys.csv \
+  --required order_id \
+  --max-missing 1 \
+  --key order_id,line_id \
+  --max-incomplete-keys 1 \
+  --json
+```
+
+The synthetic file has **five rows**, **two incomplete composite keys** and **one extra duplicate row**. This command exits `1` because the incomplete-key count exceeds `1`, even though no duplicate gate was enabled. `--max-incomplete-keys 2` passes (exit `0`) with the same other options; a negative limit or using the limit without `--key` exits `2`.
+
+An incomplete key is a missing column value or an empty/whitespace-only key component after trimming. Tokens such as `N/A` are not automatically treated as blank *for key identity*, matching the existing duplicate-key semantics; use `--required` to check application-specific missing tokens on each key column if necessary. The JSON includes `incomplete_key_rows`, `max_incomplete_keys` and `failed_incomplete_keys`. The count is informational unless the new limit is provided; existing duplicate-key calculations and quality-gate defaults remain unchanged.
+
 ## Structural CSV validation (opt-in)
 
 For critical operational extracts, add `--strict-csv` to reject malformed CSV
@@ -59,7 +76,7 @@ python -m ops_field_brief shipments.csv \
 
 After `pip install .`, the same command is available as `ops-field-brief`. Use `ops-field-brief --version` to confirm the installed version.
 
-Exit code `0` means every enabled quality gate passes. Exit code `1` means at least one required field is too empty, repeated keys exceed `--max-duplicates`, the data-row count is below `--min-rows`, or the largest `--group` exceeds `--max-group-share`. Exit code `2` means the file or the arguments could not be used, including an unknown `--encoding`, a `--max-missing` or `--max-group-share` outside 0 to 1, a negative `--max-duplicates` or `--min-rows`, an empty `--required` list, an unknown `--key` or `--group`, using `--max-group-share` without `--group`, a negative `--top`, or an unknown `--delimiter`.
+Exit code `0` means every enabled quality gate passes. Exit code `1` means at least one required field is too empty, repeated keys exceed `--max-duplicates`, incomplete key rows exceed `--max-incomplete-keys`, the data-row count is below `--min-rows`, or the largest `--group` exceeds `--max-group-share`. Exit code `2` means the file or the arguments could not be used, including an unknown `--encoding`, a `--max-missing` or `--max-group-share` outside 0 to 1, a negative `--max-duplicates` or `--min-rows`, an empty `--required` list, an unknown `--key` or `--group`, using `--max-group-share` without `--group`, a negative `--top`, or an unknown `--delimiter`.
 
 `--json` writes the same brief as JSON. `--key` accepts one field or a comma-separated composite business key such as `order_id,line_id`; duplicate rows are counted only when the complete key repeats, and rows with a blank key component are ignored for duplicate counting. `--delimiter` accepts `comma` (default), `semicolon`, `tab`, `pipe`, or `auto`. The default keeps the original comma behavior. `auto` detects those four common separators from the input and exits `2` with a clear message when detection is ambiguous. An unknown delimiter exits `2`.
 
@@ -182,7 +199,7 @@ python -m ops_field_brief examples/shipments.csv \
 PYTHONPATH=src python -m unittest discover -s tests
 ```
 
-The suite covers fill counts, repeated keys, three identical keys, two repeated keys, blank keys, `--max-duplicates` allowing repeated keys within limits and failing when exceeded, a negative `--max-duplicates`, missing tokens including `N/D` and `s.d.`, unknown columns, an unknown key and an unknown group, a passing CLI run, semicolon, tab and pipe exports, an unknown delimiter, a cp1252 file, a UTF-8 BOM, a UTF-8 BOM on stdin, an unknown encoding, an empty required list, `--json`, blank groups, a five-group limit, `--top`, `--top 0`, a negative `--top`, a quoted field with a comma, an escaped quote, a multiline quoted field, a trailing comma, a whitespace-only field, a tab-only field, a duplicate header, a header-only file, an empty file, stdin, `--help`, `--max-missing` allowing a share of blanks, and `--max-missing` outside 0 to 1, `--min-rows` passing/failing row-count gates, JSON gate metadata, and a negative `--min-rows`. Strict CSV validation is covered for duplicate or blank headers and ragged rows. Eighty-five tests. It uses the standard library only. The installed package ships a PEP 561 `py.typed` marker so downstream type checkers can consume its inline annotations. CI runs the suite on Python 3.10 through 3.13 on Ubuntu, plus Python 3.10 and 3.13 on Windows and macOS.
+The suite covers fill counts, repeated keys, three identical keys, two repeated keys, blank keys, `--max-duplicates` allowing repeated keys within limits and failing when exceeded, a negative `--max-duplicates`, missing tokens including `N/D` and `s.d.`, unknown columns, an unknown key and an unknown group, a passing CLI run, semicolon, tab and pipe exports, an unknown delimiter, a cp1252 file, a UTF-8 BOM, a UTF-8 BOM on stdin, an unknown encoding, an empty required list, `--json`, blank groups, a five-group limit, `--top`, `--top 0`, a negative `--top`, a quoted field with a comma, an escaped quote, a multiline quoted field, a trailing comma, a whitespace-only field, a tab-only field, a duplicate header, a header-only file, an empty file, stdin, `--help`, `--max-missing` allowing a share of blanks, and `--max-missing` outside 0 to 1, `--min-rows` passing/failing row-count gates, JSON gate metadata, and a negative `--min-rows`. Strict CSV validation is covered for duplicate or blank headers and ragged rows. Ninety tests. It uses the standard library only. The installed package ships a PEP 561 `py.typed` marker so downstream type checkers can consume its inline annotations. CI runs the suite on Python 3.10 through 3.13 on Ubuntu, plus Python 3.10 and 3.13 on Windows and macOS.
 
 ## Maintenance
 

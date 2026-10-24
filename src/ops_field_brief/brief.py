@@ -67,6 +67,9 @@ class Brief:
     max_group_share: float | None = None
     top_group_share: float = 0.0
     failed_group_share: bool = False
+    incomplete_key_rows: int = 0
+    max_incomplete_keys: int | None = None
+    failed_incomplete_keys: bool = False
 
     def to_dict(self) -> dict:
         return {
@@ -74,6 +77,9 @@ class Brief:
             "key": self.key,
             "key_fields": list(self.key_fields),
             "duplicate_keys": self.duplicate_keys,
+            "incomplete_key_rows": self.incomplete_key_rows,
+            "max_incomplete_keys": self.max_incomplete_keys,
+            "failed_incomplete_keys": self.failed_incomplete_keys,
             "max_duplicates": self.max_duplicates,
             "failed_duplicates": self.failed_duplicates,
             "fields": [
@@ -125,6 +131,7 @@ def build_brief(
     key_fields: list[str] | tuple[str, ...] | None = None,
     min_rows: int | None = None,
     max_group_share: float | None = None,
+    max_incomplete_keys: int | None = None,
 ) -> Brief:
     if max_missing < 0 or max_missing > 1:
         raise ValueError("max_missing must be between 0 and 1")
@@ -132,6 +139,8 @@ def build_brief(
         raise ValueError("top must be 0 or greater")
     if max_duplicates is not None and max_duplicates < 0:
         raise ValueError("max_duplicates must be 0 or greater")
+    if max_incomplete_keys is not None and max_incomplete_keys < 0:
+        raise ValueError("max_incomplete_keys must be 0 or greater")
     if min_rows is not None and min_rows < 0:
         raise ValueError("min_rows must be 0 or greater")
     if max_group_share is not None and not 0 <= max_group_share <= 1:
@@ -146,6 +155,8 @@ def build_brief(
     effective_key_fields = tuple(key_fields) if key_fields is not None else ((key,) if key else ())
     if any(not name for name in effective_key_fields):
         raise ValueError("key fields must not be blank")
+    if max_incomplete_keys is not None and not effective_key_fields:
+        raise ValueError("max_incomplete_keys requires --key")
 
     preserved_header = list(getattr(rows, "fieldnames", ()))
     header = preserved_header or (list(rows[0].keys()) if rows else required)
@@ -158,6 +169,7 @@ def build_brief(
 
     fills = {name: FieldFill(name, 0, 0) for name in required}
     keys: list[tuple[str, ...]] = []
+    incomplete_key_rows = 0
     groups: Counter[str] = Counter()
 
     for row in rows:
@@ -171,6 +183,8 @@ def build_brief(
             key_value = tuple(_clean(row.get(name, "")) for name in effective_key_fields)
             if all(key_value):
                 keys.append(key_value)
+            else:
+                incomplete_key_rows += 1
         if group:
             label = _clean(row.get(group, "")) or "(blank)"
             groups[label] += 1
@@ -183,6 +197,9 @@ def build_brief(
     fields = tuple(fills[name] for name in required)
     failed = tuple(field.name for field in fields if field.missing_rate > max_missing)
     failed_duplicates = bool(max_duplicates is not None and duplicate_keys > max_duplicates)
+    failed_incomplete_keys = bool(
+        max_incomplete_keys is not None and incomplete_key_rows > max_incomplete_keys
+    )
     failed_rows = bool(min_rows is not None and len(rows) < min_rows)
     top_group_share = groups.most_common(1)[0][1] / len(rows) if group and rows else 0.0
     failed_group_share = bool(max_group_share is not None and top_group_share > max_group_share)
@@ -202,6 +219,9 @@ def build_brief(
         max_group_share=max_group_share,
         top_group_share=top_group_share,
         failed_group_share=failed_group_share,
+        incomplete_key_rows=incomplete_key_rows,
+        max_incomplete_keys=max_incomplete_keys,
+        failed_incomplete_keys=failed_incomplete_keys,
     )
 
 
@@ -256,6 +276,10 @@ def render_markdown(brief: Brief) -> str:
     ]
     if brief.max_duplicates is not None:
         lines.append(f"- Max allowed duplicate extra rows: {brief.max_duplicates}")
+    if brief.key_fields:
+        lines.append(f"- Rows with incomplete business keys: {brief.incomplete_key_rows}")
+    if brief.max_incomplete_keys is not None:
+        lines.append(f"- Max allowed incomplete business keys: {brief.max_incomplete_keys}")
     if brief.min_rows is not None:
         lines.append(f"- Minimum rows: {brief.min_rows}")
     if brief.max_group_share is not None:
@@ -290,6 +314,18 @@ def render_markdown(brief: Brief) -> str:
                 (
                     f"Extra rows from a repeated key ({brief.duplicate_keys}) "
                     f"exceed the limit ({brief.max_duplicates})."
+                ),
+            ]
+        )
+    if brief.failed_incomplete_keys:
+        lines.extend(
+            [
+                "",
+                "## Failed incomplete-key check",
+                "",
+                (
+                    f"Rows with incomplete business keys ({brief.incomplete_key_rows}) "
+                    f"exceed the limit ({brief.max_incomplete_keys})."
                 ),
             ]
         )
