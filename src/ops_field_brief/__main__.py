@@ -9,6 +9,7 @@ from pathlib import Path
 
 from ops_field_brief import __version__
 from ops_field_brief.brief import DELIMITERS, build_brief, read_csv, render
+from ops_field_brief.validation import validate_csv_structure
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -66,6 +67,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=None,
         help="Fail if the largest --group value exceeds this share of rows (0 to 1)",
     )
+    parser.add_argument(
+        "--strict-csv",
+        action="store_true",
+        help="Reject duplicate/blank headers and rows with too many or too few fields",
+    )
     parser.add_argument("--json", action="store_true", help="Write JSON instead of Markdown")
     return parser.parse_args(argv)
 
@@ -99,6 +105,8 @@ def main(argv: list[str] | None = None) -> int:
             encoding=args.encoding,
             stdin=_decoded_stdin(args.encoding) if str(args.csv) == "-" else None,
         )
+        if args.strict_csv:
+            validate_csv_structure(rows)
         brief = build_brief(
             rows,
             required,

@@ -21,6 +21,29 @@ Topics (set on the repository): `csv`, `data-quality`, `operations`, `cli`, `pyt
 
 Operational extracts (shipments, orders, inventory movements) often need a fast check before they enter a process: are the required fields present, does the business key repeat, which counterparties dominate the file, and did the extract contain enough rows to be plausible? This tool answers those questions with one command and a clear exit code.
 
+## Structural CSV validation (opt-in)
+
+For critical operational extracts, add `--strict-csv` to reject malformed CSV
+structure **before** any completeness, duplicate-key, or concentration metrics
+are calculated. It reports an input error (exit code `2`) for:
+
+- missing, blank, or duplicate header names (names are compared after trimming spaces);
+- data rows with more fields than the header;
+- data rows with fewer fields than the header.
+
+For example:
+
+```bash
+python -m ops_field_brief shipments.csv --required shipment,buyer,eta --strict-csv
+```
+
+This check works with stdin, explicit delimiters, and `--delimiter auto`.
+An **empty cell** in a correctly sized row is still valid CSV structure and is
+handled by the existing fill-rate gate. For compatibility, the default remains
+permissive, including the standard CSV reader's last-value-wins behavior for
+duplicate header names. Enable strict mode when a silent column shift or lost
+field would make the report misleading.
+
 ## Install and run
 
 Python 3.10 or newer. No third-party packages. From a checkout:
