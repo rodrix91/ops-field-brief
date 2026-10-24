@@ -1,16 +1,16 @@
-name: Autonomous Daily Engineering Cycle
+name: Scheduled Engineering Audit
 
 on:
   schedule:
-    # 09:00 La Paz (UTC-4) = 13:00 UTC
-    - cron: '0 13 * * *'
+    # Mondays at 09:00 La Paz (UTC-4) = 13:00 UTC
+    - cron: '0 13 * * 1'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  autonomous-cycle:
+  scheduled-audit:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository

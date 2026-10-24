@@ -104,7 +104,7 @@ The suite covers fill counts, repeated keys, three identical keys, two repeated 
 
 The tool is intentionally small and focused. Changes are kept additive. Existing behavior and history are preserved.
 
-The scheduled autonomous audit is local-only and read-only. Even if `GEMINI_API_KEY` exists in the environment, the maintenance script will not make an external API call unless a manual run also passes `--allow-external-api`.
+The scheduled weekly engineering audit is local-only and read-only. Even if `GEMINI_API_KEY` exists in the environment, the maintenance script will not make an external API call unless a manual run also passes `--allow-external-api`.
 
 ## Contributing
 
