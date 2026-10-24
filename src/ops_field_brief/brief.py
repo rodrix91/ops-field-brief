@@ -211,7 +211,9 @@ def read_csv(
             return CsvRows(reader, reader.fieldnames)
         reader = csv.DictReader(stdin, delimiter=delimiter)
         if is_utf8 and reader.fieldnames and reader.fieldnames[0].startswith("\ufeff"):
-            reader.fieldnames[0] = reader.fieldnames[0].lstrip("\ufeff")
+            fieldnames = list(reader.fieldnames)
+            fieldnames[0] = fieldnames[0].lstrip("\ufeff")
+            reader.fieldnames = fieldnames
         return CsvRows(reader, reader.fieldnames)
     with path.open(newline="", encoding=codec) as handle:
         if delimiter is None:
