@@ -881,10 +881,39 @@ class BriefTests(unittest.TestCase):
             input="\ufeffshipment,buyer\nS1,Andes\n",
             capture_output=True,
             text=True,
+            encoding="utf-8",
             check=False,
         )
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertIn("Rows: 1", completed.stdout)
+
+    def test_cp1252_stdin_uses_requested_encoding(self):
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(ROOT / "src")
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "ops_field_brief",
+                "-",
+                "--required",
+                "shipment,buyer",
+                "--group",
+                "buyer",
+                "--encoding",
+                "cp1252",
+            ],
+            cwd=ROOT,
+            env=env,
+            input=b"shipment,buyer\nS1,Caf\xe9\n",
+            capture_output=True,
+            check=False,
+        )
+        stdout = completed.stdout.decode("utf-8")
+        stderr = completed.stderr.decode("utf-8")
+        self.assertEqual(completed.returncode, 0, stderr)
+        self.assertIn("Rows: 1", stdout)
+        self.assertIn("Caf\u00e9", stdout)
 
     def test_max_duplicates_allows_under_limit(self):
         with tempfile.TemporaryDirectory() as directory:
