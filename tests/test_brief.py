@@ -1312,5 +1312,83 @@ class BriefTests(unittest.TestCase):
         self.assertIn("min_rows must be 0 or greater", completed.stderr)
 
 
+    def test_max_group_share_passes_and_fails(self):
+        rows = [
+            {"shipment": "S1", "buyer": "A"},
+            {"shipment": "S2", "buyer": "A"},
+            {"shipment": "S3", "buyer": "B"},
+            {"shipment": "S4", "buyer": "C"},
+        ]
+        passed = build_brief(
+            rows,
+            ["shipment", "buyer"],
+            group="buyer",
+            max_group_share=0.5,
+        )
+        failed = build_brief(
+            rows,
+            ["shipment", "buyer"],
+            group="buyer",
+            max_group_share=0.49,
+        )
+        self.assertEqual(passed.top_group_share, 0.5)
+        self.assertFalse(passed.failed_group_share)
+        self.assertTrue(failed.failed_group_share)
+
+    def test_max_group_share_requires_group(self):
+        with self.assertRaises(ValueError) as caught:
+            build_brief(
+                [{"shipment": "S1"}],
+                ["shipment"],
+                max_group_share=0.5,
+            )
+        self.assertIn("requires --group", str(caught.exception))
+
+    def test_max_group_share_rejects_out_of_range_value(self):
+        with self.assertRaises(ValueError) as caught:
+            build_brief(
+                [{"shipment": "S1", "buyer": "A"}],
+                ["shipment"],
+                group="buyer",
+                max_group_share=1.01,
+            )
+        self.assertIn("between 0 and 1", str(caught.exception))
+
+    def test_cli_group_concentration_gate_is_reported_in_json(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "concentrated.csv"
+            path.write_text(
+                "shipment,buyer\nS1,A\nS2,A\nS3,A\nS4,B\n",
+                encoding="utf-8",
+            )
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                    "--group",
+                    "buyer",
+                    "--max-group-share",
+                    "0.5",
+                    "--json",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 1, completed.stderr)
+        payload = json.loads(completed.stdout)
+        self.assertEqual(payload["max_group_share"], 0.5)
+        self.assertEqual(payload["top_group_share"], 0.75)
+        self.assertTrue(payload["failed_group_share"])
+
+
 if __name__ == "__main__":
     unittest.main()
