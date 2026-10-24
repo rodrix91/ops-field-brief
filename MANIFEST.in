@@ -6,3 +6,4 @@ graft examples
 graft tests
 graft scripts
 include CITATION.cff
+include src/ops_field_brief/py.typed
