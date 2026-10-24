@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import io
 import sys
 from pathlib import Path
 
@@ -54,6 +55,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def _decoded_stdin(encoding: str):
+    """Return stdin decoded with the CLI's explicit encoding, independent of OS locale."""
+    raw = getattr(sys.stdin, "buffer", None)
+    if raw is None:
+        return sys.stdin
+    normalized = encoding.lower().replace("_", "-")
+    codec = "utf-8-sig" if normalized in ("utf-8", "utf8", "utf-8-sig") else encoding
+    return io.StringIO(raw.read().decode(codec))
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     required = [part.strip() for part in args.required.split(",") if part.strip()]
@@ -65,7 +76,7 @@ def main(argv: list[str] | None = None) -> int:
             args.csv,
             delimiter=None if args.delimiter == "auto" else DELIMITERS[args.delimiter],
             encoding=args.encoding,
-            stdin=sys.stdin if str(args.csv) == "-" else None,
+            stdin=_decoded_stdin(args.encoding) if str(args.csv) == "-" else None,
         )
         brief = build_brief(
             rows,
