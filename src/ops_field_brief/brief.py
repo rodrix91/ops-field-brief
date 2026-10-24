@@ -47,6 +47,7 @@ class Brief:
     fields: tuple[FieldFill, ...]
     top: tuple[tuple[str, int], ...]
     failed_fields: tuple[str, ...]
+    key_fields: tuple[str, ...] = ()
     max_duplicates: int | None = None
     failed_duplicates: bool = False
 
@@ -54,6 +55,7 @@ class Brief:
         return {
             "rows": self.rows,
             "key": self.key,
+            "key_fields": list(self.key_fields),
             "duplicate_keys": self.duplicate_keys,
             "max_duplicates": self.max_duplicates,
             "failed_duplicates": self.failed_duplicates,
@@ -89,6 +91,7 @@ def build_brief(
     max_missing: float = 0.0,
     top_n: int = 5,
     max_duplicates: int | None = None,
+    key_fields: list[str] | tuple[str, ...] | None = None,
 ) -> Brief:
     if max_missing < 0 or max_missing > 1:
         raise ValueError("max_missing must be between 0 and 1")
@@ -99,10 +102,15 @@ def build_brief(
     if not rows and not required:
         raise ValueError("required fields are needed when the file has no header row")
 
+    if key is not None and key_fields is not None:
+        raise ValueError("use either key or key_fields, not both")
+    effective_key_fields = tuple(key_fields) if key_fields is not None else ((key,) if key else ())
+    if any(not name for name in effective_key_fields):
+        raise ValueError("key fields must not be blank")
+
     header = list(rows[0].keys()) if rows else required
     unknown = [name for name in required if name not in header]
-    if key and key not in header:
-        unknown.append(key)
+    unknown.extend(name for name in effective_key_fields if name not in header)
     if group and group not in header:
         unknown.append(group)
     if unknown:
@@ -119,15 +127,17 @@ def build_brief(
                 fills[name] = FieldFill(name, current.filled, current.missing + 1)
             else:
                 fills[name] = FieldFill(name, current.filled + 1, current.missing)
-        if key:
-            keys.append(_clean(row.get(key, "")))
+        if effective_key_fields:
+            key_value = tuple(_clean(row.get(name, "")) for name in effective_key_fields)
+            if all(key_value):
+                keys.append(key_value)
         if group:
             label = _clean(row.get(group, "")) or "(blank)"
             groups[label] += 1
 
     duplicate_keys = 0
-    if key:
-        counts = Counter(value for value in keys if value)
+    if effective_key_fields:
+        counts = Counter(keys)
         duplicate_keys = sum(count - 1 for count in counts.values() if count > 1)
 
     fields = tuple(fills[name] for name in required)
@@ -136,11 +146,12 @@ def build_brief(
 
     return Brief(
         rows=len(rows),
-        key=key,
+        key=",".join(effective_key_fields) or None,
         duplicate_keys=duplicate_keys,
         fields=fields,
         top=tuple(groups.most_common(top_n)),
         failed_fields=failed,
+        key_fields=effective_key_fields,
         max_duplicates=max_duplicates,
         failed_duplicates=failed_duplicates,
     )
