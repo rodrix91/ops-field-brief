@@ -109,7 +109,7 @@ def main() -> int:
     # 2. Audit codebase
     print("2. Auditing repository files...")
     audit = audit_repository()
-    print(f"Repository status: {len(audit['source_files'])} sources, {len(audit['test_files'])} test modules.")
+    print(\n        f"Repository status: {len(audit['source_files'])} sources, "\n        f"{len(audit['test_files'])} test modules."\n    )
 
     # 3. Query Gemini API if configured
     api_key = os.getenv("GEMINI_API_KEY")
@@ -126,7 +126,7 @@ def main() -> int:
         else:
             print("Gemini API call completed without text candidate.")
     else:
-        print("3. Note: GEMINI_API_KEY not found in environment; running standard rule-based verification.")
+        print(\n            "3. Note: GEMINI_API_KEY not found in environment; "\n            "running standard rule-based verification."\n        )
 
     print("=== Autonomous Daily Cycle Completed Successfully ===")
     return 0
