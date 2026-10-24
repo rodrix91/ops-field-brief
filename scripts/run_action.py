@@ -35,6 +35,24 @@ def _write_summary(text: str, *, is_json: bool) -> None:
                 handle.write("\n")
 
 
+def _validated_csv_path(raw: str, workspace: str | None) -> Path:
+    """Fail closed on paths that could read outside the caller's workspace."""
+    if not workspace:
+        raise ValueError("GITHUB_WORKSPACE is required for the Action.")
+    if raw == "-":
+        raise ValueError("Action input path must name a CSV file inside GITHUB_WORKSPACE.")
+    path = Path(raw)
+    if path.is_absolute():
+        raise ValueError("Action input path must be relative to GITHUB_WORKSPACE.")
+    root = Path(workspace).resolve()
+    resolved = (root / path).resolve()
+    try:
+        resolved.relative_to(root)
+    except ValueError as exc:
+        raise ValueError("Action input path must stay within GITHUB_WORKSPACE.") from exc
+    return resolved
+
+
 def main() -> int:
     csv_path = os.getenv("OPS_FIELD_BRIEF_INPUT_PATH", "")
     if not csv_path:
@@ -48,6 +66,14 @@ def main() -> int:
         extra_args = shlex.split(raw_args)
     except ValueError as exc:
         print(f"Invalid action args: {exc}", file=sys.stderr)
+        _append_output("exit-code", "2")
+        _append_output("passed", "false")
+        return 2
+
+    try:
+        csv_path = str(_validated_csv_path(csv_path, os.getenv("GITHUB_WORKSPACE")))
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
         _append_output("exit-code", "2")
         _append_output("passed", "false")
         return 2
