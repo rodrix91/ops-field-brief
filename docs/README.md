@@ -52,6 +52,16 @@ PYTHONPATH=src python -m ops_field_brief examples/shipments-semicolon.csv \
 
 Use `--delimiter auto` only when the separator varies, and specify `--encoding cp1252` or `latin-1` explicitly if the source file uses that encoding.
 
+For an extract with a composite order-line identifier, separate missing-key risk from repeated-key risk:
+
+```bash
+PYTHONPATH=src python -m ops_field_brief examples/orders-incomplete-keys.csv \
+  --required order_id --max-missing 1 \
+  --key order_id,line_id --max-incomplete-keys 1 --json
+```
+
+The five-row synthetic fixture includes two rows with a blank key component and one extra duplicate complete key. The limit of one incomplete key fails independently of the duplicate count. Blank means empty or whitespace-only after trimming; placeholders such as `N/A` are not blank keys in the existing key logic. Specify `--required order_id,line_id` with an appropriate `--max-missing` when placeholders must also be rejected. Without `--max-incomplete-keys`, incomplete keys are reported but do not by themselves fail the command.
+
 ## 3. Interpret the outcome
 
 | Exit code | Meaning | Recommended pipeline action |
