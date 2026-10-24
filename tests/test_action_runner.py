@@ -110,7 +110,6 @@ class ActionPathTests(unittest.TestCase):
                 "exit-code=0\npassed=true\n",
             )
 
-
     def test_informational_flags_fail_closed_before_subprocess(self):
         """Help and version should not turn an unchecked CSV into a green Action."""
         raw_inputs = (
