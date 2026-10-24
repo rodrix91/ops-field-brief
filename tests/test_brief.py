@@ -1031,7 +1031,6 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(payload["max_duplicates"], 0)
         self.assertTrue(payload["failed_duplicates"])
 
-
     def test_auto_delimiter_detects_semicolon_file(self):
         path = ROOT / "examples" / "shipments-semicolon.csv"
         env = dict(os.environ)
@@ -1109,7 +1108,6 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 2)
         self.assertIn("could not detect delimiter", completed.stderr)
 
-
     def test_version_flag(self):
         env = dict(os.environ)
         env["PYTHONPATH"] = str(ROOT / "src")
@@ -1123,7 +1121,6 @@ class BriefTests(unittest.TestCase):
         )
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertEqual(completed.stdout, f"ops-field-brief {__version__}\n")
-
 
     def test_composite_key_counts_only_repeated_complete_pairs(self):
         rows = [
@@ -1204,7 +1201,6 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 2)
         self.assertIn("at least one key field", completed.stderr)
 
-
     def test_header_only_file_keeps_composite_key_columns(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "header-only.csv"
@@ -1235,7 +1231,6 @@ class BriefTests(unittest.TestCase):
         payload = json.loads(completed.stdout)
         self.assertEqual(payload["rows"], 0)
         self.assertEqual(payload["key_fields"], ["order", "line"])
-
 
     def test_min_rows_gate_passes_and_fails(self):
         with tempfile.TemporaryDirectory() as directory:
