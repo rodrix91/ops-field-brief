@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added a reusable composite GitHub Action with safe argument handling, optional job-summary output, `exit-code`/`passed` outputs, and end-to-end CI coverage for passing and failed operational quality gates.
+
 - Added focused edge-case regression tests for stdin, BOM handling, API validation, Markdown group-concentration output, and strict header metadata; the suite now has 76 tests and CI enforces 100% line and branch coverage.
 
 - The installed package now ships a PEP 561 `py.typed` marker; CI verifies the marker in both the source distribution and a clean wheel installation.
