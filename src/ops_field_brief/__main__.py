@@ -27,7 +27,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         required=True,
         help="Comma-separated fields that should be filled",
     )
-    parser.add_argument("--key", help="Business key that should not repeat")
+    parser.add_argument(
+        "--key",
+        help="Business key column. Separate multiple columns with commas for a composite key.",
+    )
     parser.add_argument("--group", help="Column to rank by row count")
     parser.add_argument(
         "--max-missing",
@@ -71,6 +74,12 @@ def main(argv: list[str] | None = None) -> int:
     if not required:
         print("at least one required field is needed", file=sys.stderr)
         return 2
+    key_fields = None
+    if args.key is not None:
+        key_fields = [part.strip() for part in args.key.split(",") if part.strip()]
+        if not key_fields:
+            print("at least one key field is needed", file=sys.stderr)
+            return 2
     try:
         rows = read_csv(
             args.csv,
@@ -81,7 +90,7 @@ def main(argv: list[str] | None = None) -> int:
         brief = build_brief(
             rows,
             required,
-            key=args.key,
+            key_fields=key_fields,
             group=args.group,
             max_missing=args.max_missing,
             top_n=args.top,
