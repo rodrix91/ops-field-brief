@@ -111,5 +111,51 @@ class ActionPathTests(unittest.TestCase):
             )
 
 
+    def test_informational_flags_fail_closed_before_subprocess(self):
+        """Help and version should not turn an unchecked CSV into a green Action."""
+        raw_inputs = (
+            "-h",
+            "--help",
+            "--hel",
+            "--he",
+            "--h",
+            "--version",
+            "--vers",
+            "--ver",
+            "--v",
+            "--required shipment --version",
+        )
+        for raw_args in raw_inputs:
+            with self.subTest(raw_args=raw_args):
+                with tempfile.TemporaryDirectory() as temp:
+                    workspace = Path(temp) / "workspace"
+                    workspace.mkdir()
+                    (workspace / "shipments.csv").write_text(
+                        "shipment,buyer\\nA1,B1\\n", encoding="utf-8"
+                    )
+                    output = Path(temp) / "github-output.txt"
+                    env = {
+                        "OPS_FIELD_BRIEF_INPUT_PATH": "shipments.csv",
+                        "OPS_FIELD_BRIEF_INPUT_ARGS": raw_args,
+                        "OPS_FIELD_BRIEF_ACTION_PATH": str(Path(__file__).resolve().parents[1]),
+                        "GITHUB_WORKSPACE": str(workspace),
+                        "GITHUB_OUTPUT": str(output),
+                        "OPS_FIELD_BRIEF_INPUT_SUMMARY": "false",
+                    }
+                    with patch.dict(os.environ, env, clear=True):
+                        with patch.object(run_action.subprocess, "run") as mocked:
+                            self.assertEqual(run_action.main(), 2)
+                            mocked.assert_not_called()
+                    self.assertEqual(
+                        output.read_text(encoding="utf-8"),
+                        "exit-code=2\\npassed=false\\n",
+                    )
+
+    def test_normal_action_flags_are_not_blocked(self):
+        run_action._reject_nonexecuting_flags(
+            ["--required", "shipment", "--json", "--strict-csv", "--min-rows", "1"]
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
