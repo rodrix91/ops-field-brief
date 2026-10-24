@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added an operations playbook under `docs/README.md` covering quality gates, CI integration, outcomes and privacy safeguards; the repository Documentation URL now resolves to a real page, and CI verifies the page is included in source distributions. README now reflects 83 tests.
+
 - The reusable GitHub Action now validates the input CSV path against `GITHUB_WORKSPACE` before launching the CLI: absolute paths, parent traversal, symlink escapes, and stdin (`-`) are rejected with the existing exit-code/passed outputs. Added unit and end-to-end CI regression checks; normal relative paths remain supported.
 
 - Added a reusable composite GitHub Action with safe argument handling, optional job-summary output, `exit-code`/`passed` outputs, and end-to-end CI coverage for passing and failed operational quality gates.
