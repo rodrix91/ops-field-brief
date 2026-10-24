@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- The regression suite now has 90 tests with 100% line and branch coverage.
+
 - Added optional `--max-incomplete-keys N` with `--key` to count and gate CSV rows with an empty component in a single or composite business key. Reports expose `incomplete_key_rows`, the configured limit, and the failed-gate flag; duplicate counting remains unchanged. Added a reproducible sample, CLI tests, and GitHub Action end-to-end checks.
 
 - Prevented false-green reusable Action runs when `args` contains `-h`, `--help`, `--version` or argparse-accepted abbreviated spellings: the Action now fails closed with `exit-code=2` and `passed=false`, before running the CLI. Added regression and Action end-to-end checks; standalone CLI help/version remain unchanged.
