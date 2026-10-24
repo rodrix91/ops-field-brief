@@ -91,6 +91,13 @@ jobs:
           python-version: "3.12"
       - name: Build wheel
         run: python -m pip wheel --disable-pip-version-check --no-deps --wheel-dir "$RUNNER_TEMP/dist" .
+      - name: Build and inspect source distribution
+        run: |
+          python -m pip install --disable-pip-version-check build==1.6.1
+          python -m build --sdist --outdir "$RUNNER_TEMP/sdist" .
+          tar tzf "$RUNNER_TEMP"/sdist/*.tar.gz | grep -Eq '^[^/]+/SECURITY\.md$'
+          tar tzf "$RUNNER_TEMP"/sdist/*.tar.gz | grep -Eq '^[^/]+/CONTRIBUTING\.md$'
+
       - name: Install wheel in a clean environment
         run: |
           python -m venv "$RUNNER_TEMP/venv"
