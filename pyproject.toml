@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ops-field-brief"
-version = "0.2.0"
+dynamic = ["version"]
 description = "Report fill rate, repeated business keys, and top groups in one CSV extract."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -24,3 +24,6 @@ ops-field-brief = "ops_field_brief.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.dynamic]
+version = {attr = "ops_field_brief.__version__"}
