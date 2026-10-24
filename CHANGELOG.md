@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- CI now has a dedicated quality gate with branch coverage (minimum 90%), Ruff lint/format checks, and mypy type checking. Development tools are pinned separately and do not become runtime dependencies.
+
 - The build backend is pinned to `setuptools==84.2.1` for reproducible isolated builds, and Dependabot now tracks Python build dependencies weekly in addition to GitHub Actions.
 
 - GitHub Actions are pinned to the verified commit SHAs behind `actions/checkout@v7` and `actions/setup-python@v7`, while version comments keep Dependabot updates readable.

@@ -15,7 +15,6 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
-
 MISSING = {"", "na", "n/a", "null", "none", "s/d", "s.d.", "n/d", "n.d.", "-"}
 
 DELIMITERS = {
@@ -212,7 +211,9 @@ def read_csv(
             return CsvRows(reader, reader.fieldnames)
         reader = csv.DictReader(stdin, delimiter=delimiter)
         if is_utf8 and reader.fieldnames and reader.fieldnames[0].startswith("\ufeff"):
-            reader.fieldnames[0] = reader.fieldnames[0].lstrip("\ufeff")
+            fieldnames = list(reader.fieldnames)
+            fieldnames[0] = fieldnames[0].lstrip("\ufeff")
+            reader.fieldnames = fieldnames
         return CsvRows(reader, reader.fieldnames)
     with path.open(newline="", encoding=codec) as handle:
         if delimiter is None:
@@ -235,13 +236,15 @@ def render_markdown(brief: Brief) -> str:
         lines.append(f"- Max allowed duplicate extra rows: {brief.max_duplicates}")
     if brief.min_rows is not None:
         lines.append(f"- Minimum rows: {brief.min_rows}")
-    lines.extend([
-        "",
-        "## Required fields",
-        "",
-        "| Field | Filled | Missing | Missing rate |",
-        "|---|---:|---:|---:|",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Required fields",
+            "",
+            "| Field | Filled | Missing | Missing rate |",
+            "|---|---:|---:|---:|",
+        ]
+    )
     for field in brief.fields:
         lines.append(
             f"| {field.name} | {field.filled} | {field.missing} | {field.missing_rate:.1%} |"
@@ -254,19 +257,26 @@ def render_markdown(brief: Brief) -> str:
         lines.extend(["", "## Failed fill check", ""])
         lines.append(", ".join(brief.failed_fields))
     if brief.failed_duplicates:
-        lines.extend([
-            "",
-            "## Failed duplicate check",
-            "",
-            f"Extra rows from a repeated key ({brief.duplicate_keys}) exceed the limit ({brief.max_duplicates}).",
-        ])
+        lines.extend(
+            [
+                "",
+                "## Failed duplicate check",
+                "",
+                (
+                    f"Extra rows from a repeated key ({brief.duplicate_keys}) "
+                    f"exceed the limit ({brief.max_duplicates})."
+                ),
+            ]
+        )
     if brief.failed_rows:
-        lines.extend([
-            "",
-            "## Failed row-count check",
-            "",
-            f"Rows ({brief.rows}) are below the minimum ({brief.min_rows}).",
-        ])
+        lines.extend(
+            [
+                "",
+                "## Failed row-count check",
+                "",
+                f"Rows ({brief.rows}) are below the minimum ({brief.min_rows}).",
+            ]
+        )
     return "\n".join(lines) + "\n"
 
 

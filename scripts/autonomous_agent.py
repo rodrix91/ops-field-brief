@@ -64,21 +64,10 @@ def audit_repository() -> dict:
 def query_gemini_api(prompt: str, api_key: str) -> str | None:
     """Queries Google Gemini API using only the Python standard library."""
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-    payload = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": prompt}
-                ]
-            }
-        ]
-    }
+    payload = {"contents": [{"parts": [{"text": prompt}]}]}
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
-        url,
-        data=data,
-        headers={"Content-Type": "application/json"},
-        method="POST"
+        url, data=data, headers={"Content-Type": "application/json"}, method="POST"
     )
 
     try:
@@ -97,7 +86,7 @@ def query_gemini_api(prompt: str, api_key: str) -> str | None:
 
 def main() -> int:
     print("=== Starting Autonomous Daily Cycle for ops-field-brief ===")
-    
+
     # 1. Run local test suite
     print("1. Running unit test suite...")
     passed, test_log = run_tests()
@@ -109,7 +98,10 @@ def main() -> int:
     # 2. Audit codebase
     print("2. Auditing repository files...")
     audit = audit_repository()
-    print(f"Repository status: {len(audit['source_files'])} sources, {len(audit['test_files'])} test modules.")
+    print(
+        f"Repository status: {len(audit['source_files'])} sources, "
+        f"{len(audit['test_files'])} test modules."
+    )
 
     # 3. Query Gemini API if configured
     api_key = os.getenv("GEMINI_API_KEY")
@@ -126,7 +118,10 @@ def main() -> int:
         else:
             print("Gemini API call completed without text candidate.")
     else:
-        print("3. Note: GEMINI_API_KEY not found in environment; running standard rule-based verification.")
+        print(
+            "3. Note: GEMINI_API_KEY not found in environment; "
+            "running standard rule-based verification."
+        )
 
     print("=== Autonomous Daily Cycle Completed Successfully ===")
     return 0
