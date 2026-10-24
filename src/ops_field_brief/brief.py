@@ -17,6 +17,20 @@ from pathlib import Path
 
 MISSING = {"", "na", "n/a", "null", "none", "s/d", "s.d.", "n/d", "n.d.", "-"}
 
+
+# CSV values are untrusted text in Markdown tables and GitHub job summaries.
+# Escape Markdown syntax without changing the original CSV or JSON payload.
+_MARKDOWN_ESCAPES = {ord(char): "\\" + char for char in r"\*_{}[]()#+-.!|>~" + chr(96)}
+_MARKDOWN_ESCAPES.update(
+    {ord("&"): "&amp;", ord("<"): "&lt;", ord("\r"): "&#13;", ord("\n"): "&#10;"}
+)
+
+
+def _markdown_text(value: str) -> str:
+    """Display an arbitrary CSV value literally on a single Markdown source line."""
+    return value.translate(_MARKDOWN_ESCAPES)
+
+
 DELIMITERS = {
     "comma": ",",
     "semicolon": ";",
@@ -271,7 +285,7 @@ def render_markdown(brief: Brief) -> str:
         "# Operational field brief",
         "",
         f"- Rows: {brief.rows}",
-        f"- Business key: {brief.key or 'not set'}",
+        f"- Business key: {_markdown_text(brief.key) if brief.key else 'not set'}",
         f"- Extra rows from a repeated key: {brief.duplicate_keys}",
     ]
     if brief.max_duplicates is not None:
@@ -296,15 +310,16 @@ def render_markdown(brief: Brief) -> str:
     )
     for field in brief.fields:
         lines.append(
-            f"| {field.name} | {field.filled} | {field.missing} | {field.missing_rate:.1%} |"
+            f"| {_markdown_text(field.name)} | {field.filled} | {field.missing} | "
+            f"{field.missing_rate:.1%} |"
         )
     if brief.top:
         lines.extend(["", "## Top groups", ""])
         for value, count in brief.top:
-            lines.append(f"- {value}: {count}")
+            lines.append(f"- {_markdown_text(value)}: {count}")
     if brief.failed_fields:
         lines.extend(["", "## Failed fill check", ""])
-        lines.append(", ".join(brief.failed_fields))
+        lines.append(", ".join(_markdown_text(name) for name in brief.failed_fields))
     if brief.failed_duplicates:
         lines.extend(
             [
