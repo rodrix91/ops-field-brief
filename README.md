@@ -23,6 +23,23 @@ For a concise checklist of operational gates, example commands, and safe CI inte
 
 Operational extracts (shipments, orders, inventory movements) often need a fast check before they enter a process: are the required fields present, does the business key repeat, which counterparties dominate the file, and did the extract contain enough rows to be plausible? This tool answers those questions with one command and a clear exit code.
 
+## Incomplete business keys (opt-in)
+
+Duplicate-key checks exclude rows where any key component is blank, so a file can pass `--max-duplicates 0` while containing orders that cannot be joined to their line items. Add `--max-incomplete-keys N` with `--key` to set a separate limit for those rows:
+
+```bash
+PYTHONPATH=src python -m ops_field_brief examples/orders-incomplete-keys.csv \
+  --required order_id \
+  --max-missing 1 \
+  --key order_id,line_id \
+  --max-incomplete-keys 1 \
+  --json
+```
+
+The synthetic file has **five rows**, **two incomplete composite keys** and **one extra duplicate row**. This command exits `1` because the incomplete-key count exceeds `1`, even though no duplicate gate was enabled. `--max-incomplete-keys 2` passes (exit `0`) with the same other options; a negative limit or using the limit without `--key` exits `2`.
+
+An incomplete key is a missing column value or an empty/whitespace-only key component after trimming. Tokens such as `N/A` are not automatically treated as blank *for key identity*, matching the existing duplicate-key semantics; use `--required` to check application-specific missing tokens on each key column if necessary. The JSON includes `incomplete_key_rows`, `max_incomplete_keys` and `failed_incomplete_keys`. The count is informational unless the new limit is provided; existing duplicate-key calculations and quality-gate defaults remain unchanged.
+
 ## Structural CSV validation (opt-in)
 
 For critical operational extracts, add `--strict-csv` to reject malformed CSV
