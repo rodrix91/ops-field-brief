@@ -44,7 +44,14 @@ class BriefTests(unittest.TestCase):
             env = dict(os.environ)
             env["PYTHONPATH"] = str(ROOT / "src")
             completed = subprocess.run(
-                [\n                    sys.executable,\n                    "-m",\n                    "ops_field_brief",\n                    str(path),\n                    "--required",\n                    "shipment,buyer",\n                ],
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "shipment,buyer",
+                ],
                 cwd=ROOT,
                 env=env,
                 capture_output=True,
