@@ -11,6 +11,7 @@ import csv
 import io
 import json
 from collections import Counter
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -23,6 +24,18 @@ DELIMITERS = {
     "tab": "\t",
     "pipe": "|",
 }
+
+
+class CsvRows(list[dict[str, str]]):
+    """CSV rows that retain the parsed header even when there are no data rows."""
+
+    def __init__(
+        self,
+        rows: Iterable[dict[str, str]],
+        fieldnames: Iterable[str | None] | None,
+    ) -> None:
+        super().__init__(rows)
+        self.fieldnames = tuple(name for name in (fieldnames or ()) if name is not None)
 
 
 @dataclass(frozen=True)
@@ -108,7 +121,8 @@ def build_brief(
     if any(not name for name in effective_key_fields):
         raise ValueError("key fields must not be blank")
 
-    header = list(rows[0].keys()) if rows else required
+    preserved_header = list(getattr(rows, "fieldnames", ()))
+    header = preserved_header or (list(rows[0].keys()) if rows else required)
     unknown = [name for name in required if name not in header]
     unknown.extend(name for name in effective_key_fields if name not in header)
     if group and group not in header:
@@ -181,17 +195,19 @@ def read_csv(
             if is_utf8:
                 text = text.lstrip("\ufeff")
             delimiter = _detect_delimiter(text[:8192])
-            return list(csv.DictReader(io.StringIO(text), delimiter=delimiter))
+            reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
+            return CsvRows(reader, reader.fieldnames)
         reader = csv.DictReader(stdin, delimiter=delimiter)
         if is_utf8 and reader.fieldnames and reader.fieldnames[0].startswith("\ufeff"):
             reader.fieldnames[0] = reader.fieldnames[0].lstrip("\ufeff")
-        return list(reader)
+        return CsvRows(reader, reader.fieldnames)
     with path.open(newline="", encoding=codec) as handle:
         if delimiter is None:
             sample = handle.read(8192)
             delimiter = _detect_delimiter(sample)
             handle.seek(0)
-        return list(csv.DictReader(handle, delimiter=delimiter))
+        reader = csv.DictReader(handle, delimiter=delimiter)
+        return CsvRows(reader, reader.fieldnames)
 
 
 def render_markdown(brief: Brief) -> str:
