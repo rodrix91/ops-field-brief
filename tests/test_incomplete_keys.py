@@ -72,7 +72,7 @@ class IncompleteKeyTests(unittest.TestCase):
     def test_header_only_csv_can_pass_zero_incomplete_keys(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "empty.csv"
-            path.write_text("shipment,buyer\\n", encoding="utf-8")
+            path.write_text("shipment,buyer\n", encoding="utf-8")
             completed = self._run(
                 path, "--required", "shipment", "--key", "shipment",
                 "--max-incomplete-keys", "0", "--json",
@@ -86,7 +86,7 @@ class IncompleteKeyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "orders.csv"
             path.write_text(
-                "order,line\\nA,1\\nA,1\\nB,\\n,9\\nC,3\\n",
+                "order,line\nA,1\nA,1\nB,\n,9\nC,3\n",
                 encoding="utf-8",
             )
             base_args = (
