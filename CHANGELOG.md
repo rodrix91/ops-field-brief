@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Package metadata now reads the version from `ops_field_brief.__version__`, removing duplicated version declarations.
 - `--version` prints the installed `ops-field-brief` version and exits successfully.
 
 ## 0.2.0
