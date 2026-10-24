@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- The release job now has an explicit timeout so a stuck build, install, or release test cannot occupy a runner indefinitely.
+
 - CI jobs now have explicit conservative timeouts so a hung test or platform runner cannot consume GitHub Actions indefinitely.
 
 - The scheduled engineering audit now runs weekly on Mondays instead of daily, reducing redundant CI usage while preserving manual `workflow_dispatch`; naming was updated to describe the read-only audit accurately.
