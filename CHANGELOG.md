@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reject blank segments in comma-separated `--key` CLI arguments (e.g. `order_id,,line_id` or a trailing comma) with exit `2`, rather than silently dropping a requested component and evaluating a different business key. Preserve valid single/composite key behavior and the all-blank argument error; added regressions and reusable Action end-to-end checks.
+
 - Normalize blank and missing-token (`NA`, `N/A`, `null`, `s/d`, etc.) group labels into one `(blank)` bucket before ranking groups or evaluating `--max-group-share`. This closes a false-green concentration-gate scenario when one missing group is split across placeholder spellings. Added direct and CLI regressions and synchronized the operations documentation with the existing missing business-key behavior.
 
 - Business-key completeness now applies the same missing-value token rules as required-field checks: `NA`, `N/A`, `null`, `s/d` and similar placeholders count as incomplete key cells, rather than being counted as valid identifiers or duplicate business keys. Added single-key, composite-key and CLI regression tests.
