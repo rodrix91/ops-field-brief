@@ -131,7 +131,7 @@ class ActionPathTests(unittest.TestCase):
                     workspace = Path(temp) / "workspace"
                     workspace.mkdir()
                     (workspace / "shipments.csv").write_text(
-                        "shipment,buyer\\nA1,B1\\n", encoding="utf-8"
+                        "shipment,buyer\nA1,B1\n", encoding="utf-8"
                     )
                     output = Path(temp) / "github-output.txt"
                     env = {
@@ -148,7 +148,7 @@ class ActionPathTests(unittest.TestCase):
                             mocked.assert_not_called()
                     self.assertEqual(
                         output.read_text(encoding="utf-8"),
-                        "exit-code=2\\npassed=false\\n",
+                        "exit-code=2\npassed=false\n",
                     )
 
     def test_normal_action_flags_are_not_blocked(self):
