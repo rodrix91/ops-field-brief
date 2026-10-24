@@ -1198,5 +1198,37 @@ class BriefTests(unittest.TestCase):
         self.assertIn("at least one key field", completed.stderr)
 
 
+    def test_header_only_file_keeps_composite_key_columns(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "header-only.csv"
+            path.write_text("order,line,buyer\n", encoding="utf-8")
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "order",
+                    "--key",
+                    "order,line",
+                    "--group",
+                    "buyer",
+                    "--json",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        payload = json.loads(completed.stdout)
+        self.assertEqual(payload["rows"], 0)
+        self.assertEqual(payload["key_fields"], ["order", "line"])
+
+
 if __name__ == "__main__":
     unittest.main()
