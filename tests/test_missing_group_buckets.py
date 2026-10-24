@@ -27,12 +27,8 @@ class MissingGroupBucketTests(unittest.TestCase):
 
     def test_missing_label_variants_cannot_bypass_concentration_gate(self):
         rows = [{"buyer": value} for value in ("NA", "N/A", "", "n/a")]
-        failed = build_brief(
-            rows, ["buyer"], group="buyer", max_missing=1, max_group_share=0.75
-        )
-        passed = build_brief(
-            rows, ["buyer"], group="buyer", max_missing=1, max_group_share=1.0
-        )
+        failed = build_brief(rows, ["buyer"], group="buyer", max_missing=1, max_group_share=0.75)
+        passed = build_brief(rows, ["buyer"], group="buyer", max_missing=1, max_group_share=1.0)
         self.assertEqual(failed.top, (("(blank)", 4),))
         self.assertEqual(failed.top_group_share, 1.0)
         self.assertTrue(failed.failed_group_share)
