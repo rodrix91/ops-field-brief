@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+title: "ops-field-brief"
+type: software
+authors:
+  - given-names: Rodrigo
+    family-names: Pantoja Navajas
+version: 0.3.0
+repository-code: "https://github.com/rodrix91/ops-field-brief"
+license: MIT
+abstract: >-
+  A standard-library Python command-line tool for operational CSV completeness,
+  repeated-key, row-count, group-concentration, and structural validation checks.
