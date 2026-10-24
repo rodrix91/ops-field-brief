@@ -89,7 +89,9 @@ jobs:
           summary: "false"
 ```
 
-`@main` follows new commits. For stable or regulated pipelines, replace it with an **actual reviewed commit SHA** from the repository. A reusable Action input `path` must be relative to the caller's `GITHUB_WORKSPACE`. Absolute paths, traversal outside the workspace, symlink escapes, and stdin (`-`) are rejected before the CLI starts. Quality failures and invalid inputs cause the Action to fail while still populating `exit-code` and `passed` outputs.
+`@main` follows new commits. For stable or regulated pipelines, replace it with an **actual reviewed commit SHA** from the repository. The reusable Action rejects `-h`, `--help`, `--version` and accepted abbreviations before running the CSV checker. These informational flags are valid in the standalone CLI but **must not produce a passing pipeline result without validating the extract**.
+
+A reusable Action input `path` must be relative to the caller's `GITHUB_WORKSPACE`. Absolute paths, traversal outside the workspace, symlink escapes, and stdin (`-`) are rejected before the CLI starts. Quality failures and invalid inputs cause the Action to fail while still populating `exit-code` and `passed` outputs.
 
 Set `summary: "false"` when group labels or other CSV values are confidential. Job logs may still contain report output; do not run sensitive exports on workflows whose logs can be viewed by unauthorized people. The Action does not upload files or call a paid model API.
 
