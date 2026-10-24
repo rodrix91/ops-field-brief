@@ -37,7 +37,7 @@ class FiniteThresholdTests(unittest.TestCase):
     def test_cli_rejects_nan_before_reporting_success(self):
         with tempfile.TemporaryDirectory() as folder:
             file = Path(folder) / "shipment.csv"
-            file.write_text("buyer\\nAndes\\n\\n", encoding="utf-8")
+            file.write_text("buyer\nAndes\n\n", encoding="utf-8")
             env = dict(os.environ)
             env["PYTHONPATH"] = str(ROOT / "src")
             command = [
