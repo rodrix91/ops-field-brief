@@ -1,15 +1,19 @@
 # ops-field-brief
 
-A small standard-library Python CLI that answers four questions about one operational CSV:
+[![CI](https://github.com/rodrix91/ops-field-brief/actions/workflows/ci.yml/badge.svg)](https://github.com/rodrix91/ops-field-brief/actions/workflows/ci.yml)
+
+
+A small standard-library Python CLI that answers five practical questions about one operational CSV:
 
 - Are the required fields filled? Empty cells and tokens such as `NA`, `N/A`, `null`, `none`, `s/d`, `s.d.`, `N/D`, `N.D.`, and `-` count as missing.
 - Does the business key repeat?
 - Which groups account for the rows?
+- Does one group dominate more of the extract than allowed?
 - Does the extract contain at least the expected number of data rows?
 
 It is a complement to [csv-quality-report](https://github.com/rodrix91/csv-quality-report), not a replacement. Use that project to profile types, locales, and ranges. Use this one when the question is operational completeness (fill rate, repeated keys, top groups).
 
-Status: 0.3.0, verified by the tests in this repository. It is not a production pipeline. See [CHANGELOG.md](CHANGELOG.md).
+Status: 0.3.0 with additional Unreleased work, verified by the tests in this repository. It is not a production pipeline. See [CHANGELOG.md](CHANGELOG.md).
 
 Topics (set on the repository): `csv`, `data-quality`, `operations`, `cli`, `python`, `standard-library`.
 
