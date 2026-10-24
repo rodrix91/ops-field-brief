@@ -4,22 +4,28 @@ Project status: 0.3.0, maintained by rodrix91. Small, focused, additive changes 
 
 ## Setup
 
-Requires Python 3.10 or newer. No third-party packages. From the repository root:
+Requires Python 3.10 or newer. Runtime remains standard-library only. Development tooling is pinned separately:
+
+```bash
+python -m pip install -r requirements-dev.txt
+```
+
+Run the compatibility suite with:
 
 ```bash
 PYTHONPATH=src python -m unittest discover -s tests
 ```
 
-That is the same suite CI runs on Python 3.10 through 3.13.
-
 ## Checks
 
 Before opening a pull request:
 
-1. Run the test suite above. All tests must pass.
-2. Keep the runtime standard-library only. Do not add dependencies.
-3. Add or update a test in `tests/test_brief.py` for every behavior change.
-4. Update `README.md` and `CHANGELOG.md` when the behavior or the test count changes.
+1. Run `coverage run -m unittest discover -s tests && coverage report`. Branch coverage must stay at or above 90%.
+2. Run `ruff check .` and `ruff format --check .`.
+3. Run `mypy`.
+4. Keep the runtime standard-library only. Development-only tools belong in `requirements-dev.txt`.
+5. Add or update a test in `tests/test_brief.py` for every behavior change.
+6. Update `README.md` and `CHANGELOG.md` when behavior or the test count changes.
 
 
 ## Releases
