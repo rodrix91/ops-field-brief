@@ -165,8 +165,20 @@ jobs:
           args: --required shipment --key shipment --max-duplicates 0
           summary: "false"
 
+      - name: Action rejects paths outside the caller workspace
+        id: escape
+        continue-on-error: true
+        uses: ./
+        with:
+          path: ../outside-workspace.csv
+          args: --required shipment
+          summary: "false"
+
       - name: Verify action outputs
         env:
+          ESCAPE_CODE: ${{ steps.escape.outputs.exit-code }}
+          ESCAPE_PASSED: ${{ steps.escape.outputs.passed }}
+          ESCAPE_OUTCOME: ${{ steps.escape.outcome }}
           OK_CODE: ${{ steps.ok.outputs.exit-code }}
           OK_PASSED: ${{ steps.ok.outputs.passed }}
           GATE_CODE: ${{ steps.gate.outputs.exit-code }}
@@ -178,3 +190,6 @@ jobs:
           test "$GATE_CODE" = 1
           test "$GATE_PASSED" = false
           test "$GATE_OUTCOME" = failure
+          test "$ESCAPE_CODE" = 2
+          test "$ESCAPE_PASSED" = false
+          test "$ESCAPE_OUTCOME" = failure
