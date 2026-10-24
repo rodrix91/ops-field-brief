@@ -258,7 +258,7 @@ def render_markdown(brief: Brief) -> str:
             "",
             "## Failed duplicate check",
             "",
-            f"Extra rows from a repeated key ({brief.duplicate_keys}) exceed the limit ({brief.max_duplicates}).",
+            (\n                f"Extra rows from a repeated key ({brief.duplicate_keys}) "\n                f"exceed the limit ({brief.max_duplicates})."\n            ),
         ])
     if brief.failed_rows:
         lines.extend([
