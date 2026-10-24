@@ -1311,7 +1311,6 @@ class BriefTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 2)
         self.assertIn("min_rows must be 0 or greater", completed.stderr)
 
-
     def test_max_group_share_passes_and_fails(self):
         rows = [
             {"shipment": "S1", "buyer": "A"},
