@@ -311,7 +311,8 @@ def render_markdown(brief: Brief) -> str:
     )
     for field in brief.fields:
         lines.append(
-            f"| {_markdown_text(field.name)} | {field.filled} | {field.missing} | {field.missing_rate:.1%} |"
+            f"| {_markdown_text(field.name)} | {field.filled} | {field.missing} | "
+            f"{field.missing_rate:.1%} |"
         )
     if brief.top:
         lines.extend(["", "## Top groups", ""])
