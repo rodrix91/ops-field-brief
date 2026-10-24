@@ -106,9 +106,9 @@ jobs:
         run: |
           "$RUNNER_TEMP/venv/bin/python" - <<'PY'
           import importlib.metadata
-          import ops_field_brief
-
           from pathlib import Path
+
+          import ops_field_brief
 
           installed = importlib.metadata.version("ops-field-brief")
           runtime = ops_field_brief.__version__
