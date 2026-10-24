@@ -53,7 +53,6 @@ def _validated_csv_path(raw: str, workspace: str | None) -> Path:
     return resolved
 
 
-
 def _reject_nonexecuting_flags(args: list[str]) -> None:
     """The reusable Action must not report success without examining a CSV."""
     for token in args:
