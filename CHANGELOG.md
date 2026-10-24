@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- GitHub Actions checkouts now disable persisted Git credentials because CI, release, and scheduled audit jobs do not push repository changes.
+
 - Release checksum entries now use artifact basenames rather than `dist/`-prefixed paths, so `sha256sum -c SHA256SUMS` works directly in a download directory.
 
 - Release artifacts now include a `SHA256SUMS` file so downloaded wheels and source distributions can be independently verified.
