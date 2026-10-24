@@ -60,6 +60,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=None,
         help="Fail if the CSV has fewer than this many data rows",
     )
+    parser.add_argument(
+        "--max-group-share",
+        type=float,
+        default=None,
+        help="Fail if the largest --group value exceeds this share of rows (0 to 1)",
+    )
     parser.add_argument("--json", action="store_true", help="Write JSON instead of Markdown")
     return parser.parse_args(argv)
 
@@ -102,12 +108,22 @@ def main(argv: list[str] | None = None) -> int:
             top_n=args.top,
             max_duplicates=args.max_duplicates,
             min_rows=args.min_rows,
+            max_group_share=args.max_group_share,
         )
     except (OSError, ValueError, LookupError, csv_error()) as exc:
         print(str(exc), file=sys.stderr)
         return 2
     sys.stdout.write(render(brief, args.json))
-    return 1 if (brief.failed_fields or brief.failed_duplicates or brief.failed_rows) else 0
+    return (
+        1
+        if (
+            brief.failed_fields
+            or brief.failed_duplicates
+            or brief.failed_rows
+            or brief.failed_group_share
+        )
+        else 0
+    )
 
 
 def csv_error() -> type[Exception]:
