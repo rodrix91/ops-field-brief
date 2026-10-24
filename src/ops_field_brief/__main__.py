@@ -54,6 +54,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=None,
         help="Fail if extra rows from a repeated key exceed this count",
     )
+    parser.add_argument(
+        "--min-rows",
+        type=int,
+        default=None,
+        help="Fail if the CSV has fewer than this many data rows",
+    )
     parser.add_argument("--json", action="store_true", help="Write JSON instead of Markdown")
     return parser.parse_args(argv)
 
@@ -95,12 +101,13 @@ def main(argv: list[str] | None = None) -> int:
             max_missing=args.max_missing,
             top_n=args.top,
             max_duplicates=args.max_duplicates,
+            min_rows=args.min_rows,
         )
     except (OSError, ValueError, LookupError, csv_error()) as exc:
         print(str(exc), file=sys.stderr)
         return 2
     sys.stdout.write(render(brief, args.json))
-    return 1 if (brief.failed_fields or brief.failed_duplicates) else 0
+    return 1 if (brief.failed_fields or brief.failed_duplicates or brief.failed_rows) else 0
 
 
 def csv_error() -> type[Exception]:

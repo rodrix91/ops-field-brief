@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `--min-rows N` adds an opt-in row-count quality gate: the command exits `1` when the CSV contains fewer than N data rows. Markdown reports the minimum and failure; JSON adds `min_rows` and `failed_rows` only when the gate is requested, preserving default JSON output.
+
 - `--key` now accepts comma-separated composite business keys such as `order_id,line_id`; duplicate counting uses the complete key and ignores rows with a blank key component. JSON output adds `key_fields` while preserving the existing `key` field.
 
 - Header-only CSV files now retain their parsed column names for `--key` and `--group` validation, so valid fields do not become false `unknown columns` errors when there are zero data rows.
