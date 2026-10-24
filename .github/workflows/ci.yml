@@ -97,13 +97,18 @@ jobs:
           python -m build --sdist --outdir "$RUNNER_TEMP/sdist" .
           python - <<'PY'
           import glob
+          import os
           import tarfile
 
-          archive = glob.glob("$RUNNER_TEMP/sdist/*.tar.gz")[0]
+          archive = glob.glob(
+              os.path.join(os.environ["RUNNER_TEMP"], "sdist", "*.tar.gz")
+          )[0]
           with tarfile.open(archive, "r:gz") as tar:
               names = set(tar.getnames())
 
-          root = next(iter(names)).split("/", 1)[0]
+          roots = {name.split("/", 1)[0] for name in names if "/" in name}
+          assert len(roots) == 1, sorted(roots)
+          root = roots.pop()
           required = {
               f"{root}/SECURITY.md",
               f"{root}/CONTRIBUTING.md",
