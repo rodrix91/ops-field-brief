@@ -10,8 +10,8 @@ from __future__ import annotations
 import csv
 import io
 import json
-from collections import Counter
 from collections.abc import Iterable
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
