@@ -92,6 +92,8 @@ class Brief:
     min_distinct_groups: int | None = None
     distinct_groups: int = 0
     failed_distinct_groups: bool = False
+    max_distinct_groups: int | None = None
+    failed_max_distinct_groups: bool = False
     max_missing_group_share: float | None = None
     missing_group_rows: int = 0
     missing_group_share: float = 0.0
@@ -163,6 +165,15 @@ class Brief:
             ),
             **(
                 {
+                    "max_distinct_groups": self.max_distinct_groups,
+                    "distinct_groups": self.distinct_groups,
+                    "failed_max_distinct_groups": self.failed_max_distinct_groups,
+                }
+                if self.max_distinct_groups is not None
+                else {}
+            ),
+            **(
+                {
                     "max_missing_group_share": self.max_missing_group_share,
                     "missing_group_rows": self.missing_group_rows,
                     "missing_group_share": round(self.missing_group_share, 4),
@@ -199,6 +210,7 @@ def build_brief(
     max_incomplete_keys: int | None = None,
     max_missing_columns: dict[str, float] | None = None,
     min_distinct_groups: int | None = None,
+    max_distinct_groups: int | None = None,
     max_missing_group_share: float | None = None,
     casefold_key: bool = False,
     casefold_group: bool = False,
@@ -225,6 +237,10 @@ def build_brief(
         raise ValueError("min_distinct_groups must be 0 or greater")
     if min_distinct_groups is not None and not group:
         raise ValueError("min_distinct_groups requires --group")
+    if max_distinct_groups is not None and max_distinct_groups < 0:
+        raise ValueError("max_distinct_groups must be 0 or greater")
+    if max_distinct_groups is not None and not group:
+        raise ValueError("max_distinct_groups requires --group")
     if max_missing_group_share is not None and not 0 <= max_missing_group_share <= 1:
         raise ValueError("max_missing_group_share must be between 0 and 1")
     if max_missing_group_share is not None and not group:
@@ -340,6 +356,9 @@ def build_brief(
     failed_distinct_groups = bool(
         min_distinct_groups is not None and distinct_groups < min_distinct_groups
     )
+    failed_max_distinct_groups = bool(
+        max_distinct_groups is not None and distinct_groups > max_distinct_groups
+    )
     # Only true missing-group tokens count; a literal "(blank)" customer is valid.
     missing_group_rows = groups[None]
     missing_group_share = missing_group_rows / len(rows) if rows else 0.0
@@ -388,6 +407,8 @@ def build_brief(
         min_distinct_groups=min_distinct_groups,
         distinct_groups=distinct_groups,
         failed_distinct_groups=failed_distinct_groups,
+        max_distinct_groups=max_distinct_groups,
+        failed_max_distinct_groups=failed_max_distinct_groups,
         max_missing_group_share=max_missing_group_share,
         missing_group_rows=missing_group_rows,
         missing_group_share=missing_group_share,
@@ -485,6 +506,9 @@ def render_markdown(brief: Brief) -> str:
         lines.append("- Group comparison: case-insensitive (Unicode casefold)")
     if brief.min_distinct_groups is not None:
         lines.append(f"- Minimum distinct non-missing groups: {brief.min_distinct_groups}")
+        lines.append(f"- Observed distinct non-missing groups: {brief.distinct_groups}")
+    if brief.max_distinct_groups is not None:
+        lines.append(f"- Maximum distinct non-missing groups: {brief.max_distinct_groups}")
         lines.append(f"- Observed distinct non-missing groups: {brief.distinct_groups}")
     if brief.max_missing_group_share is not None:
         lines.append(f"- Max allowed missing-group share: {brief.max_missing_group_share:.1%}")
@@ -601,6 +625,18 @@ def render_markdown(brief: Brief) -> str:
                 (
                     f"Distinct non-missing groups ({brief.distinct_groups}) are below "
                     f"the minimum ({brief.min_distinct_groups})."
+                ),
+            ]
+        )
+    if brief.failed_max_distinct_groups:
+        lines.extend(
+            [
+                "",
+                "## Failed group-cardinality check",
+                "",
+                (
+                    f"Distinct non-missing groups ({brief.distinct_groups}) exceed "
+                    f"the maximum ({brief.max_distinct_groups})."
                 ),
             ]
         )
