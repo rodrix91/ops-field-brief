@@ -76,7 +76,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--strict-csv",
         action="store_true",
-        help="Reject duplicate/blank headers and rows with too many or too few fields",
+        help="Reject malformed quoting, duplicate/blank headers, and ragged rows",
     )
     parser.add_argument("--json", action="store_true", help="Write JSON instead of Markdown")
     return parser.parse_args(argv)
@@ -113,6 +113,7 @@ def main(argv: list[str] | None = None) -> int:
             delimiter=None if args.delimiter == "auto" else DELIMITERS[args.delimiter],
             encoding=args.encoding,
             stdin=_decoded_stdin(args.encoding) if str(args.csv) == "-" else None,
+            strict=args.strict_csv,
         )
         if args.strict_csv:
             validate_csv_structure(rows)
