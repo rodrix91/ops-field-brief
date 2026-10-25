@@ -51,9 +51,7 @@ class StrictCsvQuotingTests(unittest.TestCase):
         self.assertIn("unexpected end of data", run.stderr)
 
     @staticmethod
-    def _run(
-        path: str, *args: str, source: str | None = None
-    ) -> subprocess.CompletedProcess[str]:
+    def _run(path: str, *args: str, source: str | None = None) -> subprocess.CompletedProcess[str]:
         env = {**os.environ, "PYTHONPATH": str(ROOT / "src")}
         return subprocess.run(
             [sys.executable, "-m", "ops_field_brief", path, "--required", "id,buyer", *args],
