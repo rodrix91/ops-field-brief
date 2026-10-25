@@ -76,6 +76,10 @@ class Brief:
     key_fields: tuple[str, ...] = ()
     max_duplicates: int | None = None
     failed_duplicates: bool = False
+    max_duplicate_share: float | None = None
+    complete_key_rows: int = 0
+    duplicate_share: float = 0.0
+    failed_duplicate_share: bool = False
     min_rows: int | None = None
     failed_rows: bool = False
     max_group_share: float | None = None
@@ -114,6 +118,16 @@ class Brief:
             "failed_incomplete_keys": self.failed_incomplete_keys,
             "max_duplicates": self.max_duplicates,
             "failed_duplicates": self.failed_duplicates,
+            **(
+                {
+                    "max_duplicate_share": self.max_duplicate_share,
+                    "complete_key_rows": self.complete_key_rows,
+                    "duplicate_share": round(self.duplicate_share, 4),
+                    "failed_duplicate_share": self.failed_duplicate_share,
+                }
+                if self.max_duplicate_share is not None
+                else {}
+            ),
             "fields": [
                 {
                     "name": field.name,
@@ -203,6 +217,7 @@ def build_brief(
     max_missing: float = 0.0,
     top_n: int = 5,
     max_duplicates: int | None = None,
+    max_duplicate_share: float | None = None,
     key_fields: list[str] | tuple[str, ...] | None = None,
     min_rows: int | None = None,
     max_group_share: float | None = None,
@@ -221,6 +236,8 @@ def build_brief(
         raise ValueError("top must be 0 or greater")
     if max_duplicates is not None and max_duplicates < 0:
         raise ValueError("max_duplicates must be 0 or greater")
+    if max_duplicate_share is not None and not 0 <= max_duplicate_share <= 1:
+        raise ValueError("max_duplicate_share must be between 0 and 1")
     if max_incomplete_keys is not None and max_incomplete_keys < 0:
         raise ValueError("max_incomplete_keys must be 0 or greater")
     if min_rows is not None and min_rows < 0:
@@ -271,6 +288,8 @@ def build_brief(
         raise ValueError("duplicate key fields: " + ", ".join(repeated_key_fields))
     if max_duplicates is not None and not effective_key_fields:
         raise ValueError("max_duplicates requires --key")
+    if max_duplicate_share is not None and not effective_key_fields:
+        raise ValueError("max_duplicate_share requires --key")
     if max_incomplete_keys is not None and not effective_key_fields:
         raise ValueError("max_incomplete_keys requires --key")
     if casefold_key and not effective_key_fields:
@@ -327,6 +346,18 @@ def build_brief(
         if field.missing_rate > overrides.get(field.name, max_missing)
     )
     failed_duplicates = bool(max_duplicates is not None and duplicate_keys > max_duplicates)
+    # Only fully identified business keys can be checked for duplicates.
+    # A nonempty export without any valid key fails closed when this gate is
+    # enabled; missing-key limits remain a separate independent check.
+    complete_key_rows = len(keys)
+    duplicate_share = duplicate_keys / complete_key_rows if complete_key_rows else 0.0
+    failed_duplicate_share = bool(
+        max_duplicate_share is not None
+        and (
+            (bool(rows) and complete_key_rows == 0)
+            or duplicate_share > max_duplicate_share
+        )
+    )
     failed_incomplete_keys = bool(
         max_incomplete_keys is not None and incomplete_key_rows > max_incomplete_keys
     )
@@ -389,6 +420,10 @@ def build_brief(
         key_fields=effective_key_fields,
         max_duplicates=max_duplicates,
         failed_duplicates=failed_duplicates,
+        max_duplicate_share=max_duplicate_share,
+        complete_key_rows=complete_key_rows,
+        duplicate_share=duplicate_share,
+        failed_duplicate_share=failed_duplicate_share,
         min_rows=min_rows,
         failed_rows=failed_rows,
         max_group_share=max_group_share,
@@ -500,6 +535,10 @@ def render_markdown(brief: Brief) -> str:
         f"- Business key: {_markdown_text(brief.key) if brief.key else 'not set'}",
         f"- Extra rows from a repeated key: {brief.duplicate_keys}",
     ]
+    if brief.max_duplicate_share is not None:
+        lines.append(f"- Maximum duplicate-key share: {brief.max_duplicate_share:.1%}")
+        lines.append(f"- Rows with complete keys: {brief.complete_key_rows}")
+        lines.append(f"- Observed duplicate-key share: {brief.duplicate_share:.1%}")
     if brief.casefold_key:
         lines.append("- Business-key comparison: case-insensitive (Unicode casefold)")
     if brief.casefold_group:
@@ -564,6 +603,22 @@ def render_markdown(brief: Brief) -> str:
                 (
                     f"Extra rows from a repeated key ({brief.duplicate_keys}) "
                     f"exceed the limit ({brief.max_duplicates})."
+                ),
+            ]
+        )
+    if brief.failed_duplicate_share:
+        lines.extend(
+            [
+                "",
+                "## Failed duplicate-share check",
+                "",
+                (
+                    "No rows have a complete business key."
+                    if brief.complete_key_rows == 0
+                    else (
+                        f"Duplicate-key share ({brief.duplicate_share:.1%}) exceeds "
+                        f"the limit ({brief.max_duplicate_share:.1%})."
+                    )
                 ),
             ]
         )
