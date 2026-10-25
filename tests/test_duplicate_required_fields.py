@@ -29,10 +29,13 @@ class DuplicateRequiredFieldsTests(unittest.TestCase):
             max_missing=0.5,
         )
         self.assertEqual(brief.rows, 2)
-        self.assertEqual([(f.name, f.filled, f.missing) for f in brief.fields], [
-            ("shipment", 2, 0),
-            ("buyer", 1, 1),
-        ])
+        self.assertEqual(
+            [(f.name, f.filled, f.missing) for f in brief.fields],
+            [
+                ("shipment", 2, 0),
+                ("buyer", 1, 1),
+            ],
+        )
         self.assertFalse(brief.failed_fields)
 
     def test_cli_rejects_duplicate_required_fields_before_reporting(self):
