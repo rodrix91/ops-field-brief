@@ -279,7 +279,9 @@ def build_brief(
         incomplete_key_rows=incomplete_key_rows,
         max_incomplete_keys=max_incomplete_keys,
         failed_incomplete_keys=failed_incomplete_keys,
-        max_missing_columns=tuple((name, overrides[name]) for name in required if name in overrides),
+        max_missing_columns=tuple(
+            (name, overrides[name]) for name in required if name in overrides
+        ),
     )
 
 
