@@ -71,7 +71,7 @@ class MissingColumnLimitTests(unittest.TestCase):
     def test_cli_gate_json_and_legacy_output(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "orders.csv"
-            path.write_text("shipment,buyer,eta\\nS1,Andes,\\nS2,Paz,2026-10-26\\n", encoding="utf-8")
+            path.write_text("shipment,buyer,eta\nS1,Andes,\nS2,Paz,2026-10-26\n", encoding="utf-8")
             baseline_stdout = io.StringIO()
             with contextlib.redirect_stdout(baseline_stdout):
                 self.assertEqual(main([str(path), "--required", "shipment,buyer,eta", "--json"]), 1)
@@ -118,7 +118,7 @@ class MissingColumnLimitTests(unittest.TestCase):
     def test_cli_rejects_malformed_duplicate_and_unknown_overrides(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "orders.csv"
-            path.write_text("shipment,eta\\nS1,\\n", encoding="utf-8")
+            path.write_text("shipment,eta\nS1,\n", encoding="utf-8")
             cases = (
                 (["eta"], "expects NAME=SHARE"),
                 (["=0.5"], "expects NAME=SHARE"),
