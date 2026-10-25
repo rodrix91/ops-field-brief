@@ -1085,7 +1085,7 @@ class BriefTests(unittest.TestCase):
     def test_auto_delimiter_reports_ambiguous_input(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "single-column.csv"
-            path.write_text("shipment\nS1\nS2\n", encoding="utf-8")
+            path.write_text("shipment|buyer\nS1\nS2\n", encoding="utf-8")
             env = dict(os.environ)
             env["PYTHONPATH"] = str(ROOT / "src")
             completed = subprocess.run(

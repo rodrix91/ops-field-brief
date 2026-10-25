@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Allow valid single-column CSV exports with `--delimiter auto` even though no separator is detectable. Verify all sampled records have one field under all four candidate delimiters, respecting quoted embedded commas and pipes; continue rejecting ambiguous, ragged and malformed quoted input. Cover local-file, standard-input and strict-mode regressions.
+
 - Keep a real CSV group value named `(blank)` separate from missing-value buckets when computing `--max-group-share`, preventing false concentration failures. Preserve existing `(blank)` output for ordinary missing groups and disambiguate its display name only when a real group uses that label. Add direct/CLI regressions, including collision-safe labeling.
 
 - Reject repeated field names in composite `--key` settings, rather than reporting the same source column as multiple key components. Library and CLI regressions cover duplicate names, valid composite keys and unaffected duplicate-row counting.
