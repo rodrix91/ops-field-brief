@@ -111,6 +111,62 @@ class SingleColumnAutoDelimiterTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "could not detect delimiter"):
             _detect_delimiter("shipment|buyer\n\nS1\n")
 
+    def test_long_quoted_stdin_field_beyond_sample_boundary(self):
+        large = "x" * 9000
+        rows = read_csv(
+            Path("-"),
+            delimiter=None,
+            stdin=io.StringIO('buyer\n"' + large + '"\n'),
+            strict=True,
+        )
+        self.assertEqual(rows.fieldnames, ("buyer",))
+        self.assertEqual(rows, [{"buyer": large}])
+
+    def test_long_quoted_two_column_file_beyond_sample_boundary(self):
+        large = "x" * 9000
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "large.csv"
+            path.write_text('buyer,shipment\n"' + large + '",S1\n', encoding="utf-8")
+            rows = read_csv(path, delimiter=None, strict=True)
+        self.assertEqual(rows.fieldnames, ("buyer", "shipment"))
+        self.assertEqual(rows, [{"buyer": large, "shipment": "S1"}])
+
+    def test_long_unterminated_quote_remains_rejected(self):
+        large = "x" * 9000
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "invalid.csv"
+            path.write_text('buyer\n"' + large, encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "could not detect delimiter"):
+                read_csv(path, delimiter=None, strict=True)
+
+    def test_long_quoted_field_cli_strict_csv_counts_rows(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "large.csv"
+            path.write_text('buyer\n"' + "x" * 9000 + '"\n', encoding="utf-8")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "buyer",
+                    "--delimiter",
+                    "auto",
+                    "--strict-csv",
+                    "--json",
+                ],
+                cwd=ROOT,
+                env={**os.environ, "PYTHONPATH": str(ROOT / "src")},
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        report = json.loads(completed.stdout)
+        self.assertEqual(report["rows"], 1)
+        self.assertEqual(report["fields"][0]["filled"], 1)
+
     def test_no_content_is_not_assumed_to_be_a_valid_column(self):
         with self.assertRaisesRegex(ValueError, "could not detect delimiter"):
             _detect_delimiter("")
