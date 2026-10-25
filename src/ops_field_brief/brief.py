@@ -163,6 +163,9 @@ def build_brief(
         raise ValueError("max_group_share requires --group")
     if not rows and not required:
         raise ValueError("required fields are needed when the file has no header row")
+    duplicate_required = [name for name, count in Counter(required).items() if count > 1]
+    if duplicate_required:
+        raise ValueError("duplicate required fields: " + ", ".join(duplicate_required))
 
     if key is not None and key_fields is not None:
         raise ValueError("use either key or key_fields, not both")
