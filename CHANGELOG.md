@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add opt-in `--max-duplicate-share SHARE` to cap extra repeated business-key rows as a fraction of complete-key rows, rather than only by an absolute count. Exclude missing key components from both numerator and denominator, fail closed on nonempty exports with no complete keys, support composite keys and Unicode casefold, and retain independent duplicate-count/incomplete-key gates. Only append JSON/Markdown metadata when enabled; cover CLI, library, valid/invalid shares and zero-row regressions.
+
 - Add opt-in `--max-distinct-groups N` with `--group` to reject unexpectedly high numbers of distinct real customers or suppliers. Exclude missing-label placeholders, support Unicode group casefold and `--top 0`, and preserve independent minimum-diversity checks. Report failure via exit `1`, reject invalid configurations with exit `2`, and keep JSON/Markdown unchanged unless enabled. Add library and CLI regressions alongside explicit tests preserving legacy headerless-input behavior.
 
 - Add opt-in `--max-assigned-group-share SHARE` (requires `--group`) to detect concentration among identified customers/suppliers even when missing counterparty labels dilute overall shares. Exclude only recognized missing-group rows from this new denominator, fail closed when nonempty extracts have no assigned groups, retain empty-extract `--min-rows` semantics, support Unicode casefold and `--top 0`, and preserve all previous concentration/JSON defaults. Validate thresholds and cover API/CLI/Markdown/JSON regressions.
