@@ -81,6 +81,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Fail if the largest --group value exceeds this share of rows (0 to 1)",
     )
     parser.add_argument(
+        "--min-distinct-groups",
+        type=int,
+        default=None,
+        help="Fail if fewer than N non-missing distinct --group labels exist",
+    )
+    parser.add_argument(
         "--strict-csv",
         action="store_true",
         help="Reject malformed quoting, duplicate/blank headers, and ragged rows",
@@ -151,6 +157,7 @@ def main(argv: list[str] | None = None) -> int:
             max_incomplete_keys=args.max_incomplete_keys,
             min_rows=args.min_rows,
             max_group_share=args.max_group_share,
+            min_distinct_groups=args.min_distinct_groups,
         )
     except (OSError, ValueError, LookupError, csv_error()) as exc:
         print(str(exc), file=sys.stderr)
@@ -164,6 +171,7 @@ def main(argv: list[str] | None = None) -> int:
             or brief.failed_incomplete_keys
             or brief.failed_rows
             or brief.failed_group_share
+            or brief.failed_distinct_groups
         )
         else 0
     )
