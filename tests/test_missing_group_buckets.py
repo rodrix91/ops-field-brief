@@ -103,14 +103,10 @@ class MissingGroupBucketTests(unittest.TestCase):
             + [{"buyer": "NA"}, {"buyer": ""}]
             + [{"buyer": "Andes"}, {"buyer": "Andes"}]
         )
-        brief = build_brief(
-            rows, ["buyer"], group="buyer", max_missing=1.0, max_group_share=0.5
-        )
+        brief = build_brief(rows, ["buyer"], group="buyer", max_missing=1.0, max_group_share=0.5)
         self.assertFalse(brief.failed_group_share)
         self.assertAlmostEqual(brief.top_group_share, 3 / 7)
-        self.assertEqual(
-            brief.top, (("(blank)", 3), ("(blank) [missing]", 2), ("Andes", 2))
-        )
+        self.assertEqual(brief.top, (("(blank)", 3), ("(blank) [missing]", 2), ("Andes", 2)))
         self.assertEqual(brief.to_dict()["top"][1]["value"], "(blank) [missing]")
 
     def test_synthetic_missing_label_never_conflicts_with_real_labels(self):
