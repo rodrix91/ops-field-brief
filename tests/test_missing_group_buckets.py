@@ -97,6 +97,80 @@ class MissingGroupBucketTests(unittest.TestCase):
         self.assertTrue(payload["failed_group_share"])
         self.assertEqual(json.loads(hidden.stdout)["top"], [])
 
+    def test_literal_blank_group_does_not_merge_with_missing_bucket(self):
+        rows = (
+            [{"buyer": "(blank)"} for _ in range(3)]
+            + [{"buyer": "NA"}, {"buyer": ""}]
+            + [{"buyer": "Andes"}, {"buyer": "Andes"}]
+        )
+        brief = build_brief(
+            rows, ["buyer"], group="buyer", max_missing=1.0, max_group_share=0.5
+        )
+        self.assertFalse(brief.failed_group_share)
+        self.assertAlmostEqual(brief.top_group_share, 3 / 7)
+        self.assertEqual(
+            brief.top, (("(blank)", 3), ("(blank) [missing]", 2), ("Andes", 2))
+        )
+        self.assertEqual(brief.to_dict()["top"][1]["value"], "(blank) [missing]")
+
+    def test_synthetic_missing_label_never_conflicts_with_real_labels(self):
+        rows = [
+            {"buyer": "(blank)"},
+            {"buyer": "(blank) [missing]"},
+            {"buyer": ""},
+        ]
+        brief = build_brief(rows, ["buyer"], group="buyer", max_missing=1.0)
+        self.assertEqual(
+            brief.top,
+            (
+                ("(blank)", 1),
+                ("(blank) [missing]", 1),
+                ("(blank) [missing 2]", 1),
+            ),
+        )
+
+    def test_cli_literal_blank_label_does_not_create_false_concentration_failure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "groups.csv"
+            path.write_text(
+                'buyer\n(blank)\n(blank)\nNA\n""\nAndes\nAndes\n',
+                encoding="utf-8",
+            )
+            env = {**os.environ, "PYTHONPATH": str(ROOT / "src")}
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "buyer",
+                    "--group",
+                    "buyer",
+                    "--max-missing",
+                    "1",
+                    "--max-group-share",
+                    "0.5",
+                    "--json",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["top_group_share"], round(2 / 6, 4))
+        self.assertEqual(
+            payload["top"],
+            [
+                {"value": "(blank)", "rows": 2},
+                {"value": "(blank) [missing]", "rows": 2},
+                {"value": "Andes", "rows": 2},
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
