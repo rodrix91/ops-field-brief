@@ -94,9 +94,12 @@ def _decoded_stdin(encoding: str):
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    required = [part.strip() for part in args.required.split(",") if part.strip()]
-    if not required:
+    required = [part.strip() for part in args.required.split(",")]
+    if not any(required):
         print("at least one required field is needed", file=sys.stderr)
+        return 2
+    if any(not field for field in required):
+        print("empty column in --required; specify every required field", file=sys.stderr)
         return 2
     key_fields = None
     if args.key is not None:
