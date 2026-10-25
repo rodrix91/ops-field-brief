@@ -302,7 +302,14 @@ def read_csv(
             text = stdin.read()
             if is_utf8:
                 text = text.lstrip("\ufeff")
-            delimiter = _detect_delimiter(text[:8192])
+            try:
+                delimiter = _detect_delimiter(text[:8192])
+            except ValueError:
+                # The sample may stop inside a long quoted CSV field.
+                # Stdin is already buffered in full, so retry with whole text.
+                if len(text) <= 8192:
+                    raise
+                delimiter = _detect_delimiter(text)
             reader = csv.DictReader(io.StringIO(text), delimiter=delimiter, strict=strict)
             return CsvRows(reader, reader.fieldnames)
         reader = csv.DictReader(stdin, delimiter=delimiter, strict=strict)
@@ -314,7 +321,15 @@ def read_csv(
     with path.open(newline="", encoding=codec) as handle:
         if delimiter is None:
             sample = handle.read(8192)
-            delimiter = _detect_delimiter(sample)
+            try:
+                delimiter = _detect_delimiter(sample)
+            except ValueError:
+                # Retry on the complete input only when the initial prefix
+                # cannot be classified (e.g. a quote crosses character 8192).
+                remainder = handle.read()
+                if not remainder:
+                    raise
+                delimiter = _detect_delimiter(sample + remainder)
             handle.seek(0)
         reader = csv.DictReader(handle, delimiter=delimiter, strict=strict)
         return CsvRows(reader, reader.fieldnames)

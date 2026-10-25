@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Retry `--delimiter auto` detection with the complete CSV if the first 8,192-character sample cannot be classified, including long quoted single-column or multi-column fields crossing the sample boundary. Preserve strict CSV errors for truly unterminated quotes. Add stdin, local-file and CLI regressions.
+
 - Preserve `--delimiter auto` for one-column exports containing blank physical lines: ignore CSV reader's empty records during delimiter fallback without relaxing validation of malformed quoting, missing headers or mixed-width rows. New strict-CSV CLI and library regressions ensure only actual data rows are counted.
 
 - Allow valid single-column CSV exports with `--delimiter auto` even though no separator is detectable. Verify all sampled records have one field under all four candidate delimiters, respecting quoted embedded commas and pipes; continue rejecting ambiguous, ragged and malformed quoted input. Cover local-file, standard-input and strict-mode regressions.
