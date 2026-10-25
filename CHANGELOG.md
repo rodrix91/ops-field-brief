@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add repeatable `--max-missing-column NAME=SHARE` to override required-field completeness thresholds without relaxing the global `--max-missing` gate. Reject malformed, duplicate, unknown, non-finite, and out-of-range overrides with usage exit 2; include override metadata only when requested to preserve existing JSON contracts. Add API, CLI, Markdown and JSON regression tests.
+
 - Require an explicit `--key` whenever `--max-duplicates` is set. Previously a duplicate quality gate without a key silently returned success, even when the CSV contained duplicate orders. Fail with usage exit 2 and no misleading report; retain valid single/composite-key behavior. Add library and CLI regressions.
 
 - Retry `--delimiter auto` detection with the complete CSV if the first 8,192-character sample cannot be classified, including long quoted single-column or multi-column fields crossing the sample boundary. Preserve strict CSV errors for truly unterminated quotes. Add stdin, local-file and CLI regressions.
