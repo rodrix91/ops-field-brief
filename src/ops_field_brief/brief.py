@@ -81,6 +81,10 @@ class Brief:
     max_group_share: float | None = None
     top_group_share: float = 0.0
     failed_group_share: bool = False
+    max_assigned_group_share: float | None = None
+    top_assigned_group_share: float = 0.0
+    assigned_group_rows: int = 0
+    failed_assigned_group_share: bool = False
     incomplete_key_rows: int = 0
     max_incomplete_keys: int | None = None
     failed_incomplete_keys: bool = False
@@ -140,6 +144,16 @@ class Brief:
             ),
             **(
                 {
+                    "max_assigned_group_share": self.max_assigned_group_share,
+                    "top_assigned_group_share": round(self.top_assigned_group_share, 4),
+                    "assigned_group_rows": self.assigned_group_rows,
+                    "failed_assigned_group_share": self.failed_assigned_group_share,
+                }
+                if self.max_assigned_group_share is not None
+                else {}
+            ),
+            **(
+                {
                     "min_distinct_groups": self.min_distinct_groups,
                     "distinct_groups": self.distinct_groups,
                     "failed_distinct_groups": self.failed_distinct_groups,
@@ -181,6 +195,7 @@ def build_brief(
     key_fields: list[str] | tuple[str, ...] | None = None,
     min_rows: int | None = None,
     max_group_share: float | None = None,
+    max_assigned_group_share: float | None = None,
     max_incomplete_keys: int | None = None,
     max_missing_columns: dict[str, float] | None = None,
     min_distinct_groups: int | None = None,
@@ -202,6 +217,10 @@ def build_brief(
         raise ValueError("max_group_share must be between 0 and 1")
     if max_group_share is not None and not group:
         raise ValueError("max_group_share requires --group")
+    if max_assigned_group_share is not None and not 0 <= max_assigned_group_share <= 1:
+        raise ValueError("max_assigned_group_share must be between 0 and 1")
+    if max_assigned_group_share is not None and not group:
+        raise ValueError("max_assigned_group_share requires --group")
     if min_distinct_groups is not None and min_distinct_groups < 0:
         raise ValueError("min_distinct_groups must be 0 or greater")
     if min_distinct_groups is not None and not group:
@@ -298,6 +317,24 @@ def build_brief(
     failed_rows = bool(min_rows is not None and len(rows) < min_rows)
     top_group_share = groups.most_common(1)[0][1] / len(rows) if group and rows else 0.0
     failed_group_share = bool(max_group_share is not None and top_group_share > max_group_share)
+    # Distinguish identified customers/suppliers from the pooled missing bucket.
+    # Their share can be high even when many rows are unassigned. This is an
+    # independent opt-in metric: the original group-share contract is unchanged.
+    assigned_group_rows = len(rows) - groups[None] if group else 0
+    largest_assigned = max(
+        (count for label, count in groups.items() if label is not None),
+        default=0,
+    )
+    top_assigned_group_share = (
+        largest_assigned / assigned_group_rows if assigned_group_rows else 0.0
+    )
+    failed_assigned_group_share = bool(
+        max_assigned_group_share is not None
+        and (
+            (bool(rows) and assigned_group_rows == 0)
+            or top_assigned_group_share > max_assigned_group_share
+        )
+    )
     # Missing tokens share one display bucket but are not distinct business groups.
     distinct_groups = sum(label is not None for label in groups)
     failed_distinct_groups = bool(
@@ -338,6 +375,10 @@ def build_brief(
         max_group_share=max_group_share,
         top_group_share=top_group_share,
         failed_group_share=failed_group_share,
+        max_assigned_group_share=max_assigned_group_share,
+        top_assigned_group_share=top_assigned_group_share,
+        assigned_group_rows=assigned_group_rows,
+        failed_assigned_group_share=failed_assigned_group_share,
         incomplete_key_rows=incomplete_key_rows,
         max_incomplete_keys=max_incomplete_keys,
         failed_incomplete_keys=failed_incomplete_keys,
@@ -465,6 +506,14 @@ def render_markdown(brief: Brief) -> str:
     if brief.max_group_share is not None:
         lines.append(f"- Max allowed top-group share: {brief.max_group_share:.1%}")
         lines.append(f"- Observed top-group share: {brief.top_group_share:.1%}")
+    if brief.max_assigned_group_share is not None:
+        lines.append(
+            f"- Max allowed assigned-group share: {brief.max_assigned_group_share:.1%}"
+        )
+        lines.append(f"- Rows assigned to a group: {brief.assigned_group_rows}")
+        lines.append(
+            f"- Observed top assigned-group share: {brief.top_assigned_group_share:.1%}"
+        )
     lines.extend(
         [
             "",
@@ -528,6 +577,22 @@ def render_markdown(brief: Brief) -> str:
                 (
                     f"Top-group share ({brief.top_group_share:.1%}) exceeds the limit "
                     f"({brief.max_group_share:.1%})."
+                ),
+            ]
+        )
+    if brief.failed_assigned_group_share:
+        lines.extend(
+            [
+                "",
+                "## Failed assigned-group concentration check",
+                "",
+                (
+                    "No rows have an identified group."
+                    if brief.assigned_group_rows == 0
+                    else (
+                        f"Top assigned-group share ({brief.top_assigned_group_share:.1%}) "
+                        f"exceeds the limit ({brief.max_assigned_group_share:.1%})."
+                    )
                 ),
             ]
         )
