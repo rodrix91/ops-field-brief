@@ -84,6 +84,7 @@ class Brief:
     incomplete_key_rows: int = 0
     max_incomplete_keys: int | None = None
     failed_incomplete_keys: bool = False
+    max_missing_columns: tuple[tuple[str, float], ...] = ()
 
     def to_dict(self) -> dict:
         return {
@@ -107,6 +108,11 @@ class Brief:
             ],
             "top": [{"value": value, "rows": count} for value, count in self.top],
             "failed_fields": list(self.failed_fields),
+            **(
+                {"max_missing_columns": dict(self.max_missing_columns)}
+                if self.max_missing_columns
+                else {}
+            ),
             **(
                 {"min_rows": self.min_rows, "failed_rows": self.failed_rows}
                 if self.min_rows is not None
@@ -146,6 +152,7 @@ def build_brief(
     min_rows: int | None = None,
     max_group_share: float | None = None,
     max_incomplete_keys: int | None = None,
+    max_missing_columns: dict[str, float] | None = None,
 ) -> Brief:
     if not 0 <= max_missing <= 1:
         raise ValueError("max_missing must be between 0 and 1")
@@ -161,6 +168,14 @@ def build_brief(
         raise ValueError("max_group_share must be between 0 and 1")
     if max_group_share is not None and not group:
         raise ValueError("max_group_share requires --group")
+    overrides = dict(max_missing_columns or {})
+    if any(not 0 <= limit <= 1 for limit in overrides.values()):
+        raise ValueError("max_missing_columns shares must be between 0 and 1")
+    unknown_overrides = [name for name in overrides if name not in required]
+    if unknown_overrides:
+        raise ValueError(
+            "max_missing_columns must reference required fields: " + ", ".join(unknown_overrides)
+        )
     if not rows and not required:
         raise ValueError("required fields are needed when the file has no header row")
     duplicate_required = [name for name, count in Counter(required).items() if count > 1]
@@ -220,7 +235,11 @@ def build_brief(
         duplicate_keys = sum(count - 1 for count in counts.values() if count > 1)
 
     fields = tuple(fills[name] for name in required)
-    failed = tuple(field.name for field in fields if field.missing_rate > max_missing)
+    failed = tuple(
+        field.name
+        for field in fields
+        if field.missing_rate > overrides.get(field.name, max_missing)
+    )
     failed_duplicates = bool(max_duplicates is not None and duplicate_keys > max_duplicates)
     failed_incomplete_keys = bool(
         max_incomplete_keys is not None and incomplete_key_rows > max_incomplete_keys
@@ -260,6 +279,7 @@ def build_brief(
         incomplete_key_rows=incomplete_key_rows,
         max_incomplete_keys=max_incomplete_keys,
         failed_incomplete_keys=failed_incomplete_keys,
+        max_missing_columns=tuple((name, overrides[name]) for name in required if name in overrides),
     )
 
 
@@ -345,6 +365,12 @@ def render_markdown(brief: Brief) -> str:
         f"- Business key: {_markdown_text(brief.key) if brief.key else 'not set'}",
         f"- Extra rows from a repeated key: {brief.duplicate_keys}",
     ]
+    if brief.max_missing_columns:
+        limits = ", ".join(
+            f"{_markdown_text(name)}: {limit:.1%}"
+            for name, limit in brief.max_missing_columns
+        )
+        lines.append(f"- Field-specific missing limits: {limits}")
     if brief.max_duplicates is not None:
         lines.append(f"- Max allowed duplicate extra rows: {brief.max_duplicates}")
     if brief.key_fields:
