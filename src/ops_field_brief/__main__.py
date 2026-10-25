@@ -120,7 +120,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         missing_limits: dict[str, float] = {}
         for spec in args.max_missing_column:
-            name, separator, share = spec.partition("=")
+            name, separator, share = spec.rpartition("=")
             name = name.strip()
             if not separator or not name or not share.strip():
                 raise ValueError("--max-missing-column expects NAME=SHARE")

@@ -115,6 +115,33 @@ class MissingColumnLimitTests(unittest.TestCase):
                 )
             self.assertEqual(json.loads(strict_stdout.getvalue())["failed_fields"], ["eta"])
 
+    def test_cli_accepts_equals_in_required_field_name(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "sla.csv"
+            path.write_text(
+                "shipment,SLA=met\nS1,yes\nS2,\n",
+                encoding="utf-8",
+            )
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(main([str(path), "--required", "shipment,SLA=met", "--json"]), 1)
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                status = main(
+                    [
+                        str(path),
+                        "--required",
+                        "shipment,SLA=met",
+                        "--max-missing-column",
+                        "SLA=met=0.5",
+                        "--json",
+                    ]
+                )
+            self.assertEqual(status, 0)
+            report = json.loads(output.getvalue())
+            self.assertEqual(report["max_missing_columns"], {"SLA=met": 0.5})
+            self.assertEqual(report["failed_fields"], [])
+            self.assertEqual(report["fields"][1]["missing"], 1)
+
     def test_cli_rejects_malformed_duplicate_and_unknown_overrides(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "orders.csv"

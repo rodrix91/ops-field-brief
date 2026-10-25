@@ -79,7 +79,9 @@ python -m ops_field_brief examples/shipments.csv \
 ```
 
 Each share is a number from 0 to 1 (inclusive). A named field must appear in
-`--required`, and a field can be specified only once. Invalid, duplicate,
+`--required`, and a field can be specified only once. The **last** `=` separates
+the field name and its share, so a valid CSV header such as `SLA=met` can use
+`--max-missing-column SLA=met=0.5` without losing part of the name. Invalid, duplicate,
 unknown, negative, greater-than-one, and non-finite limits fail with exit code
 `2`; exceeding an allowed missing rate fails the quality gate with exit
 code `1`. Limits not explicitly overridden continue to use `--max-missing`.
