@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Reject completely empty or headerless CSV input in default mode before computing operational metrics. Previously, the required-field names could be mistaken for the absent header, incorrectly reporting an empty export as successful. Return input error exit code `2` for file and stdin input; preserve valid header-only exports and explicit programmatic schemas. Add regression tests.
+- Add opt-in `--max-distinct-groups N` with `--group` to reject unexpectedly high numbers of distinct real customers or suppliers. Exclude missing-label placeholders, support Unicode group casefold and `--top 0`, and preserve independent minimum-diversity checks. Report failure via exit `1`, reject invalid configurations with exit `2`, and keep JSON/Markdown unchanged unless enabled. Add library and CLI regressions alongside explicit tests preserving legacy headerless-input behavior.
 
 - Add opt-in `--max-assigned-group-share SHARE` (requires `--group`) to detect concentration among identified customers/suppliers even when missing counterparty labels dilute overall shares. Exclude only recognized missing-group rows from this new denominator, fail closed when nonempty extracts have no assigned groups, retain empty-extract `--min-rows` semantics, support Unicode casefold and `--top 0`, and preserve all previous concentration/JSON defaults. Validate thresholds and cover API/CLI/Markdown/JSON regressions.
 
