@@ -91,7 +91,13 @@ class MissingGroupShareTests(unittest.TestCase):
                 encoding="utf-8",
             )
             prefix = [
-                str(path), "--required", "shipment", "--group", "buyer", "--top", "0",
+                str(path),
+                "--required",
+                "shipment",
+                "--group",
+                "buyer",
+                "--top",
+                "0",
                 "--json",
             ]
             stdout = io.StringIO()
