@@ -48,7 +48,8 @@ are calculated. It reports an input error (exit code `2`) for:
 
 - missing, blank, or duplicate header names (names are compared after trimming spaces);
 - data rows with more fields than the header;
-- data rows with fewer fields than the header.
+- data rows with fewer fields than the header;
+- unterminated quoted fields or invalid text after a closing CSV quote.
 
 For example:
 
