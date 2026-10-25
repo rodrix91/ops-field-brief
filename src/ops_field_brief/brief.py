@@ -172,6 +172,11 @@ def build_brief(
     effective_key_fields = tuple(key_fields) if key_fields is not None else ((key,) if key else ())
     if any(not name for name in effective_key_fields):
         raise ValueError("key fields must not be blank")
+    repeated_key_fields = [
+        name for name, count in Counter(effective_key_fields).items() if count > 1
+    ]
+    if repeated_key_fields:
+        raise ValueError("duplicate key fields: " + ", ".join(repeated_key_fields))
     if max_incomplete_keys is not None and not effective_key_fields:
         raise ValueError("max_incomplete_keys requires --key")
 
