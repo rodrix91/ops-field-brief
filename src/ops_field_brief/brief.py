@@ -369,8 +369,7 @@ def render_markdown(brief: Brief) -> str:
     ]
     if brief.max_missing_columns:
         limits = ", ".join(
-            f"{_markdown_text(name)}: {limit:.1%}"
-            for name, limit in brief.max_missing_columns
+            f"{_markdown_text(name)}: {limit:.1%}" for name, limit in brief.max_missing_columns
         )
         lines.append(f"- Field-specific missing limits: {limits}")
     if brief.max_duplicates is not None:
