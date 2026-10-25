@@ -81,6 +81,8 @@ Exit code `0` means every enabled quality gate passes. Exit code `1` means at le
 
 `--required` trims surrounding spaces but rejects missing field positions such as `shipment,,eta`, leading/trailing commas or whitespace-only segments (exit `2`), rather than silently skipping a quality check. Duplicate field names also produce a configuration error.
 
+Duplicate columns in a composite `--key` (for example `order_id,order_id`) are rejected with exit `2`, instead of presenting repeated copies as separate components of the business key. Valid multi-column identifiers remain unchanged.
+
 `--json` writes the same brief as JSON. `--key` accepts one field or a comma-separated composite business key such as `order_id,line_id`; empty slots such as `order_id,,line_id`, leading commas or trailing commas are invalid configuration (exit `2`) rather than silently omitting a column; duplicate rows are counted only when the complete key repeats, and rows with a blank key component are ignored for duplicate counting. `--delimiter` accepts `comma` (default), `semicolon`, `tab`, `pipe`, or `auto`. The default keeps the original comma behavior. `auto` detects those four common separators from the input and exits `2` with a clear message when detection is ambiguous. An unknown delimiter exits `2`.
 
 `--encoding` defaults to `utf-8`. A UTF-8 BOM, common in Excel exports, is stripped so the first column name stays usable, including on stdin. For a Windows Excel export in Spanish, pass `--encoding cp1252` or `--encoding latin-1`.

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reject repeated field names in composite `--key` settings, rather than reporting the same source column as multiple key components. Library and CLI regressions cover duplicate names, valid composite keys and unaffected duplicate-row counting.
+
 - Reject empty field positions in comma-separated `--required` arguments (including leading/trailing commas and whitespace-only components) instead of silently dropping the corresponding quality checks. Valid whitespace-trimmed field names remain supported, with CLI regression coverage.
 
 - Reject blank segments in comma-separated `--key` CLI arguments (e.g. `order_id,,line_id` or a trailing comma) with exit `2`, rather than silently dropping a requested component and evaluating a different business key. Preserve valid single/composite key behavior and the all-blank argument error; added regressions and reusable Action end-to-end checks.
