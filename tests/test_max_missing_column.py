@@ -123,9 +123,7 @@ class MissingColumnLimitTests(unittest.TestCase):
                 encoding="utf-8",
             )
             with contextlib.redirect_stdout(io.StringIO()):
-                self.assertEqual(
-                    main([str(path), "--required", "shipment,SLA=met", "--json"]), 1
-                )
+                self.assertEqual(main([str(path), "--required", "shipment,SLA=met", "--json"]), 1)
             output = io.StringIO()
             with contextlib.redirect_stdout(output):
                 status = main(
