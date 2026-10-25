@@ -253,6 +253,7 @@ def read_csv(
     delimiter: str | None = ",",
     encoding: str = "utf-8",
     stdin=None,
+    strict: bool = False,
 ) -> list[dict[str, str]]:
     # Excel UTF-8 exports often start with a BOM. utf-8-sig strips it and still reads plain utf-8.
     is_utf8 = encoding.lower().replace("_", "-") in ("utf-8", "utf8", "utf-8-sig")
@@ -263,9 +264,9 @@ def read_csv(
             if is_utf8:
                 text = text.lstrip("\ufeff")
             delimiter = _detect_delimiter(text[:8192])
-            reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
+            reader = csv.DictReader(io.StringIO(text), delimiter=delimiter, strict=strict)
             return CsvRows(reader, reader.fieldnames)
-        reader = csv.DictReader(stdin, delimiter=delimiter)
+        reader = csv.DictReader(stdin, delimiter=delimiter, strict=strict)
         if is_utf8 and reader.fieldnames and reader.fieldnames[0].startswith("\ufeff"):
             fieldnames = list(reader.fieldnames)
             fieldnames[0] = fieldnames[0].lstrip("\ufeff")
@@ -276,7 +277,7 @@ def read_csv(
             sample = handle.read(8192)
             delimiter = _detect_delimiter(sample)
             handle.seek(0)
-        reader = csv.DictReader(handle, delimiter=delimiter)
+        reader = csv.DictReader(handle, delimiter=delimiter, strict=strict)
         return CsvRows(reader, reader.fieldnames)
 
 
