@@ -21,9 +21,7 @@ class AssignedGroupConcentrationTests(unittest.TestCase):
             *({"shipment": f"B{i}", "buyer": "BETA"} for i in range(2)),
             *({"shipment": f"N{i}", "buyer": "NA"} for i in range(12)),
         ]
-        original = build_brief(
-            rows, ["shipment"], group="buyer", max_group_share=0.60, top_n=0
-        )
+        original = build_brief(rows, ["shipment"], group="buyer", max_group_share=0.60, top_n=0)
         self.assertAlmostEqual(original.top_group_share, 0.60)
         self.assertFalse(original.failed_group_share)
         self.assertEqual(original.top, ())
@@ -53,9 +51,7 @@ class AssignedGroupConcentrationTests(unittest.TestCase):
 
     def test_missing_only_fails_closed_while_empty_export_keeps_min_rows_contract(self) -> None:
         rows = [{"shipment": "A", "buyer": "NA"}, {"shipment": "B", "buyer": "n/a"}]
-        all_missing = build_brief(
-            rows, ["shipment"], group="buyer", max_assigned_group_share=1.0
-        )
+        all_missing = build_brief(rows, ["shipment"], group="buyer", max_assigned_group_share=1.0)
         self.assertEqual(all_missing.assigned_group_rows, 0)
         self.assertEqual(all_missing.top_assigned_group_share, 0.0)
         self.assertTrue(all_missing.failed_assigned_group_share)
@@ -103,8 +99,11 @@ class AssignedGroupConcentrationTests(unittest.TestCase):
     def test_invalid_settings_fail_before_any_report(self) -> None:
         rows = [{"shipment": "S1", "buyer": "ACME"}]
         for invalid in [-0.01, 1.01, math.nan, math.inf, -math.inf]:
-            with self.subTest(value=invalid), self.assertRaisesRegex(
-                ValueError, "max_assigned_group_share must be between 0 and 1"
+            with (
+                self.subTest(value=invalid),
+                self.assertRaisesRegex(
+                    ValueError, "max_assigned_group_share must be between 0 and 1"
+                ),
             ):
                 build_brief(
                     rows,
