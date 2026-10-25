@@ -92,12 +92,14 @@ class Brief:
     missing_group_rows: int = 0
     missing_group_share: float = 0.0
     failed_missing_group_share: bool = False
+    casefold_key: bool = False
 
     def to_dict(self) -> dict:
         return {
             "rows": self.rows,
             "key": self.key,
             "key_fields": list(self.key_fields),
+            **({"casefold_key": True} if self.casefold_key else {}),
             "duplicate_keys": self.duplicate_keys,
             "incomplete_key_rows": self.incomplete_key_rows,
             "max_incomplete_keys": self.max_incomplete_keys,
@@ -181,6 +183,7 @@ def build_brief(
     max_missing_columns: dict[str, float] | None = None,
     min_distinct_groups: int | None = None,
     max_missing_group_share: float | None = None,
+    casefold_key: bool = False,
 ) -> Brief:
     if not 0 <= max_missing <= 1:
         raise ValueError("max_missing must be between 0 and 1")
@@ -232,6 +235,8 @@ def build_brief(
         raise ValueError("max_duplicates requires --key")
     if max_incomplete_keys is not None and not effective_key_fields:
         raise ValueError("max_incomplete_keys requires --key")
+    if casefold_key and not effective_key_fields:
+        raise ValueError("casefold_key requires --key")
 
     preserved_header = list(getattr(rows, "fieldnames", ()))
     header = preserved_header or (list(rows[0].keys()) if rows else required)
@@ -258,7 +263,9 @@ def build_brief(
         if effective_key_fields:
             key_value = tuple(_clean(row.get(name, "")) for name in effective_key_fields)
             if all(not _is_missing(value) for value in key_value):
-                keys.append(key_value)
+                keys.append(
+                    tuple(value.casefold() for value in key_value) if casefold_key else key_value
+                )
             else:
                 incomplete_key_rows += 1
         if group:
@@ -336,6 +343,7 @@ def build_brief(
         missing_group_rows=missing_group_rows,
         missing_group_share=missing_group_share,
         failed_missing_group_share=failed_missing_group_share,
+        casefold_key=casefold_key,
     )
 
 
@@ -421,6 +429,8 @@ def render_markdown(brief: Brief) -> str:
         f"- Business key: {_markdown_text(brief.key) if brief.key else 'not set'}",
         f"- Extra rows from a repeated key: {brief.duplicate_keys}",
     ]
+    if brief.casefold_key:
+        lines.append("- Business-key comparison: case-insensitive (Unicode casefold)")
     if brief.min_distinct_groups is not None:
         lines.append(f"- Minimum distinct non-missing groups: {brief.min_distinct_groups}")
         lines.append(f"- Observed distinct non-missing groups: {brief.distinct_groups}")

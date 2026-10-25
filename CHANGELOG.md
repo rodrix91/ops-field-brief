@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add opt-in `--casefold-key` (requires `--key`) for Unicode case-insensitive duplicate detection in single/composite business identifiers. Normalize only valid, non-missing values after whitespace trimming, preserve the default case-sensitive behavior and old JSON when disabled, and test missing-key handling, CLI failures, and Unicode equivalence.
+
 - Add opt-in `--max-missing-group-share SHARE` (requires `--group`) to fail operational extracts with too many missing or placeholder group assignments, independent of `--top` and distinct-group/concentration gates. Exclude legitimate literal `(blank)` labels from missing counts; reject non-finite/out-of-range thresholds, preserve legacy output unless enabled, and cover direct/CLI/JSON/Markdown regressions.
 
 - Add opt-in `--min-distinct-groups N` with `--group` for operational customer/supplier diversity checks. Count only non-missing distinct group labels, independent of `--top`; reject negative limits and missing `--group`. Preserve legacy JSON unless enabled and cover CLI, library, empty extracts, and missing-token cases with regressions.

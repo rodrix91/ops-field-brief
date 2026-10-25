@@ -25,6 +25,33 @@ For a concise checklist of operational gates, example commands, and safe CI inte
 
 Operational extracts (shipments, orders, inventory movements) often need a fast check before they enter a process: are the required fields present, does the business key repeat, which counterparties dominate the file, and did the extract contain enough rows to be plausible? This tool answers those questions with one command and a clear exit code.
 
+## Case-insensitive business-key matching (opt-in)
+
+Operational identifiers sometimes arrive with inconsistent capitalization (for
+example, `ORD-51` and `ord-51`) even though the upstream system treats them as
+the same order. Enable `--casefold-key` with `--key` to compare all business-key
+components without case differences:
+
+```bash
+python -m ops_field_brief examples/shipments.csv \
+  --required shipment --key shipment --max-duplicates 0 \
+  --casefold-key --json
+```
+
+The option uses Python's Unicode `str.casefold()` for each **non-missing**
+key component after trimming surrounding whitespace. Thus `Straße` and
+`STRASSE` match, including in composite keys, while fields with missing
+tokens such as `NA` remain excluded from duplicate counting and continue to
+contribute to incomplete-key counts. The original CSV and displayed key-field
+names are never rewritten. Case-sensitive matching remains the default,
+because some real systems intentionally distinguish identifier case.
+
+Without `--key`, the option fails with configuration exit `2` and produces
+no report. With `--max-duplicates N`, detected duplicates trigger the same
+existing quality-gate exit `1`. JSON adds `"casefold_key": true` only when
+enabled; previous JSON output is unchanged otherwise. The Markdown summary
+records when normalized matching was selected.
+
 ## Incomplete business keys (opt-in)
 
 Duplicate-key checks exclude rows where any key component is blank or matches a missing-value token, so a file can pass `--max-duplicates 0` while containing orders that cannot be joined to their line items. Add `--max-incomplete-keys N` with `--key` to set a separate limit for those rows:
