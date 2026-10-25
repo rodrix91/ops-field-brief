@@ -265,6 +265,24 @@ def _detect_delimiter(sample: str) -> str:
     try:
         return csv.Sniffer().sniff(sample, delimiters=",;\t|").delimiter
     except csv.Error as exc:
+        # Sniffer cannot identify a separator in valid single-column files.
+        # Accept those only when every candidate parses every sampled CSV
+        # record as exactly one field; still reject inconsistent or bad CSV.
+        try:
+            single_column = bool(sample.strip())
+            for candidate in DELIMITERS.values():
+                if any(
+                    len(record) != 1
+                    for record in csv.reader(
+                        io.StringIO(sample), delimiter=candidate, strict=True
+                    )
+                ):
+                    single_column = False
+                    break
+            if single_column:
+                return ","
+        except csv.Error:
+            pass
         raise ValueError(
             "could not detect delimiter; use --delimiter comma, semicolon, tab, or pipe"
         ) from exc
