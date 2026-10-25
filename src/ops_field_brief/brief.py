@@ -353,10 +353,7 @@ def build_brief(
     duplicate_share = duplicate_keys / complete_key_rows if complete_key_rows else 0.0
     failed_duplicate_share = bool(
         max_duplicate_share is not None
-        and (
-            (bool(rows) and complete_key_rows == 0)
-            or duplicate_share > max_duplicate_share
-        )
+        and ((bool(rows) and complete_key_rows == 0) or duplicate_share > max_duplicate_share)
     )
     failed_incomplete_keys = bool(
         max_incomplete_keys is not None and incomplete_key_rows > max_incomplete_keys
