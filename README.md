@@ -25,6 +25,37 @@ For a concise checklist of operational gates, example commands, and safe CI inte
 
 Operational extracts (shipments, orders, inventory movements) often need a fast check before they enter a process: are the required fields present, does the business key repeat, which counterparties dominate the file, and did the extract contain enough rows to be plausible? This tool answers those questions with one command and a clear exit code.
 
+## Case-insensitive group matching (opt-in)
+
+The same counterparty may appear in an operational export as `ACME`,
+`Acme` and `acme`, or in Unicode forms such as `Straße` and `STRASSE`.
+Counting these as separate groups can **understate customer/supplier concentration**
+and **overstate the number of distinct counterparties**. Enable
+`--casefold-group` alongside `--group` to normalize non-missing group labels
+using Python's Unicode `str.casefold()`:
+
+```bash
+python -m ops_field_brief examples/shipments.csv \
+  --required shipment --group buyer --casefold-group \
+  --max-group-share 0.50 --min-distinct-groups 2 --json
+```
+
+The option affects all group-derived metrics: displayed top groups (their labels
+are shown in normalized lowercase/casefold form), top-group concentration,
+minimum distinct non-missing groups and missing-group share (the last is
+unchanged for a given dataset). Trimming, missing placeholders (`NA`, `N/A`,
+`s/d`, etc.) and the safe distinction between missing values and a real
+`(blank)` group remain intact. All records are counted even with `--top 0`.
+Original CSV content, field names, business-key matching and required-field
+completion are unaffected. If counterparty capitalization is meaningful in
+your source system, leave this option off.
+
+Without `--group`, the option returns configuration exit `2`. JSON
+includes `"casefold_group": true` and Markdown notes the comparison mode
+**only when enabled**. The default output and existing exit codes remain
+unchanged. `--casefold-key` and `--casefold-group` may be selected
+independently.
+
 ## Case-insensitive business-key matching (opt-in)
 
 Operational identifiers sometimes arrive with inconsistent capitalization (for
