@@ -274,6 +274,7 @@ def _detect_delimiter(sample: str) -> str:
                 if any(
                     len(record) != 1
                     for record in csv.reader(io.StringIO(sample), delimiter=candidate, strict=True)
+                    if record  # csv.reader ignores empty physical lines
                 ):
                     single_column = False
                     break
