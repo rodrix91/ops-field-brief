@@ -262,6 +262,12 @@ def build_brief(
     if casefold_group and not group:
         raise ValueError("casefold_group requires --group")
 
+    # Parsed exports must supply a real header. With no header, falling back
+    # to the caller's --required names would silently report zero missing
+    # cells and pass a completely empty CSV as a valid extract.
+    if isinstance(rows, CsvRows) and not rows.fieldnames:
+        raise ValueError("CSV has no header row")
+
     preserved_header = list(getattr(rows, "fieldnames", ()))
     header = preserved_header or (list(rows[0].keys()) if rows else required)
     unknown = [name for name in required if name not in header]
