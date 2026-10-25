@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add opt-in `--min-distinct-groups N` with `--group` for operational customer/supplier diversity checks. Count only non-missing distinct group labels, independent of `--top`; reject negative limits and missing `--group`. Preserve legacy JSON unless enabled and cover CLI, library, empty extracts, and missing-token cases with regressions.
+
 - Parse `--max-missing-column NAME=SHARE` at the **last** `=` to support exact required-field names containing an equals sign (e.g. `SLA=met=0.5`), without relaxing invalid-share or unknown-field checks. Add an end-to-end quality-gate and JSON regression.
 
 - Add repeatable `--max-missing-column NAME=SHARE` to override required-field completeness thresholds without relaxing the global `--max-missing` gate. Reject malformed, duplicate, unknown, non-finite, and out-of-range overrides with usage exit 2; include override metadata only when requested to preserve existing JSON contracts. Add API, CLI, Markdown and JSON regression tests.
