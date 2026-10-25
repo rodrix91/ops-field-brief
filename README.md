@@ -3,12 +3,14 @@
 [![CI](https://github.com/rodrix91/ops-field-brief/actions/workflows/ci.yml/badge.svg)](https://github.com/rodrix91/ops-field-brief/actions/workflows/ci.yml)
 
 
-A small standard-library Python CLI that answers five practical questions about one operational CSV:
+A small standard-library Python CLI that answers seven practical questions about one operational CSV:
 
 - Are the required fields filled? Empty cells and tokens such as `NA`, `N/A`, `null`, `none`, `s/d`, `s.d.`, `N/D`, `N.D.`, and `-` count as missing.
 - Does the business key repeat? Blank keys and configured missing-value tokens (such as `NA`, `N/A`, `null` or `s/d`) are excluded from duplicate-key comparisons and counted as incomplete business-key rows when a key is selected.
 - Which groups account for the rows? Empty labels and missing-value tokens such as `NA`, `N/A`, and `s/d` are grouped together as `(blank)`.
 - Does one group dominate more of the extract than allowed?
+- Are too many records missing a real customer, supplier, or group assignment?
+- Are there enough distinct non-missing customer or supplier groups?
 - Does the extract contain at least the expected number of data rows?
 
 It is a complement to [csv-quality-report](https://github.com/rodrix91/csv-quality-report), not a replacement. Use that project to profile types, locales, and ranges. Use this one when the question is operational completeness (fill rate, repeated keys, top groups).
