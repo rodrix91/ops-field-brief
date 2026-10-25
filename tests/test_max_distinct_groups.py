@@ -24,8 +24,14 @@ class MaxDistinctGroupsTests(unittest.TestCase):
             {"buyer": "(blank)"},
         ]
         passed = build_brief(
-            rows, ["buyer"], group="buyer", max_missing=1, casefold_group=True,
-            max_distinct_groups=3, min_distinct_groups=3, top_n=0,
+            rows,
+            ["buyer"],
+            group="buyer",
+            max_missing=1,
+            casefold_group=True,
+            max_distinct_groups=3,
+            min_distinct_groups=3,
+            top_n=0,
         )
         self.assertEqual(passed.distinct_groups, 3)
         self.assertFalse(passed.failed_max_distinct_groups)
@@ -37,8 +43,13 @@ class MaxDistinctGroupsTests(unittest.TestCase):
         self.assertIn("Maximum distinct non-missing groups: 3", render(passed, False))
 
         failed = build_brief(
-            rows, ["buyer"], group="buyer", max_missing=1, casefold_group=True,
-            max_distinct_groups=2, top_n=0,
+            rows,
+            ["buyer"],
+            group="buyer",
+            max_missing=1,
+            casefold_group=True,
+            max_distinct_groups=2,
+            top_n=0,
         )
         self.assertTrue(failed.failed_max_distinct_groups)
         self.assertIn("Failed group-cardinality check", render(failed, False))
@@ -50,8 +61,11 @@ class MaxDistinctGroupsTests(unittest.TestCase):
         self.assertEqual(allowed.distinct_groups, 0)
         self.assertFalse(allowed.failed_max_distinct_groups)
         combined = build_brief(
-            empty, ["buyer"], group="buyer",
-            max_distinct_groups=0, min_distinct_groups=1,
+            empty,
+            ["buyer"],
+            group="buyer",
+            max_distinct_groups=0,
+            min_distinct_groups=1,
         )
         self.assertFalse(combined.failed_max_distinct_groups)
         self.assertTrue(combined.failed_distinct_groups)
@@ -76,8 +90,14 @@ class MaxDistinctGroupsTests(unittest.TestCase):
                 encoding="utf-8",
             )
             args = [
-                str(path), "--required", "shipment", "--group", "buyer",
-                "--top", "0", "--json",
+                str(path),
+                "--required",
+                "shipment",
+                "--group",
+                "buyer",
+                "--top",
+                "0",
+                "--json",
             ]
             for maximum, exit_code, expected_failure in ((2, 0, False), (1, 1, True)):
                 with self.subTest(maximum=maximum):
@@ -91,8 +111,10 @@ class MaxDistinctGroupsTests(unittest.TestCase):
                     self.assertEqual(payload["failed_max_distinct_groups"], expected_failure)
             for options, message in (
                 ([*args, "--max-distinct-groups", "-1"], "0 or greater"),
-                ([str(path), "--required", "shipment", "--max-distinct-groups", "1"],
-                 "requires --group"),
+                (
+                    [str(path), "--required", "shipment", "--max-distinct-groups", "1"],
+                    "requires --group",
+                ),
             ):
                 with self.subTest(options=options):
                     stdout, stderr = io.StringIO(), io.StringIO()
