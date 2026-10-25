@@ -64,6 +64,29 @@ permissive, including the standard CSV reader's last-value-wins behavior for
 duplicate header names. Enable strict mode when a silent column shift or lost
 field would make the report misleading.
 
+## Per-field missing limits (opt-in)
+
+Operational exports often need different completeness targets: an order ID must
+always be present, while an estimated delivery date may be missing in a small
+fraction of rows. Use repeatable `--max-missing-column NAME=SHARE` to override
+the global `--max-missing` threshold for individual `--required` fields:
+
+```bash
+python -m ops_field_brief examples/shipments.csv \
+  --required shipment,buyer,eta \
+  --max-missing 0 \
+  --max-missing-column eta=0.5 --json
+```
+
+Each share is a number from 0 to 1 (inclusive). A named field must appear in
+`--required`, and a field can be specified only once. Invalid, duplicate,
+unknown, negative, greater-than-one, and non-finite limits fail with exit code
+`2`; exceeding an allowed missing rate fails the quality gate with exit
+code `1`. Limits not explicitly overridden continue to use `--max-missing`.
+JSON includes `max_missing_columns` only when overrides are supplied, so
+existing output without the new option is unchanged. Markdown reports the
+effective overrides in the summary.
+
 ## Install and run
 
 Python 3.10 or newer. No third-party packages. From a checkout:
