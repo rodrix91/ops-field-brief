@@ -39,6 +39,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--group", help="Column to rank by row count")
     parser.add_argument(
+        "--casefold-group",
+        action="store_true",
+        help="Merge group values differing only in case (requires --group)",
+    )
+    parser.add_argument(
         "--max-missing",
         type=float,
         default=0.0,
@@ -162,6 +167,7 @@ def main(argv: list[str] | None = None) -> int:
             key_fields=key_fields,
             casefold_key=args.casefold_key,
             group=args.group,
+            casefold_group=args.casefold_group,
             max_missing=args.max_missing,
             max_missing_columns=missing_limits,
             top_n=args.top,
