@@ -325,7 +325,7 @@ def read_csv(
                 delimiter = _detect_delimiter(sample)
             except ValueError:
                 # Retry on the complete input only when the initial prefix
-                # cannot be classified (e.g. a quote crosses byte 8192).
+                # cannot be classified (e.g. a quote crosses character 8192).
                 remainder = handle.read()
                 if not remainder:
                     raise
