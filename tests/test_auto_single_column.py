@@ -139,6 +139,15 @@ class SingleColumnAutoDelimiterTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "could not detect delimiter"):
                 read_csv(path, delimiter=None, strict=True)
 
+    def test_short_ambiguous_stdin_still_rejected(self):
+        with self.assertRaisesRegex(ValueError, "could not detect delimiter"):
+            read_csv(
+                Path("-"),
+                delimiter=None,
+                stdin=io.StringIO("shipment|buyer\nS1\nS2\n"),
+                strict=True,
+            )
+
     def test_long_quoted_field_cli_strict_csv_counts_rows(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "large.csv"
