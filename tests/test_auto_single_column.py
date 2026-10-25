@@ -43,9 +43,16 @@ class SingleColumnAutoDelimiterTests(unittest.TestCase):
             source.write_text("buyer\nAndes\nPaz\n", encoding="utf-8")
             completed = subprocess.run(
                 [
-                    sys.executable, "-m", "ops_field_brief", str(source),
-                    "--required", "buyer", "--delimiter", "auto",
-                    "--strict-csv", "--json",
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(source),
+                    "--required",
+                    "buyer",
+                    "--delimiter",
+                    "auto",
+                    "--strict-csv",
+                    "--json",
                 ],
                 cwd=ROOT,
                 env={**os.environ, "PYTHONPATH": str(ROOT / "src")},
