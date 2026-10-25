@@ -273,9 +273,7 @@ def _detect_delimiter(sample: str) -> str:
             for candidate in DELIMITERS.values():
                 if any(
                     len(record) != 1
-                    for record in csv.reader(
-                        io.StringIO(sample), delimiter=candidate, strict=True
-                    )
+                    for record in csv.reader(io.StringIO(sample), delimiter=candidate, strict=True)
                 ):
                     single_column = False
                     break
