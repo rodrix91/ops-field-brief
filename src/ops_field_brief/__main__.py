@@ -91,6 +91,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Fail if the largest --group value exceeds this share of rows (0 to 1)",
     )
     parser.add_argument(
+        "--max-assigned-group-share",
+        type=float,
+        default=None,
+        help=(
+            "Fail if one non-missing --group value exceeds this share of "
+            "assigned rows (0 to 1); requires --group"
+        ),
+    )
+    parser.add_argument(
         "--max-missing-group-share",
         type=float,
         default=None,
@@ -175,6 +184,7 @@ def main(argv: list[str] | None = None) -> int:
             max_incomplete_keys=args.max_incomplete_keys,
             min_rows=args.min_rows,
             max_group_share=args.max_group_share,
+            max_assigned_group_share=args.max_assigned_group_share,
             max_missing_group_share=args.max_missing_group_share,
             min_distinct_groups=args.min_distinct_groups,
         )
@@ -190,6 +200,7 @@ def main(argv: list[str] | None = None) -> int:
             or brief.failed_incomplete_keys
             or brief.failed_rows
             or brief.failed_group_share
+            or brief.failed_assigned_group_share
             or brief.failed_distinct_groups
             or brief.failed_missing_group_share
         )

@@ -149,6 +149,40 @@ JSON includes `max_missing_columns` only when overrides are supplied, so
 existing output without the new option is unchanged. Markdown reports the
 effective overrides in the summary.
 
+## Concentration among assigned customers and suppliers (opt-in)
+
+When an extract includes many missing customer or supplier labels,
+`--max-group-share` uses **all rows** in its denominator and includes the
+missing-value bucket among the possible top groups. This remains unchanged.
+To evaluate how dependent the *identified* business is on one counterparty,
+use `--max-assigned-group-share SHARE` with `--group COLUMN`:
+
+```bash
+python -m ops_field_brief shipments.csv \
+  --required shipment --max-missing 1 --group buyer \
+  --max-assigned-group-share 0.60 --json
+```
+
+Only real, non-missing labels contribute to this new numerator and denominator:
+for example, with 6 rows assigned to ACME, 2 to another buyer, and 12 missing,
+the largest **assigned-group** share is 6/8 = **75%**, whereas
+`--max-group-share` observes the missing bucket at 12/20 = **60%**.
+The new limit fails the extract at 60% and reports exit `1`, even when the
+existing top-group gate passes with the same threshold. If the extract contains
+rows but every group is missing, this check **fails closed**; an entirely empty
+extract reports 0% and can be rejected separately via `--min-rows 1`.
+
+The gate uses the existing missing placeholders (including `NA`, `N/A`,
+`null`, `s/d`), treats a real `(blank)` customer as assigned, respects
+`--casefold-group`, and is calculated independently of `--top` (including
+`--top 0`). The JSON adds `max_assigned_group_share`,
+`top_assigned_group_share`, `assigned_group_rows`, and
+`failed_assigned_group_share` **only if the option is enabled**. Markdown
+shows the rate and a clear failure reason. Invalid, non-finite, or out-of-range
+shares and using the option without `--group` produce configuration exit `2`.
+The default outputs, ranking, concentration and missingness gates remain
+unchanged; the original CSV is never rewritten.
+
 ## Maximum missing-group share (opt-in)
 
 An extract can have many customers or suppliers while still leaving an unsafe

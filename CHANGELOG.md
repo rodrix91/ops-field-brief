@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add opt-in `--max-assigned-group-share SHARE` (requires `--group`) to detect concentration among identified customers/suppliers even when missing counterparty labels dilute overall shares. Exclude only recognized missing-group rows from this new denominator, fail closed when nonempty extracts have no assigned groups, retain empty-extract `--min-rows` semantics, support Unicode casefold and `--top 0`, and preserve all previous concentration/JSON defaults. Validate thresholds and cover API/CLI/Markdown/JSON regressions.
+
 - Add opt-in `--casefold-group` (requires `--group`) to normalize real customer/supplier group labels using Unicode casefold before counting, ranking and applying concentration/diversity gates. This prevents capitalization variants from artificially inflating distinct groups or hiding top-group share, while keeping missing placeholders and legitimate `(blank)` labels separate. Default behavior and JSON stay unchanged; add API/CLI/Unicode/composition regression tests.
 
 - Add opt-in `--casefold-key` (requires `--key`) for Unicode case-insensitive duplicate detection in single/composite business identifiers. Normalize only valid, non-missing values after whitespace trimming, preserve the default case-sensitive behavior and old JSON when disabled, and test missing-key handling, CLI failures, and Unicode equivalence.
