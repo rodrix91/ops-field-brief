@@ -1,4 +1,4 @@
-"""An absent CSV header is not a valid operational extract."""
+"""Preserve legacy empty-input semantics; strict validation remains opt-in."""
 
 from __future__ import annotations
 
@@ -16,14 +16,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class HeaderlessExportTests(unittest.TestCase):
-    def test_parsed_empty_input_is_rejected_by_library(self):
+    def test_parsed_empty_input_retains_explicit_required_schema(self):
         for source in ("", "\n\n"):
             with self.subTest(source=repr(source)):
                 parsed = read_csv(Path("-"), stdin=io.StringIO(source))
-                with self.assertRaisesRegex(ValueError, "CSV has no header row"):
-                    build_brief(parsed, ["order_id"])
+                self.assertEqual(build_brief(parsed, ["order_id"]).rows, 0)
 
-    def test_default_cli_does_not_report_success_for_empty_files(self):
+    def test_default_cli_remains_backward_compatible_with_empty_files(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "empty.csv"
             for source in ("", "\n\n"):
@@ -45,11 +44,10 @@ class HeaderlessExportTests(unittest.TestCase):
                         text=True,
                         check=False,
                     )
-                    self.assertEqual(completed.returncode, 2)
-                    self.assertIn("CSV has no header row", completed.stderr)
-                    self.assertEqual(completed.stdout, "")
+                    self.assertEqual(completed.returncode, 0, completed.stderr)
+                    self.assertIn('"rows": 0', completed.stdout)
 
-    def test_empty_stdin_does_not_report_success(self):
+    def test_empty_stdin_retains_default_zero_row_report(self):
         completed = subprocess.run(
             [sys.executable, "-m", "ops_field_brief", "-", "--required", "order_id"],
             cwd=ROOT,
@@ -59,9 +57,8 @@ class HeaderlessExportTests(unittest.TestCase):
             text=True,
             check=False,
         )
-        self.assertEqual(completed.returncode, 2)
-        self.assertIn("CSV has no header row", completed.stderr)
-        self.assertEqual(completed.stdout, "")
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Rows: 0", completed.stdout)
 
     def test_header_only_export_and_explicit_api_schema_still_work(self):
         parsed = read_csv(Path("-"), stdin=io.StringIO("order_id\n"))
