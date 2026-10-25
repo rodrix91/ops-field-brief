@@ -39,6 +39,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=0.0,
         help="Fail if a required field is missing more than this share (0 to 1)",
     )
+    parser.add_argument(
+        "--max-missing-column",
+        action="append",
+        default=[],
+        metavar="NAME=SHARE",
+        help="Override --max-missing for one required field (repeatable; share 0 to 1)",
+    )
     parser.add_argument("--top", type=int, default=5)
     parser.add_argument(
         "--delimiter",
@@ -111,6 +118,18 @@ def main(argv: list[str] | None = None) -> int:
             print("empty column in --key; specify every key field", file=sys.stderr)
             return 2
     try:
+        missing_limits: dict[str, float] = {}
+        for spec in args.max_missing_column:
+            name, separator, share = spec.partition("=")
+            name = name.strip()
+            if not separator or not name or not share.strip():
+                raise ValueError("--max-missing-column expects NAME=SHARE")
+            if name in missing_limits:
+                raise ValueError(f"duplicate --max-missing-column field: {name}")
+            try:
+                missing_limits[name] = float(share)
+            except ValueError:
+                raise ValueError(f"invalid --max-missing-column share: {share}") from None
         rows = read_csv(
             args.csv,
             delimiter=None if args.delimiter == "auto" else DELIMITERS[args.delimiter],
@@ -126,6 +145,7 @@ def main(argv: list[str] | None = None) -> int:
             key_fields=key_fields,
             group=args.group,
             max_missing=args.max_missing,
+            max_missing_columns=missing_limits,
             top_n=args.top,
             max_duplicates=args.max_duplicates,
             max_incomplete_keys=args.max_incomplete_keys,
