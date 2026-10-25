@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Require an explicit `--key` whenever `--max-duplicates` is set. Previously a duplicate quality gate without a key silently returned success, even when the CSV contained duplicate orders. Fail with usage exit 2 and no misleading report; retain valid single/composite-key behavior. Add library and CLI regressions.
+
 - Retry `--delimiter auto` detection with the complete CSV if the first 8,192-character sample cannot be classified, including long quoted single-column or multi-column fields crossing the sample boundary. Preserve strict CSV errors for truly unterminated quotes. Add stdin, local-file and CLI regressions.
 
 - Preserve `--delimiter auto` for one-column exports containing blank physical lines: ignore CSV reader's empty records during delimiter fallback without relaxing validation of malformed quoting, missing headers or mixed-width rows. New strict-CSV CLI and library regressions ensure only actual data rows are counted.

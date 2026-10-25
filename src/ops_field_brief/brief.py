@@ -177,6 +177,8 @@ def build_brief(
     ]
     if repeated_key_fields:
         raise ValueError("duplicate key fields: " + ", ".join(repeated_key_fields))
+    if max_duplicates is not None and not effective_key_fields:
+        raise ValueError("max_duplicates requires --key")
     if max_incomplete_keys is not None and not effective_key_fields:
         raise ValueError("max_incomplete_keys requires --key")
 
