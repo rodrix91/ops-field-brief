@@ -88,6 +88,10 @@ class Brief:
     min_distinct_groups: int | None = None
     distinct_groups: int = 0
     failed_distinct_groups: bool = False
+    max_missing_group_share: float | None = None
+    missing_group_rows: int = 0
+    missing_group_share: float = 0.0
+    failed_missing_group_share: bool = False
 
     def to_dict(self) -> dict:
         return {
@@ -139,6 +143,16 @@ class Brief:
                 if self.min_distinct_groups is not None
                 else {}
             ),
+            **(
+                {
+                    "max_missing_group_share": self.max_missing_group_share,
+                    "missing_group_rows": self.missing_group_rows,
+                    "missing_group_share": round(self.missing_group_share, 4),
+                    "failed_missing_group_share": self.failed_missing_group_share,
+                }
+                if self.max_missing_group_share is not None
+                else {}
+            ),
         }
 
 
@@ -166,6 +180,7 @@ def build_brief(
     max_incomplete_keys: int | None = None,
     max_missing_columns: dict[str, float] | None = None,
     min_distinct_groups: int | None = None,
+    max_missing_group_share: float | None = None,
 ) -> Brief:
     if not 0 <= max_missing <= 1:
         raise ValueError("max_missing must be between 0 and 1")
@@ -185,6 +200,10 @@ def build_brief(
         raise ValueError("min_distinct_groups must be 0 or greater")
     if min_distinct_groups is not None and not group:
         raise ValueError("min_distinct_groups requires --group")
+    if max_missing_group_share is not None and not 0 <= max_missing_group_share <= 1:
+        raise ValueError("max_missing_group_share must be between 0 and 1")
+    if max_missing_group_share is not None and not group:
+        raise ValueError("max_missing_group_share requires --group")
     overrides = dict(max_missing_columns or {})
     if any(not 0 <= limit <= 1 for limit in overrides.values()):
         raise ValueError("max_missing_columns shares must be between 0 and 1")
@@ -269,6 +288,12 @@ def build_brief(
     failed_distinct_groups = bool(
         min_distinct_groups is not None and distinct_groups < min_distinct_groups
     )
+    # Only true missing-group tokens count; a literal "(blank)" customer is valid.
+    missing_group_rows = groups[None]
+    missing_group_share = missing_group_rows / len(rows) if rows else 0.0
+    failed_missing_group_share = bool(
+        max_missing_group_share is not None and missing_group_share > max_missing_group_share
+    )
     missing_label = "(blank)"
     if None in groups and missing_label in groups:
         # A real "(blank)" group must not merge with missing values or share
@@ -307,6 +332,10 @@ def build_brief(
         min_distinct_groups=min_distinct_groups,
         distinct_groups=distinct_groups,
         failed_distinct_groups=failed_distinct_groups,
+        max_missing_group_share=max_missing_group_share,
+        missing_group_rows=missing_group_rows,
+        missing_group_share=missing_group_share,
+        failed_missing_group_share=failed_missing_group_share,
     )
 
 
@@ -395,6 +424,10 @@ def render_markdown(brief: Brief) -> str:
     if brief.min_distinct_groups is not None:
         lines.append(f"- Minimum distinct non-missing groups: {brief.min_distinct_groups}")
         lines.append(f"- Observed distinct non-missing groups: {brief.distinct_groups}")
+    if brief.max_missing_group_share is not None:
+        lines.append(f"- Max allowed missing-group share: {brief.max_missing_group_share:.1%}")
+        lines.append(f"- Rows with missing group labels: {brief.missing_group_rows}")
+        lines.append(f"- Observed missing-group share: {brief.missing_group_share:.1%}")
     if brief.max_missing_columns:
         limits = ", ".join(
             f"{_markdown_text(name)}: {limit:.1%}" for name, limit in brief.max_missing_columns
@@ -486,6 +519,18 @@ def render_markdown(brief: Brief) -> str:
                 (
                     f"Distinct non-missing groups ({brief.distinct_groups}) are below "
                     f"the minimum ({brief.min_distinct_groups})."
+                ),
+            ]
+        )
+    if brief.failed_missing_group_share:
+        lines.extend(
+            [
+                "",
+                "## Failed missing-group check",
+                "",
+                (
+                    f"Missing-group share ({brief.missing_group_share:.1%}) exceeds the limit "
+                    f"({brief.max_missing_group_share:.1%})."
                 ),
             ]
         )

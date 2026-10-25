@@ -3,12 +3,14 @@
 [![CI](https://github.com/rodrix91/ops-field-brief/actions/workflows/ci.yml/badge.svg)](https://github.com/rodrix91/ops-field-brief/actions/workflows/ci.yml)
 
 
-A small standard-library Python CLI that answers five practical questions about one operational CSV:
+A small standard-library Python CLI that answers seven practical questions about one operational CSV:
 
 - Are the required fields filled? Empty cells and tokens such as `NA`, `N/A`, `null`, `none`, `s/d`, `s.d.`, `N/D`, `N.D.`, and `-` count as missing.
 - Does the business key repeat? Blank keys and configured missing-value tokens (such as `NA`, `N/A`, `null` or `s/d`) are excluded from duplicate-key comparisons and counted as incomplete business-key rows when a key is selected.
 - Which groups account for the rows? Empty labels and missing-value tokens such as `NA`, `N/A`, and `s/d` are grouped together as `(blank)`.
 - Does one group dominate more of the extract than allowed?
+- Are too many records missing a real customer, supplier, or group assignment?
+- Are there enough distinct non-missing customer or supplier groups?
 - Does the extract contain at least the expected number of data rows?
 
 It is a complement to [csv-quality-report](https://github.com/rodrix91/csv-quality-report), not a replacement. Use that project to profile types, locales, and ranges. Use this one when the question is operational completeness (fill rate, repeated keys, top groups).
@@ -89,6 +91,30 @@ JSON includes `max_missing_columns` only when overrides are supplied, so
 existing output without the new option is unchanged. Markdown reports the
 effective overrides in the summary.
 
+## Maximum missing-group share (opt-in)
+
+An extract can have many customers or suppliers while still leaving an unsafe
+fraction of its records unassigned. Combine `--group COLUMN` with
+`--max-missing-group-share SHARE` (from `0` to `1`) to reject extracts whose
+missing, whitespace-only or recognized placeholder (`NA`, `N/A`, `null`, `s/d`,
+etc.) group labels exceed the specified share of **all data rows**:
+
+```bash
+python -m ops_field_brief examples/shipments.csv \
+  --required shipment --group buyer \
+  --max-missing-group-share 0.05 --top 0 --json
+```
+
+The gate evaluates every row even when `--top 0` hides the top-group list; a
+literal valid group label `(blank)` does not count as missing. Equality with
+the threshold passes; exceeding it exits `1`. A negative, greater-than-one or
+non-finite limit (including `NaN`) or missing `--group` exits `2`. When enabled,
+JSON adds `max_missing_group_share`, `missing_group_rows`, `missing_group_share`
+and `failed_missing_group_share`; ordinary JSON output is unchanged.
+An extract with zero data rows has a missing-group share of 0; use
+`--min-rows N` when an empty extract should also fail. This check works
+independently of `--max-group-share` and `--min-distinct-groups`.
+
 ## Minimum business-group diversity (opt-in)
 
 A file with 10,000 rows can still contain only one real customer or supplier.
@@ -124,7 +150,7 @@ python -m ops_field_brief shipments.csv \
 
 After `pip install .`, the same command is available as `ops-field-brief`. Use `ops-field-brief --version` to confirm the installed version.
 
-Exit code `0` means every enabled quality gate passes. Exit code `1` means at least one required field is too empty, repeated keys exceed `--max-duplicates`, incomplete key rows exceed `--max-incomplete-keys`, the data-row count is below `--min-rows`, or the largest `--group` exceeds `--max-group-share`, or the count of real distinct groups falls below `--min-distinct-groups`. Exit code `2` means the file or the arguments could not be used, including an unknown `--encoding`, a `--max-missing` or `--max-group-share` outside 0 to 1 (including non-finite values such as `NaN`), a negative `--max-duplicates` or `--min-rows`, an empty, incomplete or repeated `--required` field list, an unknown `--key` or `--group`, using `--max-group-share` or `--min-distinct-groups` without `--group`, a negative `--min-distinct-groups`, a negative `--top`, or an unknown `--delimiter`.
+Exit code `0` means every enabled quality gate passes. Exit code `1` means at least one required field is too empty, repeated keys exceed `--max-duplicates`, incomplete key rows exceed `--max-incomplete-keys`, the data-row count is below `--min-rows`, or the largest `--group` exceeds `--max-group-share`, or the count of real distinct groups falls below `--min-distinct-groups`, or missing group assignments exceed `--max-missing-group-share`. Exit code `2` means the file or the arguments could not be used, including an unknown `--encoding`, a `--max-missing` or `--max-group-share` outside 0 to 1 (including non-finite values such as `NaN`), a negative `--max-duplicates` or `--min-rows`, an empty, incomplete or repeated `--required` field list, an unknown `--key` or `--group`, using `--max-group-share`, `--max-missing-group-share` or `--min-distinct-groups` without `--group`, a negative `--min-distinct-groups`, a negative `--top`, or an unknown `--delimiter`.
 
 `--required` trims surrounding spaces but rejects missing field positions such as `shipment,,eta`, leading/trailing commas or whitespace-only segments (exit `2`), rather than silently skipping a quality check. Duplicate field names also produce a configuration error.
 

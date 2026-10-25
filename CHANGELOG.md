@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add opt-in `--max-missing-group-share SHARE` (requires `--group`) to fail operational extracts with too many missing or placeholder group assignments, independent of `--top` and distinct-group/concentration gates. Exclude legitimate literal `(blank)` labels from missing counts; reject non-finite/out-of-range thresholds, preserve legacy output unless enabled, and cover direct/CLI/JSON/Markdown regressions.
+
 - Add opt-in `--min-distinct-groups N` with `--group` for operational customer/supplier diversity checks. Count only non-missing distinct group labels, independent of `--top`; reject negative limits and missing `--group`. Preserve legacy JSON unless enabled and cover CLI, library, empty extracts, and missing-token cases with regressions.
 
 - Parse `--max-missing-column NAME=SHARE` at the **last** `=` to support exact required-field names containing an equals sign (e.g. `SLA=met=0.5`), without relaxing invalid-share or unknown-field checks. Add an end-to-end quality-gate and JSON regression.
