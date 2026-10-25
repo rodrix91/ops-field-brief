@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add opt-in `--casefold-group` (requires `--group`) to normalize real customer/supplier group labels using Unicode casefold before counting, ranking and applying concentration/diversity gates. This prevents capitalization variants from artificially inflating distinct groups or hiding top-group share, while keeping missing placeholders and legitimate `(blank)` labels separate. Default behavior and JSON stay unchanged; add API/CLI/Unicode/composition regression tests.
+
 - Add opt-in `--casefold-key` (requires `--key`) for Unicode case-insensitive duplicate detection in single/composite business identifiers. Normalize only valid, non-missing values after whitespace trimming, preserve the default case-sensitive behavior and old JSON when disabled, and test missing-key handling, CLI failures, and Unicode equivalence.
 
 - Add opt-in `--max-missing-group-share SHARE` (requires `--group`) to fail operational extracts with too many missing or placeholder group assignments, independent of `--top` and distinct-group/concentration gates. Exclude legitimate literal `(blank)` labels from missing counts; reject non-finite/out-of-range thresholds, preserve legacy output unless enabled, and cover direct/CLI/JSON/Markdown regressions.
