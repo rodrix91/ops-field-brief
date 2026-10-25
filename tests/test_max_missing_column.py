@@ -119,7 +119,7 @@ class MissingColumnLimitTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "sla.csv"
             path.write_text(
-                "shipment,SLA=met\\nS1,yes\\nS2,\\n",
+                "shipment,SLA=met\nS1,yes\nS2,\n",
                 encoding="utf-8",
             )
             with contextlib.redirect_stdout(io.StringIO()):
