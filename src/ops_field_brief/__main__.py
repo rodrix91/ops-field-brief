@@ -32,6 +32,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--key",
         help="Business key column. Separate multiple columns with commas for a composite key.",
     )
+    parser.add_argument(
+        "--casefold-key",
+        action="store_true",
+        help="Compare business-key values without case differences (requires --key)",
+    )
     parser.add_argument("--group", help="Column to rank by row count")
     parser.add_argument(
         "--max-missing",
@@ -155,6 +160,7 @@ def main(argv: list[str] | None = None) -> int:
             rows,
             required,
             key_fields=key_fields,
+            casefold_key=args.casefold_key,
             group=args.group,
             max_missing=args.max_missing,
             max_missing_columns=missing_limits,
