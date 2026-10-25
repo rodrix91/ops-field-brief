@@ -23,8 +23,12 @@ class DuplicateShareTests(unittest.TestCase):
             {"order": "null", "line": "9"},
         ]
         passing = build_brief(
-            rows, ["order"], key_fields=["order", "line"],
-            max_missing=1, max_duplicates=1, max_duplicate_share=1 / 3,
+            rows,
+            ["order"],
+            key_fields=["order", "line"],
+            max_missing=1,
+            max_duplicates=1,
+            max_duplicate_share=1 / 3,
         )
         self.assertEqual(passing.duplicate_keys, 1)
         self.assertEqual(passing.incomplete_key_rows, 2)
@@ -36,8 +40,11 @@ class DuplicateShareTests(unittest.TestCase):
         self.assertIn("Rows with complete keys: 3", render(passing, False))
 
         failing = build_brief(
-            rows, ["order"], key_fields=["order", "line"],
-            max_missing=1, max_duplicate_share=0.3,
+            rows,
+            ["order"],
+            key_fields=["order", "line"],
+            max_missing=1,
+            max_duplicate_share=0.3,
         )
         self.assertTrue(failing.failed_duplicate_share)
         self.assertIn("Failed duplicate-share check", render(failing, False))
@@ -46,7 +53,11 @@ class DuplicateShareTests(unittest.TestCase):
     def test_all_incomplete_keys_fail_closed_only_when_nonempty(self):
         rows = [{"order": "NA"}, {"order": ""}]
         failed = build_brief(
-            rows, ["order"], key="order", max_missing=1, max_duplicate_share=0,
+            rows,
+            ["order"],
+            key="order",
+            max_missing=1,
+            max_duplicate_share=0,
         )
         self.assertEqual(failed.duplicate_keys, 0)
         self.assertEqual(failed.complete_key_rows, 0)
@@ -54,7 +65,10 @@ class DuplicateShareTests(unittest.TestCase):
         self.assertIn("No rows have a complete business key", render(failed, False))
 
         empty = build_brief(
-            CsvRows([], ["order"]), ["order"], key="order", max_duplicate_share=0,
+            CsvRows([], ["order"]),
+            ["order"],
+            key="order",
+            max_duplicate_share=0,
         )
         self.assertEqual(empty.complete_key_rows, 0)
         self.assertFalse(empty.failed_duplicate_share)
@@ -71,8 +85,12 @@ class DuplicateShareTests(unittest.TestCase):
         self.assertFalse(plain.failed_duplicate_share)
 
         folded = build_brief(
-            rows, ["key"], key="key", casefold_key=True,
-            max_duplicate_share=0.5, max_duplicates=0,
+            rows,
+            ["key"],
+            key="key",
+            casefold_key=True,
+            max_duplicate_share=0.5,
+            max_duplicates=0,
         )
         self.assertEqual(folded.complete_key_rows, 2)
         self.assertEqual(folded.duplicate_share, 0.5)
@@ -92,12 +110,20 @@ class DuplicateShareTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / "orders.csv"
             path.write_text(
-                "order,line\nA,1\nA,1\nB,2\nC,NA\n,9\n", encoding="utf-8",
+                "order,line\nA,1\nA,1\nB,2\nC,NA\n,9\n",
+                encoding="utf-8",
             )
             base = [
-                str(path), "--required", "order", "--max-missing", "1",
-                "--key", "order,line", "--json",
+                str(path),
+                "--required",
+                "order",
+                "--max-missing",
+                "1",
+                "--key",
+                "order,line",
+                "--json",
             ]
+
             def execute(args: list[str]) -> tuple[int, str, str]:
                 out, err = io.StringIO(), io.StringIO()
                 with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
@@ -115,7 +141,10 @@ class DuplicateShareTests(unittest.TestCase):
             self.assertFalse(json.loads(out)["failed_duplicate_share"])
 
             for args, expected in (
-                ([str(path), "--required", "order", "--max-duplicate-share", "0"], "requires --key"),
+                (
+                    [str(path), "--required", "order", "--max-duplicate-share", "0"],
+                    "requires --key",
+                ),
                 ([*base, "--max-duplicate-share", "-0.1"], "between 0 and 1"),
                 ([*base, "--max-duplicate-share", "nan"], "between 0 and 1"),
             ):
