@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Preserve `--delimiter auto` for one-column exports containing blank physical lines: ignore CSV reader's empty records during delimiter fallback without relaxing validation of malformed quoting, missing headers or mixed-width rows. New strict-CSV CLI and library regressions ensure only actual data rows are counted.
+
 - Allow valid single-column CSV exports with `--delimiter auto` even though no separator is detectable. Verify all sampled records have one field under all four candidate delimiters, respecting quoted embedded commas and pipes; continue rejecting ambiguous, ragged and malformed quoted input. Cover local-file, standard-input and strict-mode regressions.
 
 - Keep a real CSV group value named `(blank)` separate from missing-value buckets when computing `--max-group-share`, preventing false concentration failures. Preserve existing `(blank)` output for ordinary missing groups and disambiguate its display name only when a real group uses that label. Add direct/CLI regressions, including collision-safe labeling.

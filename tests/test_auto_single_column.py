@@ -27,15 +27,53 @@ class SingleColumnAutoDelimiterTests(unittest.TestCase):
         self.assertEqual(rows.fieldnames, ("sku",))
         self.assertEqual(rows, [{"sku": "AB-101"}, {"sku": "AB-102"}])
 
+    def test_blank_physical_lines_do_not_invalidate_one_column(self):
+        rows = read_csv(
+            Path("-"),
+            delimiter=None,
+            stdin=io.StringIO("sku\nAB-101\n\nAB-102\n"),
+            strict=True,
+        )
+        self.assertEqual(rows.fieldnames, ("sku",))
+        self.assertEqual(rows, [{"sku": "AB-101"}, {"sku": "AB-102"}])
+
     def test_embedded_quoted_separators_are_one_column(self):
         rows = read_csv(
             Path("-"),
             delimiter=None,
-            stdin=io.StringIO('buyer\n"Andes, Norte"\n"Paz|Sur"\n'),
+            stdin=io.StringIO('buyer\n"Andes, Norte"\n\n"Paz|Sur"\n'),
             strict=True,
         )
         self.assertEqual(rows.fieldnames, ("buyer",))
         self.assertEqual(rows, [{"buyer": "Andes, Norte"}, {"buyer": "Paz|Sur"}])
+
+    def test_cli_file_blank_physical_lines_still_count_actual_rows(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "buyers.csv"
+            source.write_text("buyer\nAndes\n\nPaz\n", encoding="utf-8")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(source),
+                    "--required",
+                    "buyer",
+                    "--delimiter",
+                    "auto",
+                    "--strict-csv",
+                    "--json",
+                ],
+                cwd=ROOT,
+                env={**os.environ, "PYTHONPATH": str(ROOT / "src")},
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        report = json.loads(completed.stdout)
+        self.assertEqual(report["rows"], 2)
+        self.assertEqual(report["fields"][0]["filled"], 2)
 
     def test_cli_local_file_strict_mode_and_valid_json(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -64,6 +102,14 @@ class SingleColumnAutoDelimiterTests(unittest.TestCase):
         report = json.loads(completed.stdout)
         self.assertEqual(report["rows"], 2)
         self.assertEqual(report["fields"][0]["filled"], 2)
+
+    def test_physically_blank_only_file_does_not_invent_header(self):
+        with self.assertRaisesRegex(ValueError, "could not detect delimiter"):
+            _detect_delimiter("\n\n")
+
+    def test_blank_lines_do_not_hide_inconsistent_multicolumn_content(self):
+        with self.assertRaisesRegex(ValueError, "could not detect delimiter"):
+            _detect_delimiter("shipment|buyer\n\nS1\n")
 
     def test_no_content_is_not_assumed_to_be_a_valid_column(self):
         with self.assertRaisesRegex(ValueError, "could not detect delimiter"):
