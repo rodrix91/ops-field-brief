@@ -84,6 +84,39 @@ existing quality-gate exit `1`. JSON adds `"casefold_key": true` only when
 enabled; previous JSON output is unchanged otherwise. The Markdown summary
 records when normalized matching was selected.
 
+## Relative duplicate-key quality gate (opt-in)
+
+The absolute `--max-duplicates N` limit catches a fixed number of repeated
+business identifiers. For exports whose row counts change every day,
+`--max-duplicate-share SHARE` additionally limits the fraction of **complete
+business-key rows** that repeat an earlier key:
+
+```bash
+python -m ops_field_brief examples/shipments.csv \
+  --required shipment --key shipment \
+  --max-duplicate-share 0.01 --json
+```
+
+The numerator is the existing **extra duplicate row** count (one occurrence
+of each complete key is not a duplicate), and the denominator is the count of
+rows with all key components present. Rows with missing key components such as
+`NA`, `N/A` or blank are excluded from both. For example, if an extract has
+five rows, three complete keys, one repeated complete key and two incomplete
+keys, the duplicate share is **1/3 = 33.33%**, not 1/5. Combine this gate
+with `--max-incomplete-keys` to also limit missing identifiers.
+
+A share between **0 and 1**, inclusive, is allowed. Exceeding the limit
+returns exit `1`; invalid or missing `--key` settings return exit `2`.
+A **nonempty export with no complete keys fails closed** when this gate is
+enabled: a zero duplicate count in that situation would be misleading. An
+empty export has no duplicate failure; use `--min-rows` to require records.
+
+The check is independent of `--max-duplicates`, supports composite keys and
+`--casefold-key`, and runs even if other report displays are restricted.
+JSON reports include `max_duplicate_share`, `duplicate_share`,
+`complete_key_rows` and `failed_duplicate_share` **only when selected**.
+Previous JSON fields, report defaults and existing thresholds are unchanged.
+
 ## Incomplete business keys (opt-in)
 
 Duplicate-key checks exclude rows where any key component is blank or matches a missing-value token, so a file can pass `--max-duplicates 0` while containing orders that cannot be joined to their line items. Add `--max-incomplete-keys N` with `--key` to set a separate limit for those rows:
