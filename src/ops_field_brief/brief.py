@@ -507,13 +507,9 @@ def render_markdown(brief: Brief) -> str:
         lines.append(f"- Max allowed top-group share: {brief.max_group_share:.1%}")
         lines.append(f"- Observed top-group share: {brief.top_group_share:.1%}")
     if brief.max_assigned_group_share is not None:
-        lines.append(
-            f"- Max allowed assigned-group share: {brief.max_assigned_group_share:.1%}"
-        )
+        lines.append(f"- Max allowed assigned-group share: {brief.max_assigned_group_share:.1%}")
         lines.append(f"- Rows assigned to a group: {brief.assigned_group_rows}")
-        lines.append(
-            f"- Observed top assigned-group share: {brief.top_assigned_group_share:.1%}"
-        )
+        lines.append(f"- Observed top assigned-group share: {brief.top_assigned_group_share:.1%}")
     lines.extend(
         [
             "",
