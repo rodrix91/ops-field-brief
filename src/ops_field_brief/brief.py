@@ -192,7 +192,8 @@ def build_brief(
     fills = {name: FieldFill(name, 0, 0) for name in required}
     keys: list[tuple[str, ...]] = []
     incomplete_key_rows = 0
-    groups: Counter[str] = Counter()
+    # None identifies missing labels independently of any legitimate CSV value.
+    groups: Counter[str | None] = Counter()
 
     for row in rows:
         for name in required:
@@ -209,7 +210,7 @@ def build_brief(
                 incomplete_key_rows += 1
         if group:
             label = _clean(row.get(group, ""))
-            groups["(blank)" if _is_missing(label) else label] += 1
+            groups[None if _is_missing(label) else label] += 1
 
     duplicate_keys = 0
     if effective_key_fields:
@@ -225,13 +226,26 @@ def build_brief(
     failed_rows = bool(min_rows is not None and len(rows) < min_rows)
     top_group_share = groups.most_common(1)[0][1] / len(rows) if group and rows else 0.0
     failed_group_share = bool(max_group_share is not None and top_group_share > max_group_share)
+    missing_label = "(blank)"
+    if None in groups and missing_label in groups:
+        # A real "(blank)" group must not merge with missing values or share
+        # the same displayed name. Choose an unused name for the missing bucket.
+        missing_label = "(blank) [missing]"
+        number = 2
+        while missing_label in groups:
+            missing_label = f"(blank) [missing {number}]"
+            number += 1
+    top_groups = tuple(
+        (missing_label if name is None else name, count)
+        for name, count in groups.most_common(top_n)
+    )
 
     return Brief(
         rows=len(rows),
         key=",".join(effective_key_fields) or None,
         duplicate_keys=duplicate_keys,
         fields=fields,
-        top=tuple(groups.most_common(top_n)),
+        top=top_groups,
         failed_fields=failed,
         key_fields=effective_key_fields,
         max_duplicates=max_duplicates,

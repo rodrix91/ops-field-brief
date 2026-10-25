@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Keep a real CSV group value named `(blank)` separate from missing-value buckets when computing `--max-group-share`, preventing false concentration failures. Preserve existing `(blank)` output for ordinary missing groups and disambiguate its display name only when a real group uses that label. Add direct/CLI regressions, including collision-safe labeling.
+
 - Reject repeated field names in composite `--key` settings, rather than reporting the same source column as multiple key components. Library and CLI regressions cover duplicate names, valid composite keys and unaffected duplicate-row counting.
 
 - Reject empty field positions in comma-separated `--required` arguments (including leading/trailing commas and whitespace-only components) instead of silently dropping the corresponding quality checks. Valid whitespace-trimmed field names remain supported, with CLI regression coverage.
