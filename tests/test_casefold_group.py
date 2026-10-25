@@ -22,14 +22,15 @@ class CasefoldGroupTests(unittest.TestCase):
             {"shipment": "S4", "buyer": "Straße"},
             {"shipment": "S5", "buyer": "NA"},
         ]
-        options = {
-            "group": "buyer",
-            "max_group_share": 0.3,
-            "min_distinct_groups": 3,
-            "max_missing_group_share": 0.2,
-            "top_n": 0,
-        }
-        plain = build_brief(rows, ["shipment"], **options)
+        plain = build_brief(
+            rows,
+            ["shipment"],
+            group="buyer",
+            max_group_share=0.3,
+            min_distinct_groups=3,
+            max_missing_group_share=0.2,
+            top_n=0,
+        )
         self.assertEqual(plain.distinct_groups, 4)
         self.assertAlmostEqual(plain.top_group_share, 0.2)
         self.assertFalse(plain.failed_group_share)
@@ -37,7 +38,16 @@ class CasefoldGroupTests(unittest.TestCase):
         self.assertNotIn("casefold_group", plain.to_dict())
         self.assertNotIn("Group comparison:", render(plain, False))
 
-        folded = build_brief(rows, ["shipment"], casefold_group=True, **options)
+        folded = build_brief(
+            rows,
+            ["shipment"],
+            group="buyer",
+            casefold_group=True,
+            max_group_share=0.3,
+            min_distinct_groups=3,
+            max_missing_group_share=0.2,
+            top_n=0,
+        )
         self.assertEqual(folded.distinct_groups, 2)
         self.assertEqual(folded.missing_group_rows, 1)
         self.assertAlmostEqual(folded.missing_group_share, 0.2)
