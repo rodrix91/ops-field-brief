@@ -318,6 +318,12 @@ including `--top 0`, and can be checked alongside the minimum-diversity gate.
 
 Equality with the limit passes; exceeding it returns quality-gate exit `1`.
 Negative limits or omitting `--group` yield configuration exit `2`.
+When both diversity bounds are enabled, `--min-distinct-groups` must be
+less than or equal to `--max-distinct-groups`. An impossible pair, such as
+`--min-distinct-groups 5 --max-distinct-groups 2`, is a configuration error
+(exit `2`, without a JSON/Markdown report) rather than a failed CSV quality
+check. Equal bounds and zero are valid. The rule is enforced by the Python API
+and CLI before any row-count results are reported.
 Zero is allowed, so a header-only export passes this upper-bound check
 unless another gate (such as `--min-rows 1`) rejects it. JSON only adds
 `max_distinct_groups`, `distinct_groups`, and
