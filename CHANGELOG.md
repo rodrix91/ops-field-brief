@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add optional `--casefold-headers` alongside `--strict-csv` to reject ambiguous Unicode case-equivalent CSV headers (e.g., `id`/`ID`, `Straße`/`STRASSE`, or Greek sigma forms), while keeping original names and existing case-sensitive validation unchanged unless selected. Reject the option without strict mode before input access (exit 2); add direct API, Unicode, CLI and default-compatibility regressions. No changes to reports, other gates or dependencies.
+
 - Escape all untrusted CSV C0, DEL and C1 control characters as numeric references in Markdown reports and GitHub job-summary source, preventing invisible ANSI/terminal controls or tabs from altering text presentation. Preserve the original CSV/JSON bytes, ordinary Unicode labels and previous Markdown escaping; cover every control code, field names, business keys, group labels and a real CLI CSV fixture.
 
 - Reject additional terminal control characters (ANSI ESC, bell, backspace, DEL and other ASCII controls) in untrusted GitHub Action `path` / `args` inputs to prevent deceptive log rendering. Keep the existing LF/CR/NUL error contract, horizontal-tab argument separators, Unicode paths and fail-closed exit `2` / `passed=false` behavior. Add direct guard and end-to-end no-subprocess regressions.
