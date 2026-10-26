@@ -167,6 +167,36 @@ adds `max_incomplete_key_share`, `incomplete_key_share` (rounded to four
 decimal places), and `failed_incomplete_key_share`; Markdown shows the
 observed percentage and a failure explanation when applicable.
 
+## Minimum distinct complete business keys (opt-in)
+
+A file may meet `--min-complete-keys` while containing many repeated
+identifiers: three copies of one order still count as three complete-key rows.
+Use `--min-distinct-keys N` with `--key` to demand at least **N unique,
+fully identified business keys**. Only the first occurrence of each complete
+key counts, including for composite order-line identifiers. Missing key
+components (blank, `NA`, `N/A`, `s/d`, etc.) are excluded. This is
+independent of `--max-duplicates` and the existing complete-row threshold.
+
+```bash
+PYTHONPATH=src python -m ops_field_brief examples/orders-incomplete-keys.csv \
+  --required order_id --max-missing 1 --key order_id,line_id \
+  --min-complete-keys 3 --min-distinct-keys 3 --json
+```
+
+The included five-row sample has **three complete-key rows** but only
+**two distinct complete composite keys** (one complete key repeats). The
+complete-row minimum passes while the distinct-key minimum fails, so the
+command exits `1`; `--min-distinct-keys 2` passes. The option uses
+the existing `--casefold-key` setting when explicitly enabled, so key
+values such as `Straße` and `STRASSE` count as one identifier only in
+casefold mode. An empty extract has zero distinct complete keys: a minimum
+of zero passes and a positive minimum fails.
+
+A negative minimum or use without `--key` returns configuration exit
+`2`. When selected, JSON adds `min_distinct_keys`, `distinct_keys`
+and `failed_distinct_keys`; Markdown shows the observed count and any
+failure. The default JSON/Markdown layouts and underlying CSV are unchanged.
+
 ## Minimum complete business-key rows (opt-in)
 
 Use `--min-complete-keys N` with `--key` to require a minimum number of
