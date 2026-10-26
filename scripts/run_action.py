@@ -88,6 +88,11 @@ def _reject_nonexecuting_flags(args: list[str]) -> None:
             )
 
 
+def _requests_json(args: list[str]) -> bool:
+    """Detect accepted argparse prefixes of --json for safe job-summary fencing."""
+    return any(option in {"--j", "--js", "--jso", "--json"} for option in args)
+
+
 def main() -> int:
     csv_path = os.getenv("OPS_FIELD_BRIEF_INPUT_PATH", "")
     if not csv_path:
@@ -138,7 +143,7 @@ def main() -> int:
 
     _append_output("exit-code", str(completed.returncode))
     _append_output("passed", "true" if completed.returncode == 0 else "false")
-    _write_summary(completed.stdout, is_json="--json" in extra_args)
+    _write_summary(completed.stdout, is_json=_requests_json(extra_args))
     return completed.returncode
 
 
