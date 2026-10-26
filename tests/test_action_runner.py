@@ -98,7 +98,7 @@ class ActionPathTests(unittest.TestCase):
                 "GITHUB_OUTPUT": str(output),
                 "OPS_FIELD_BRIEF_INPUT_SUMMARY": "false",
             }
-            completed = subprocess.CompletedProcess(args=[], returncode=0, stdout="", stderr="")
+            completed = subprocess.CompletedProcess(args=[], returncode=0, stdout="# Operational field brief\n", stderr="")
             with patch.dict(os.environ, env, clear=True):
                 with patch.object(run_action.subprocess, "run", return_value=completed) as mocked:
                     self.assertEqual(run_action.main(), 0)
