@@ -25,8 +25,11 @@ class MinimumCompleteKeyTests(unittest.TestCase):
             {"order": "C", "line": "3"},
         ]
         brief = build_brief(
-            rows, ["order"], key_fields=["order", "line"],
-            max_missing=1, min_complete_keys=3,
+            rows,
+            ["order"],
+            key_fields=["order", "line"],
+            max_missing=1,
+            min_complete_keys=3,
         )
         self.assertEqual(brief.complete_key_rows, 3)
         self.assertEqual(brief.duplicate_keys, 1)
@@ -37,8 +40,11 @@ class MinimumCompleteKeyTests(unittest.TestCase):
         self.assertIn("Minimum rows with complete business keys: 3", render_markdown(brief))
 
         failed = build_brief(
-            rows, ["order"], key_fields=["order", "line"],
-            max_missing=1, min_complete_keys=4,
+            rows,
+            ["order"],
+            key_fields=["order", "line"],
+            max_missing=1,
+            min_complete_keys=4,
         )
         self.assertTrue(failed.failed_complete_keys)
         self.assertIn("Failed complete-key row-count check", render_markdown(failed))
@@ -58,8 +64,14 @@ class MinimumCompleteKeyTests(unittest.TestCase):
     def test_works_independently_of_duplicate_and_total_row_gates(self) -> None:
         rows = [{"id": ""}, {"id": "A"}, {"id": "A"}]
         report = build_brief(
-            rows, ["id"], key="id", max_missing=1, min_rows=3,
-            min_complete_keys=2, max_duplicates=0, max_duplicate_share=0,
+            rows,
+            ["id"],
+            key="id",
+            max_missing=1,
+            min_rows=3,
+            min_complete_keys=2,
+            max_duplicates=0,
+            max_duplicate_share=0,
         )
         self.assertFalse(report.failed_rows)
         self.assertFalse(report.failed_complete_keys)
@@ -78,15 +90,25 @@ class MinimumCompleteKeyTests(unittest.TestCase):
             path = Path(directory) / "orders.csv"
             path.write_text("id,line\nA,1\nA,2\n,3\n", encoding="utf-8")
             base = [
-                sys.executable, "-m", "ops_field_brief", str(path),
-                "--required", "id", "--max-missing", "1",
+                sys.executable,
+                "-m",
+                "ops_field_brief",
+                str(path),
+                "--required",
+                "id",
+                "--max-missing",
+                "1",
             ]
             env = {**os.environ, "PYTHONPATH": str(ROOT / "src")}
 
             def run(*options: str) -> subprocess.CompletedProcess[str]:
                 return subprocess.run(
-                    [*base, *options], cwd=ROOT, env=env,
-                    capture_output=True, text=True, check=False,
+                    [*base, *options],
+                    cwd=ROOT,
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                    check=False,
                 )
 
             good = run("--key", "id,line", "--min-complete-keys", "2", "--json")
