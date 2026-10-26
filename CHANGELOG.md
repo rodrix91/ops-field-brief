@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add opt-in `--max-distinct-keys N`, a maximum-cardinality quality gate on **unique complete** single/composite business keys, independent of row-count, completeness, and duplicate gates. Exclude known missing-value tokens, respect optional Unicode `--casefold-key`, validate nonnegative bounds and `--key`, and reject conflicting minimum/maximum ranges. Preserve the default JSON/Markdown layouts and prior gates; include API, CLI, Unicode, empty-export, configuration, and reusable Action regressions.
+
 - Fail closed in the reusable GitHub Action if the analyzer returns exit `0` or `1` without a nonempty report, or returns malformed/non-object JSON when `--json` (including argparse abbreviations) is requested. Reportless false successes now produce error exit `3`, `passed=false` and no new job summary; genuine analysis/configuration failure exit codes remain unchanged. Add direct and runner-level regressions for missing output, invalid JSON and valid Markdown/JSON including failed quality gates. The standalone CLI and output schema are unchanged.
 
 - Add opt-in `--min-distinct-keys N` as an independent minimum-cardinality gate for **unique complete** single or composite business keys. Unlike `--min-complete-keys`, repeated valid IDs count once; incomplete keys are excluded, and `--casefold-key` controls Unicode case-insensitive matching when selected. Enforce nonnegative bounds and `--key` configuration (exit `2`), quality failures (exit `1`), JSON/Markdown output only when enabled, and preserve the historical default report and all existing gates. Include API, CLI, Unicode, empty-data and combined-gate regressions.
