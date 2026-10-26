@@ -211,6 +211,23 @@ jobs:
           args: --required order_id --max-missing 1 --key order_id,line_id --max-incomplete-keys 1 --json
           summary: "false"
 
+      - name: Action rejects insufficient distinct complete business keys
+        id: distinct-key-gate
+        continue-on-error: true
+        uses: ./
+        with:
+          path: examples/orders-incomplete-keys.csv
+          args: --required order_id --max-missing 1 --key order_id,line_id --min-complete-keys 3 --min-distinct-keys 3 --json
+          summary: "false"
+
+      - name: Action accepts minimum distinct complete key allowance
+        id: distinct-key-allowed
+        uses: ./
+        with:
+          path: examples/orders-incomplete-keys.csv
+          args: --required order_id --max-missing 1 --key order_id,line_id --min-distinct-keys 2 --json
+          summary: "false"
+
       - name: Action rejects malformed composite key fields
         id: malformed-key
         continue-on-error: true
@@ -259,6 +276,11 @@ jobs:
           ESCAPE_CODE: ${{ steps.escape.outputs.exit-code }}
           ESCAPE_PASSED: ${{ steps.escape.outputs.passed }}
           ESCAPE_OUTCOME: ${{ steps.escape.outcome }}
+          DISTINCT_KEY_CODE: ${{ steps.distinct-key-gate.outputs.exit-code }}
+          DISTINCT_KEY_PASSED: ${{ steps.distinct-key-gate.outputs.passed }}
+          DISTINCT_KEY_OUTCOME: ${{ steps.distinct-key-gate.outcome }}
+          DISTINCT_ALLOWED_CODE: ${{ steps.distinct-key-allowed.outputs.exit-code }}
+          DISTINCT_ALLOWED_PASSED: ${{ steps.distinct-key-allowed.outputs.passed }}
           MALFORMED_KEY_CODE: ${{ steps.malformed-key.outputs.exit-code }}
           MALFORMED_KEY_PASSED: ${{ steps.malformed-key.outputs.passed }}
           MALFORMED_KEY_OUTCOME: ${{ steps.malformed-key.outcome }}
@@ -287,6 +309,11 @@ jobs:
           test "$SHORT_VERSION_CODE" = 2
           test "$SHORT_VERSION_PASSED" = false
           test "$SHORT_VERSION_OUTCOME" = failure
+          test "$DISTINCT_KEY_CODE" = 1
+          test "$DISTINCT_KEY_PASSED" = false
+          test "$DISTINCT_KEY_OUTCOME" = failure
+          test "$DISTINCT_ALLOWED_CODE" = 0
+          test "$DISTINCT_ALLOWED_PASSED" = true
           test "$MALFORMED_KEY_CODE" = 2
           test "$MALFORMED_KEY_PASSED" = false
           test "$MALFORMED_KEY_OUTCOME" = failure
