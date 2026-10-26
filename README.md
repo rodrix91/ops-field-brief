@@ -377,7 +377,7 @@ Duplicate columns in a composite `--key` (for example `order_id,order_id`) are r
 
 `--encoding` defaults to `utf-8`. A UTF-8 BOM, common in Excel exports, is stripped so the first column name stays usable, including on stdin. For a Windows Excel export in Spanish, pass `--encoding cp1252` or `--encoding latin-1`.
 
-CSV-derived labels in Markdown reports (field names, business keys and group values) are escaped so embedded pipes, Markdown links or line breaks cannot create fake table columns or headings in the GitHub Actions summary. The JSON output still preserves the original values unchanged; line breaks are rendered as character references in Markdown.
+CSV-derived labels in Markdown reports (field names, business keys and group values) are escaped so embedded pipes, Markdown links, line breaks and invisible terminal-control characters cannot create fake table columns, headings or deceptive job-summary source. ASCII C0 controls (including NUL, tabs, CR, LF, ANSI ESC and backspace), DEL and C1 controls are represented as numeric character references such as `&#27;`. JSON output and the original CSV retain every value unchanged; regular Unicode labels and report formatting are preserved.
 
 To see the protection, run `PYTHONPATH=src python -m ops_field_brief examples/markdown-safety.csv --required shipment --group buyer`. The synthetic example includes a Markdown-style link, a quoted line break and a pipe in one group label.
 

@@ -21,8 +21,12 @@ MISSING = {"", "na", "n/a", "null", "none", "s/d", "s.d.", "n/d", "n.d.", "-"}
 # CSV values are untrusted text in Markdown tables and GitHub job summaries.
 # Escape Markdown syntax without changing the original CSV or JSON payload.
 _MARKDOWN_ESCAPES = {ord(char): "\\" + char for char in r"\*_{}[]()#+-.!|>~" + chr(96)}
+_MARKDOWN_ESCAPES.update({ord("&"): "&amp;", ord("<"): "&lt;"})
+# Keep untrusted CSV control bytes out of Markdown source and job summaries.
+# C0 (including tab/newlines/NUL), DEL and C1 are rendered as visible
+# numeric character references without touching the original JSON values.
 _MARKDOWN_ESCAPES.update(
-    {ord("&"): "&amp;", ord("<"): "&lt;", ord("\r"): "&#13;", ord("\n"): "&#10;"}
+    {codepoint: f"&#{codepoint};" for codepoint in (*range(32), *range(127, 160))}
 )
 
 
