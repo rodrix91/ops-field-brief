@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -26,9 +27,14 @@ def _write_summary(text: str, *, is_json: bool) -> None:
     with Path(target).open("a", encoding="utf-8") as handle:
         handle.write("## ops-field-brief\n\n")
         if is_json:
-            handle.write("```json\n")
+            # CSV labels may contain Markdown fence delimiters. Always choose
+            # a fence longer than any backtick run in the JSON payload so a
+            # value cannot prematurely close the GitHub job-summary block.
+            longest = max((len(m.group()) for m in re.finditer(r"`+", text)), default=0)
+            fence = "`" * max(3, longest + 1)
+            handle.write(f"{fence}json\n")
             handle.write(text.rstrip())
-            handle.write("\n```\n")
+            handle.write(f"\n{fence}\n")
         else:
             handle.write(text)
             if not text.endswith("\n"):
