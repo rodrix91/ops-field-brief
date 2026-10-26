@@ -106,7 +106,7 @@ class IncompleteKeyShareTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "orders.csv"
             path.write_text(
-                "order,line\\nA,1\\nA,1\\nB,NA\\nnull,9\\nC,3\\n",
+                "order,line\nA,1\nA,1\nB,NA\nnull,9\nC,3\n",
                 encoding="utf-8",
             )
             base = [
