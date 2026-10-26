@@ -5,9 +5,7 @@ from __future__ import annotations
 from collections import Counter
 
 
-def validate_csv_structure(
-    rows: list[dict[str, str]], *, casefold_headers: bool = False
-) -> None:
+def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool = False) -> None:
     """Reject ambiguous headers and ragged rows without changing default parsing.
 
     The normal reader preserves header names on CsvRows, including header-only
