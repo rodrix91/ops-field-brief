@@ -69,7 +69,7 @@ class StrictCsvTests(unittest.TestCase):
     def test_casefold_headers_preserves_exact_header_names_and_values(self):
         rows = self._rows("id,buyer,STRASSE\n1,Andes,ok\n")
         validate_csv_structure(rows, casefold_headers=True)
-        self.assertEqual(rows.fieldnames, ["id", "buyer", "STRASSE"])
+        self.assertEqual(rows.fieldnames, ("id", "buyer", "STRASSE"))
         self.assertEqual(rows[0]["STRASSE"], "ok")
 
     def test_casefold_cli_requires_strict_mode_before_opening_input(self):
