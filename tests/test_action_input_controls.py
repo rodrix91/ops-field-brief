@@ -77,7 +77,6 @@ class ActionInputControlTests(unittest.TestCase):
                         "exit-code=2\npassed=false\n",
                     )
 
-
     def test_terminal_controls_fail_closed_without_changing_tab_behavior(self) -> None:
         for control in ("\x01", "\x07", "\x08", "\x0b", "\x0c", "\x1b", "\x1f", "\x7f"):
             for label, value in (
