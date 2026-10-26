@@ -48,7 +48,10 @@ def _reject_input_controls(raw: str, label: str) -> None:
     # ESC, BEL, backspace, other ASCII controls and DEL can manipulate
     # terminal/log rendering without introducing additional lines.
     # Horizontal tabs remain valid separators for shlex arguments.
-    if any((ord(character) < 32 and character != "\t") or ord(character) == 127 for character in raw):
+    if any(
+        (ord(character) < 32 and character != "\t") or ord(character) == 127
+        for character in raw
+    ):
         raise ValueError(f"Action {label} must not contain terminal control characters.")
 
 
