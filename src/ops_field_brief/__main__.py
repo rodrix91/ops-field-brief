@@ -92,8 +92,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         type=float,
         default=None,
         help=(
-            "Fail if incomplete --key values exceed this share of all rows "
-            "(0 to 1; requires --key)"
+            "Fail if incomplete --key values exceed this share of all rows (0 to 1; requires --key)"
         ),
     )
     parser.add_argument(
