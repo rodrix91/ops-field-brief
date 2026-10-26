@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reject every Unicode C1 terminal control (U+0080–U+009F) in the reusable GitHub Action `path` and `args` and reject literal tabs in `path`, which is passed as one filename rather than as shell tokens. Keep tabs valid as separators in `args`, retain ordinary Unicode filenames and prior CR/LF/NUL error semantics, and fail with exit `2` / `passed=false` before spawning the CLI. Add direct full-C1-range and end-to-end Action regression coverage. Standalone CLI and source CSV content remain unchanged.
+
 - Add optional `--casefold-headers` alongside `--strict-csv` to reject ambiguous Unicode case-equivalent CSV headers (e.g., `id`/`ID`, `Straße`/`STRASSE`, or Greek sigma forms), while keeping original names and existing case-sensitive validation unchanged unless selected. Reject the option without strict mode before input access (exit 2); add direct API, Unicode, CLI and default-compatibility regressions. No changes to reports, other gates or dependencies.
 
 - Add opt-in `--min-complete-keys N` for the minimum number of usable business-key rows, including composite identifiers. Missing tokens exclude a row, duplicates remain countable, and this gate is independent of total-row and duplicate gates. Reject negative limits and missing `--key` as configuration errors, preserve existing output when disabled, and report failing thresholds in Markdown/JSON with dedicated regression coverage.
