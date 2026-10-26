@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add opt-in `--max-incomplete-key-share SHARE` (requires `--key`) to cap incomplete single/composite business-key rows as a fraction of **all** CSV data rows. This scales an existing absolute gate across differently sized exports, uses existing missing-token rules, and remains independent of duplicate-count, duplicate-share and absolute incomplete-key checks. Only add share fields to JSON and Markdown when enabled; validate non-finite/out-of-range inputs, preserve empty-export semantics with `--min-rows`, and cover public API/CLI/legacy behavior with tests.
+
 - Add opt-in `--max-duplicate-share SHARE` to cap extra repeated business-key rows as a fraction of complete-key rows, rather than only by an absolute count. Exclude missing key components from both numerator and denominator, fail closed on nonempty exports with no complete keys, support composite keys and Unicode casefold, and retain independent duplicate-count/incomplete-key gates. Only append JSON/Markdown metadata when enabled; cover CLI, library, valid/invalid shares and zero-row regressions.
 
 - Add opt-in `--max-distinct-groups N` with `--group` to reject unexpectedly high numbers of distinct real customers or suppliers. Exclude missing-label placeholders, support Unicode group casefold and `--top 0`, and preserve independent minimum-diversity checks. Report failure via exit `1`, reject invalid configurations with exit `2`, and keep JSON/Markdown unchanged unless enabled. Add library and CLI regressions alongside explicit tests preserving legacy headerless-input behavior.
