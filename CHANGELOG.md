@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reject additional terminal control characters (ANSI ESC, bell, backspace, DEL and other ASCII controls) in untrusted GitHub Action `path` / `args` inputs to prevent deceptive log rendering. Keep the existing LF/CR/NUL error contract, horizontal-tab argument separators, Unicode paths and fail-closed exit `2` / `passed=false` behavior. Add direct guard and end-to-end no-subprocess regressions.
+
 - Harden the composite Action's JSON job summary against backtick sequences in untrusted CSV fields by choosing a Markdown code fence longer than any sequence in the payload. Preserve the raw JSON output, ordinary triple-fence summaries, Markdown reports and Action outputs; add summary-rendering regression tests.
 
 - Reject impossible combined `--min-distinct-groups` and `--max-distinct-groups` settings when the minimum exceeds the maximum; return configuration error `2` without a misleading report. Keep each independent gate, equal bounds, zero-count exports and default reports unchanged. Add direct API, CLI and regression tests.

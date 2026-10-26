@@ -77,6 +77,61 @@ class ActionInputControlTests(unittest.TestCase):
                         "exit-code=2\npassed=false\n",
                     )
 
+    def test_terminal_controls_fail_closed_without_changing_tab_behavior(self) -> None:
+        for control in ("\x01", "\x07", "\x08", "\x0b", "\x0c", "\x1b", "\x1f", "\x7f"):
+            for label, value in (
+                ("path", f"exports/shipments{control}fake.csv"),
+                ("args", f"--required shipment{control}--max-rows 5"),
+            ):
+                with self.subTest(control=repr(control), label=label):
+                    with self.assertRaisesRegex(ValueError, "terminal control characters"):
+                        run_action._reject_input_controls(value, label)
+            with self.subTest(control=repr(control), label="path resolver"):
+                with self.assertRaisesRegex(ValueError, "terminal control characters"):
+                    run_action._validated_csv_path(f"data{control}.csv", "/tmp/workspace")
+
+        # A horizontal tab is a normal shlex delimiter and is not a log-control escape.
+        run_action._reject_input_controls("--required\tshipment\t--min-rows 1", "args")
+        run_action._reject_input_controls("exports\t2026.csv", "path")
+
+    def test_main_blocks_terminal_controls_before_spawning_cli(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory) / "workspace"
+            workspace.mkdir()
+            (workspace / "shipments.csv").write_text("shipment\nA1\n", encoding="utf-8")
+            output = Path(directory) / "github-output.txt"
+            base_env = {
+                "OPS_FIELD_BRIEF_ACTION_PATH": str(Path(__file__).resolve().parents[1]),
+                "GITHUB_WORKSPACE": str(workspace),
+                "GITHUB_OUTPUT": str(output),
+                "OPS_FIELD_BRIEF_INPUT_SUMMARY": "false",
+                "OPS_FIELD_BRIEF_INPUT_PATH": "shipments.csv",
+                "OPS_FIELD_BRIEF_INPUT_ARGS": "--required shipment",
+            }
+            for key, value in (
+                ("OPS_FIELD_BRIEF_INPUT_PATH", "shipments\x1b[31m.csv"),
+                ("OPS_FIELD_BRIEF_INPUT_PATH", "shipments\x08.csv"),
+                ("OPS_FIELD_BRIEF_INPUT_ARGS", "--required shipment\x07--min-rows 1"),
+                ("OPS_FIELD_BRIEF_INPUT_ARGS", "--required shipment\x7f--min-rows 1"),
+            ):
+                with self.subTest(key=key, value=repr(value)):
+                    output.write_text("", encoding="utf-8")
+                    stderr = io.StringIO()
+                    with (
+                        patch.dict(os.environ, {**base_env, key: value}, clear=True),
+                        patch.object(run_action.subprocess, "run") as subprocess_run,
+                        contextlib.redirect_stderr(stderr),
+                    ):
+                        self.assertEqual(run_action.main(), 2)
+                        subprocess_run.assert_not_called()
+                    self.assertIn("terminal control characters", stderr.getvalue())
+                    # Never echo the untrusted control character to the log.
+                    self.assertNotIn(value, stderr.getvalue())
+                    self.assertEqual(
+                        output.read_text(encoding="utf-8"),
+                        "exit-code=2\npassed=false\n",
+                    )
+
 
 if __name__ == "__main__":
     unittest.main()
