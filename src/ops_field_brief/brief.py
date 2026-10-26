@@ -426,9 +426,7 @@ def build_brief(
         min_complete_keys is not None and complete_key_rows < min_complete_keys
     )
     distinct_keys = len(set(keys)) if min_distinct_keys is not None else 0
-    failed_distinct_keys = bool(
-        min_distinct_keys is not None and distinct_keys < min_distinct_keys
-    )
+    failed_distinct_keys = bool(min_distinct_keys is not None and distinct_keys < min_distinct_keys)
     duplicate_share = duplicate_keys / complete_key_rows if complete_key_rows else 0.0
     failed_duplicate_share = bool(
         max_duplicate_share is not None
