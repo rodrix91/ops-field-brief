@@ -428,6 +428,8 @@ The repository also exposes a composite GitHub Action for operational CSV gates.
 
 Until a future release includes the Action, `@main` follows Unreleased changes; pin a reviewed commit SHA instead when reproducibility matters.
 
+When `--json` is used, the Action encloses JSON in a GitHub job-summary Markdown code fence whose length is longer than any backtick run in the JSON. This prevents untrusted CSV labels containing backticks from being interpreted as Markdown fence delimiters; JSON bytes and the normal three-backtick layout for ordinary reports remain unchanged.
+
 The Action rejects informational CLI flags (`-h`, `--help`, `--version`, and accepted long-option abbreviations) with `exit-code=2` and `passed=false`. Without this protection, an informational command would exit successfully **without checking any CSV**, falsely satisfying a pipeline gate. To display help or a version, invoke the standalone CLI instead.
 
 For safety, the Action `path` must name a CSV **inside the caller's `GITHUB_WORKSPACE`**. Absolute paths, `../` paths that leave the workspace, symlinks that resolve outside it, and stdin (`-`) are rejected before the CLI runs (exit code `2`, `passed=false`). Ordinary nested relative paths, including paths through symlinks that remain inside the workspace, are supported. This boundary protects against unintended reads outside the job checkout; it does not make untrusted CSV content safe to publish in logs or job summaries.
