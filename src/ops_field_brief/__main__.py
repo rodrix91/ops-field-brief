@@ -88,6 +88,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Fail when more than N rows have a missing component in the --key value",
     )
     parser.add_argument(
+        "--max-incomplete-key-share",
+        type=float,
+        default=None,
+        help=(
+            "Fail if the share of rows missing any --key component exceeds "
+            "this value (0 to 1; requires --key)"
+        ),
+    )
+    parser.add_argument(
         "--min-rows",
         type=int,
         default=None,
@@ -198,6 +207,7 @@ def main(argv: list[str] | None = None) -> int:
             max_duplicates=args.max_duplicates,
             max_duplicate_share=args.max_duplicate_share,
             max_incomplete_keys=args.max_incomplete_keys,
+            max_incomplete_key_share=args.max_incomplete_key_share,
             min_rows=args.min_rows,
             max_group_share=args.max_group_share,
             max_assigned_group_share=args.max_assigned_group_share,
@@ -216,6 +226,7 @@ def main(argv: list[str] | None = None) -> int:
             or brief.failed_duplicates
             or brief.failed_duplicate_share
             or brief.failed_incomplete_keys
+            or brief.failed_incomplete_key_share
             or brief.failed_rows
             or brief.failed_group_share
             or brief.failed_assigned_group_share
