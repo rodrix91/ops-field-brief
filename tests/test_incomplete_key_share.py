@@ -164,7 +164,6 @@ class IncompleteKeyShareTests(unittest.TestCase):
                     self.assertEqual(output, "")
                     self.assertIn(expected, error)
 
-
     def test_header_only_share_preserves_independent_minimum_row_gate(self):
         rows = CsvRows([], ["order"])
         brief = build_brief(
