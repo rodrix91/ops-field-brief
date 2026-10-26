@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Harden the composite Action's JSON job summary against backtick sequences in untrusted CSV fields by choosing a Markdown code fence longer than any sequence in the payload. Preserve the raw JSON output, ordinary triple-fence summaries, Markdown reports and Action outputs; add summary-rendering regression tests.
+
 - Reject impossible combined `--min-distinct-groups` and `--max-distinct-groups` settings when the minimum exceeds the maximum; return configuration error `2` without a misleading report. Keep each independent gate, equal bounds, zero-count exports and default reports unchanged. Add direct API, CLI and regression tests.
 
 - Harden reusable GitHub Action inputs: reject newline, carriage-return and NUL characters in the CSV path or additional args before any CLI subprocess starts, recording exit code `2` and `passed=false`. Preserve valid relative paths, regular flags, existing workspace traversal/symlink checks and standalone CLI behavior. Add direct and workflow-runner regression tests.
