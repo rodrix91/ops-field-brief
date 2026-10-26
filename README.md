@@ -167,6 +167,36 @@ adds `max_incomplete_key_share`, `incomplete_key_share` (rounded to four
 decimal places), and `failed_incomplete_key_share`; Markdown shows the
 observed percentage and a failure explanation when applicable.
 
+## Maximum distinct complete business keys (opt-in)
+
+Use `--max-distinct-keys N` with `--key` to fail if more than **N unique
+fully identified business keys** appear in an export. This can detect an
+unexpected increase in distinct shipments or order lines even when the total
+row count is within `--max-rows`. Duplicate complete rows count once;
+blank/known-missing components do not count.
+
+```bash
+PYTHONPATH=src python -m ops_field_brief examples/orders-incomplete-keys.csv \
+  --required order_id --max-missing 1 --key order_id,line_id \
+  --max-distinct-keys 1 --json
+```
+
+The five-row sample has **two distinct complete composite keys**, so the
+command fails with exit `1`. A maximum of `2` passes. The option supports
+`--casefold-key`, including Unicode casefold, without changing the original
+export. It can be combined with `--min-distinct-keys` for an acceptable
+range (e.g. `--min-distinct-keys 100 --max-distinct-keys 500`); the minimum
+must not exceed the maximum. A negative maximum, use without `--key`, or a
+reversed range is a configuration error (exit `2`). Zero distinct keys
+satisfy a zero maximum, including empty files; use `--min-distinct-keys`,
+`--min-rows` or incomplete-key gates to detect missing activity.
+
+JSON adds `max_distinct_keys`, `distinct_keys`, and
+`failed_max_distinct_keys` only when enabled. Markdown displays the maximum,
+observed count, and an explicit failure when breached. Enabling both minimum
+and maximum prints the observed count only once. Default JSON and Markdown
+remain unchanged.
+
 ## Minimum distinct complete business keys (opt-in)
 
 A file may meet `--min-complete-keys` while containing many repeated
