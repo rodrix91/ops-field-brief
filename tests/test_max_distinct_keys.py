@@ -75,7 +75,9 @@ class MaximumDistinctKeysTests(unittest.TestCase):
         self.assertTrue(report["casefold_key"])
         self.assertEqual(report["max_distinct_keys"], 3)
         self.assertEqual(report["min_distinct_keys"], 2)
-        self.assertEqual(render(folded, False).count("- Observed distinct complete business keys:"), 1)
+        self.assertEqual(
+            render(folded, False).count("- Observed distinct complete business keys:"), 1
+        )
 
     def test_empty_and_all_missing_keys_have_zero_distinct(self) -> None:
         empty = CsvRows([], ["id"])
@@ -103,7 +105,9 @@ class MaximumDistinctKeysTests(unittest.TestCase):
             build_brief(rows, ["id"], key="id", max_distinct_keys=-1)
         with self.assertRaisesRegex(ValueError, "max_distinct_keys requires --key"):
             build_brief(rows, ["id"], max_distinct_keys=1)
-        with self.assertRaisesRegex(ValueError, "min_distinct_keys cannot exceed max_distinct_keys"):
+        with self.assertRaisesRegex(
+            ValueError, "min_distinct_keys cannot exceed max_distinct_keys"
+        ):
             build_brief(
                 rows, ["id"], key="id", min_distinct_keys=2, max_distinct_keys=1,
             )
