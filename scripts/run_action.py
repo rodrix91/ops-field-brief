@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import shlex
@@ -93,6 +94,18 @@ def _requests_json(args: list[str]) -> bool:
     return any(option in {"--j", "--js", "--jso", "--json"} for option in args)
 
 
+def _has_valid_report(text: str, *, is_json: bool) -> bool:
+    """Never mark a quality check successful without an actual report."""
+    if not text.strip():
+        return False
+    if is_json:
+        try:
+            return isinstance(json.loads(text), dict)
+        except ValueError:
+            return False
+    return True
+
+
 def main() -> int:
     csv_path = os.getenv("OPS_FIELD_BRIEF_INPUT_PATH", "")
     if not csv_path:
@@ -141,10 +154,20 @@ def main() -> int:
     if completed.stderr:
         sys.stderr.write(completed.stderr)
 
-    _append_output("exit-code", str(completed.returncode))
-    _append_output("passed", "true" if completed.returncode == 0 else "false")
-    _write_summary(completed.stdout, is_json=_requests_json(extra_args))
-    return completed.returncode
+    exit_code = completed.returncode
+    is_json = _requests_json(extra_args)
+    if exit_code in (0, 1) and not _has_valid_report(completed.stdout, is_json=is_json):
+        # An exit code alone is not evidence that any CSV was evaluated.
+        # Reject empty stdout and malformed/non-object JSON, but preserve
+        # the original nonzero CLI errors without replacing their meaning.
+        print("Action analysis produced no valid report.", file=sys.stderr)
+        exit_code = 3
+
+    _append_output("exit-code", str(exit_code))
+    _append_output("passed", "true" if exit_code == 0 else "false")
+    if exit_code != 3:
+        _write_summary(completed.stdout, is_json=is_json)
+    return exit_code
 
 
 if __name__ == "__main__":
