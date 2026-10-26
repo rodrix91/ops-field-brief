@@ -426,6 +426,8 @@ The Action rejects informational CLI flags (`-h`, `--help`, `--version`, and acc
 
 For safety, the Action `path` must name a CSV **inside the caller's `GITHUB_WORKSPACE`**. Absolute paths, `../` paths that leave the workspace, symlinks that resolve outside it, and stdin (`-`) are rejected before the CLI runs (exit code `2`, `passed=false`). Ordinary nested relative paths, including paths through symlinks that remain inside the workspace, are supported. This boundary protects against unintended reads outside the job checkout; it does not make untrusted CSV content safe to publish in logs or job summaries.
 
+The reusable Action also rejects **actual newline, carriage-return or NUL characters** in its `path` and `args` inputs before invoking Python's CSV analyzer. This avoids interpreting malformed multiline workflow inputs as extra argument lines or introducing forged log lines. It returns exit `2` with `passed=false` and never launches the analyzer; normal single-line paths and arguments are unchanged. This safeguard is specific to the Action, not an additional restriction on standalone CLI usage.
+
 ```yaml
 steps:
   - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7

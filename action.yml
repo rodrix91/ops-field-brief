@@ -5,7 +5,7 @@ inputs:
     description: CSV path relative to the workflow workspace.
     required: true
   args:
-    description: Additional ops-field-brief CLI arguments.
+    description: Additional single-line ops-field-brief CLI arguments (no CR, LF or NUL).
     required: false
     default: ""
   python-version:

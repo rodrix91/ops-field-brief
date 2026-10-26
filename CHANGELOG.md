@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Harden reusable GitHub Action inputs: reject newline, carriage-return and NUL characters in the CSV path or additional args before any CLI subprocess starts, recording exit code `2` and `passed=false`. Preserve valid relative paths, regular flags, existing workspace traversal/symlink checks and standalone CLI behavior. Add direct and workflow-runner regression tests.
+
 - Add opt-in `--max-rows N` quality gate for unexpectedly oversized CSV exports, complementing `--min-rows` and preserving all existing count, key, group, and field checks. Reject negative and inconsistent row-count limits as configuration errors, report failure via exit `1`, preserve JSON/Markdown schemas unless enabled, and add API/CLI boundary and empty-file regressions.
 
 - Add optional `--max-incomplete-key-share SHARE` to cap the fraction of CSV rows with missing single/composite business-key components, independently of absolute incomplete-key and duplicate gates. Preserve historical JSON/Markdown unless enabled, accept inclusive 0–1 finite limits, reject missing keys or invalid thresholds with exit 2, and cover library, CLI, empty-file, all-incomplete and integration scenarios.
