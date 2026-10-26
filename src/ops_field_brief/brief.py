@@ -448,9 +448,7 @@ def build_brief(
         min_complete_keys is not None and complete_key_rows < min_complete_keys
     )
     distinct_keys = (
-        len(set(keys))
-        if min_distinct_keys is not None or max_distinct_keys is not None
-        else 0
+        len(set(keys)) if min_distinct_keys is not None or max_distinct_keys is not None else 0
     )
     failed_distinct_keys = bool(min_distinct_keys is not None and distinct_keys < min_distinct_keys)
     failed_max_distinct_keys = bool(
