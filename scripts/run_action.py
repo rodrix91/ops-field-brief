@@ -35,10 +35,17 @@ def _write_summary(text: str, *, is_json: bool) -> None:
                 handle.write("\n")
 
 
+def _reject_input_controls(raw: str, label: str) -> None:
+    """Keep untrusted Action inputs from creating extra workflow-log lines."""
+    if any(character in raw for character in ("\r", "\n", "\x00")):
+        raise ValueError(f"Action {label} must not contain line breaks or NUL characters.")
+
+
 def _validated_csv_path(raw: str, workspace: str | None) -> Path:
     """Fail closed on paths that could read outside the caller's workspace."""
     if not workspace:
         raise ValueError("GITHUB_WORKSPACE is required for the Action.")
+    _reject_input_controls(raw, "path")
     if raw == "-":
         raise ValueError("Action input path must name a CSV file inside GITHUB_WORKSPACE.")
     path = Path(raw)
@@ -77,6 +84,7 @@ def main() -> int:
 
     raw_args = os.getenv("OPS_FIELD_BRIEF_INPUT_ARGS", "")
     try:
+        _reject_input_controls(raw_args, "args")
         extra_args = shlex.split(raw_args)
         _reject_nonexecuting_flags(extra_args)
     except ValueError as exc:
