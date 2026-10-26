@@ -92,7 +92,24 @@ class ActionInputControlTests(unittest.TestCase):
 
         # A horizontal tab is a normal shlex delimiter and is not a log-control escape.
         run_action._reject_input_controls("--required\tshipment\t--min-rows 1", "args")
-        run_action._reject_input_controls("exports\t2026.csv", "path")
+        with self.assertRaisesRegex(ValueError, "terminal control characters"):
+            run_action._reject_input_controls("exports\t2026.csv", "path")
+
+        # Ordinary Unicode names remain valid; C1 is not ordinary text.
+        run_action._reject_input_controls("operación/輸送.csv", "path")
+
+    def test_every_c1_control_is_rejected_in_paths_and_args(self) -> None:
+        for codepoint in range(128, 160):
+            control = chr(codepoint)
+            for label in ("path", "args"):
+                with self.subTest(codepoint=codepoint, label=label):
+                    with self.assertRaisesRegex(ValueError, "terminal control characters"):
+                        run_action._reject_input_controls(f"shipment{control}danger", label)
+            with self.subTest(codepoint=codepoint, label="path resolver"):
+                with self.assertRaisesRegex(ValueError, "terminal control characters"):
+                    run_action._validated_csv_path(
+                        f"exports/shipments{control}.csv", "/tmp/workspace"
+                    )
 
     def test_main_blocks_terminal_controls_before_spawning_cli(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -113,6 +130,9 @@ class ActionInputControlTests(unittest.TestCase):
                 ("OPS_FIELD_BRIEF_INPUT_PATH", "shipments\x08.csv"),
                 ("OPS_FIELD_BRIEF_INPUT_ARGS", "--required shipment\x07--min-rows 1"),
                 ("OPS_FIELD_BRIEF_INPUT_ARGS", "--required shipment\x7f--min-rows 1"),
+                ("OPS_FIELD_BRIEF_INPUT_PATH", "shipments\t2026.csv"),
+                ("OPS_FIELD_BRIEF_INPUT_PATH", "shipments\x85fake.csv"),
+                ("OPS_FIELD_BRIEF_INPUT_ARGS", "--required shipment\x9b--min-rows 1"),
             ):
                 with self.subTest(key=key, value=repr(value)):
                     output.write_text("", encoding="utf-8")
