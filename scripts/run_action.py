@@ -156,7 +156,10 @@ def main() -> int:
 
     exit_code = completed.returncode
     is_json = _requests_json(extra_args)
-    if exit_code in (0, 1) and not _has_valid_report(completed.stdout, is_json=is_json):
+    invalid_report = exit_code in (0, 1) and not _has_valid_report(
+        completed.stdout, is_json=is_json
+    )
+    if invalid_report:
         # An exit code alone is not evidence that any CSV was evaluated.
         # Reject empty stdout and malformed/non-object JSON, but preserve
         # the original nonzero CLI errors without replacing their meaning.
@@ -165,7 +168,7 @@ def main() -> int:
 
     _append_output("exit-code", str(exit_code))
     _append_output("passed", "true" if exit_code == 0 else "false")
-    if exit_code != 3:
+    if not invalid_report:
         _write_summary(completed.stdout, is_json=is_json)
     return exit_code
 
