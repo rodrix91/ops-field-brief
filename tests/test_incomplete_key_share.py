@@ -56,9 +56,7 @@ class IncompleteKeyShareTests(unittest.TestCase):
 
     def test_header_only_has_zero_share_and_can_be_rejected_by_min_rows(self) -> None:
         empty = CsvRows([], ["id"])
-        result = build_brief(
-            empty, ["id"], key="id", max_incomplete_key_share=0, min_rows=1
-        )
+        result = build_brief(empty, ["id"], key="id", max_incomplete_key_share=0, min_rows=1)
         self.assertEqual(result.incomplete_key_share, 0)
         self.assertFalse(result.failed_incomplete_key_share)
         self.assertTrue(result.failed_rows)
@@ -88,8 +86,18 @@ class IncompleteKeyShareTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             source = Path(folder) / "orders.csv"
             source.write_text("order,line\nA,1\nA,1\nB,\n,9\nC,3\n", encoding="utf-8")
-            base = [str(source), "--required", "order", "--max-missing", "1",
-                    "--key", "order,line", "--max-incomplete-keys", "2", "--json"]
+            base = [
+                str(source),
+                "--required",
+                "order",
+                "--max-missing",
+                "1",
+                "--key",
+                "order,line",
+                "--max-incomplete-keys",
+                "2",
+                "--json",
+            ]
             stdout = io.StringIO()
             with redirect_stdout(stdout):
                 code = main([*base, "--max-incomplete-key-share", "0.3"])
