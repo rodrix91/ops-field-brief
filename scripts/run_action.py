@@ -88,7 +88,6 @@ def _reject_nonexecuting_flags(args: list[str]) -> None:
             )
 
 
-
 def _requests_json(args: list[str]) -> bool:
     """Detect accepted argparse prefixes of --json for safe job-summary fencing."""
     return any(option in {"--j", "--js", "--jso", "--json"} for option in args)
