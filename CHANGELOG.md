@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reject impossible combined `--min-distinct-groups` and `--max-distinct-groups` settings when the minimum exceeds the maximum; return configuration error `2` without a misleading report. Keep each independent gate, equal bounds, zero-count exports and default reports unchanged. Add direct API, CLI and regression tests.
+
 - Harden reusable GitHub Action inputs: reject newline, carriage-return and NUL characters in the CSV path or additional args before any CLI subprocess starts, recording exit code `2` and `passed=false`. Preserve valid relative paths, regular flags, existing workspace traversal/symlink checks and standalone CLI behavior. Add direct and workflow-runner regression tests.
 
 - Add opt-in `--max-rows N` quality gate for unexpectedly oversized CSV exports, complementing `--min-rows` and preserving all existing count, key, group, and field checks. Reject negative and inconsistent row-count limits as configuration errors, report failure via exit `1`, preserve JSON/Markdown schemas unless enabled, and add API/CLI boundary and empty-file regressions.
