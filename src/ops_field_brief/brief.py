@@ -239,7 +239,6 @@ def build_brief(
     max_duplicate_share: float | None = None,
     key_fields: list[str] | tuple[str, ...] | None = None,
     min_rows: int | None = None,
-    max_rows: int | None = None,
     max_group_share: float | None = None,
     max_assigned_group_share: float | None = None,
     max_incomplete_keys: int | None = None,
@@ -250,6 +249,7 @@ def build_brief(
     max_missing_group_share: float | None = None,
     casefold_key: bool = False,
     casefold_group: bool = False,
+    max_rows: int | None = None,
 ) -> Brief:
     if not 0 <= max_missing <= 1:
         raise ValueError("max_missing must be between 0 and 1")
