@@ -185,6 +185,16 @@ python -m ops_field_brief shipments.csv --required shipment,buyer,eta --strict-c
 ```
 
 This check works with stdin, explicit delimiters, and `--delimiter auto`.
+For extra protection against ambiguous Excel or cross-system column names,
+combine `--strict-csv --casefold-headers`. This also rejects headers that
+differ only by Unicode case folding—for example `id` versus `ID`,
+`Straße` versus `STRASSE`, or `Σ` versus `ς`.
+It operates **only in strict mode**; using it without `--strict-csv`
+returns configuration exit code `2` before opening the input.
+The default strict check stays case-sensitive, and the option never
+renames or normalizes actual CSV headers, so `--required`, `--key`,
+and `--group` continue to use their exact original column names.
+
 An **empty cell** in a correctly sized row is still valid CSV structure and is
 handled by the existing fill-rate gate. For compatibility, the default remains
 permissive, including the standard CSV reader's last-value-wins behavior for
