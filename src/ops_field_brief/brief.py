@@ -377,8 +377,7 @@ def build_brief(
     )
     incomplete_key_share = incomplete_key_rows / len(rows) if rows else 0.0
     failed_incomplete_key_share = bool(
-        max_incomplete_key_share is not None
-        and incomplete_key_share > max_incomplete_key_share
+        max_incomplete_key_share is not None and incomplete_key_share > max_incomplete_key_share
     )
     failed_rows = bool(min_rows is not None and len(rows) < min_rows)
     top_group_share = groups.most_common(1)[0][1] / len(rows) if group and rows else 0.0
