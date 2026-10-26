@@ -88,6 +88,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--max-distinct-keys",
+        type=int,
+        default=None,
+        help=(
+            "Fail if more than N distinct complete business keys exist "
+            "(requires --key; duplicate complete rows count once)"
+        ),
+    )
+    parser.add_argument(
         "--max-duplicate-share",
         type=float,
         default=None,
@@ -236,6 +245,7 @@ def main(argv: list[str] | None = None) -> int:
             max_duplicates=args.max_duplicates,
             min_complete_keys=args.min_complete_keys,
             min_distinct_keys=args.min_distinct_keys,
+            max_distinct_keys=args.max_distinct_keys,
             max_duplicate_share=args.max_duplicate_share,
             max_incomplete_keys=args.max_incomplete_keys,
             max_incomplete_key_share=args.max_incomplete_key_share,
@@ -258,6 +268,7 @@ def main(argv: list[str] | None = None) -> int:
             or brief.failed_duplicates
             or brief.failed_complete_keys
             or brief.failed_distinct_keys
+            or brief.failed_max_distinct_keys
             or brief.failed_duplicate_share
             or brief.failed_incomplete_keys
             or brief.failed_incomplete_key_share
