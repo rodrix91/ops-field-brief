@@ -134,6 +134,34 @@ The synthetic file has **five rows**, **two incomplete composite keys** and **on
 
 An incomplete key is a blank/whitespace-only key component or one matching a recognized missing-value token (such as `NA`, `N/A`, `null` or `s/d`). The same missing-value rules apply to required-field checks and single or composite business keys, which are excluded from duplicate counting when incomplete. The JSON includes `incomplete_key_rows`, `max_incomplete_keys` and `failed_incomplete_keys`. The count is informational unless the new limit is provided; existing duplicate-key calculations and quality-gate defaults remain unchanged.
 
+## Proportional incomplete-key quality gate (opt-in)
+
+An absolute `--max-incomplete-keys N` limit does not scale when one scheduled
+export has 100 rows and another has 100,000. Use
+`--max-incomplete-key-share SHARE` with `--key` to cap the proportion of
+**all data rows** whose single or composite business key contains a missing
+component:
+
+```bash
+python -m ops_field_brief orders.csv --required order_id --max-missing 1 \
+  --key order_id,line_id --max-incomplete-key-share 0.05 --json
+```
+
+For example, 2 incomplete business keys among 5 rows is **40%**: the export
+fails a 5% threshold with exit `1` even if its independent
+`--max-incomplete-keys 2` count gate passes. The numerator uses existing
+blank and missing-token rules (`NA`, `N/A`, `s/d`, etc.); the denominator
+includes **all CSV data rows**, not only rows with complete keys. An exact
+threshold match passes; 0 rejects any incomplete key. With a header-only
+file the share is zero; use `--min-rows 1` to disallow empty exports.
+
+The option requires `--key`, and invalid, non-finite or out-of-range
+shares cause exit `2`. When enabled, JSON additionally includes
+`max_incomplete_key_share`, `incomplete_key_share` and
+`failed_incomplete_key_share`; Markdown shows the threshold and a separate
+failure explanation. Existing percentage/count gates, duplicate detection,
+`--top`, group rankings and default outputs are unchanged.
+
 ## Structural CSV validation (opt-in)
 
 For critical operational extracts, add `--strict-csv` to reject malformed CSV
