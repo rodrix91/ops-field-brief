@@ -45,7 +45,10 @@ class MaximumDistinctKeysTests(unittest.TestCase):
         self.assertNotIn("Minimum distinct complete business keys", render(allowed, False))
 
         blocked = build_brief(
-            rows, ["order"], key_fields=["order", "line"], max_missing=1,
+            rows,
+            ["order"],
+            key_fields=["order", "line"],
+            max_missing=1,
             max_distinct_keys=2,
         )
         self.assertEqual(blocked.distinct_keys, 3)
@@ -64,8 +67,12 @@ class MaximumDistinctKeysTests(unittest.TestCase):
         self.assertEqual(raw.distinct_keys, 4)
         self.assertTrue(raw.failed_max_distinct_keys)
         folded = build_brief(
-            rows, ["id"], key="id", casefold_key=True,
-            min_distinct_keys=2, max_distinct_keys=3,
+            rows,
+            ["id"],
+            key="id",
+            casefold_key=True,
+            min_distinct_keys=2,
+            max_distinct_keys=3,
         )
         self.assertEqual(folded.distinct_keys, 3)
         self.assertFalse(folded.failed_max_distinct_keys)
@@ -85,8 +92,11 @@ class MaximumDistinctKeysTests(unittest.TestCase):
         self.assertEqual(ok.distinct_keys, 0)
         self.assertFalse(ok.failed_max_distinct_keys)
         missing = build_brief(
-            [{"id": ""}, {"id": "N/A"}], ["id"], key="id",
-            max_missing=1, max_distinct_keys=0,
+            [{"id": ""}, {"id": "N/A"}],
+            ["id"],
+            key="id",
+            max_missing=1,
+            max_distinct_keys=0,
         )
         self.assertEqual(missing.distinct_keys, 0)
         self.assertFalse(missing.failed_max_distinct_keys)
@@ -109,14 +119,19 @@ class MaximumDistinctKeysTests(unittest.TestCase):
             ValueError, "min_distinct_keys cannot exceed max_distinct_keys"
         ):
             build_brief(
-                rows, ["id"], key="id", min_distinct_keys=2, max_distinct_keys=1,
+                rows,
+                ["id"],
+                key="id",
+                min_distinct_keys=2,
+                max_distinct_keys=1,
             )
 
     def test_cli_success_quality_failure_and_usage_errors(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "orders.csv"
             source.write_text(
-                "order,line\nA,1\nA,1\nA,2\nC,3\n,9\n", encoding="utf-8",
+                "order,line\nA,1\nA,1\nA,2\nC,3\n,9\n",
+                encoding="utf-8",
             )
             base = [str(source), "--required", "order", "--max-missing", "1"]
 
@@ -127,13 +142,20 @@ class MaximumDistinctKeysTests(unittest.TestCase):
                 return code, stdout.getvalue(), stderr.getvalue()
 
             good, out, err = invoke(
-                "--key", "order,line", "--max-distinct-keys", "3", "--json",
+                "--key",
+                "order,line",
+                "--max-distinct-keys",
+                "3",
+                "--json",
             )
             self.assertEqual((good, err), (0, ""))
             self.assertEqual(json.loads(out)["distinct_keys"], 3)
             self.assertFalse(json.loads(out)["failed_max_distinct_keys"])
             bad, out, err = invoke(
-                "--key", "order,line", "--max-distinct-keys", "2",
+                "--key",
+                "order,line",
+                "--max-distinct-keys",
+                "2",
             )
             self.assertEqual((bad, err), (1, ""))
             self.assertIn("Failed maximum distinct business-key check", out)
