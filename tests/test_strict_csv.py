@@ -81,9 +81,7 @@ class StrictCsvTests(unittest.TestCase):
     def test_casefold_cli_rejects_collision_without_altering_legacy(self):
         source = "id,ID,buyer\nA,B,Andes\n"
         base = self._cli("-", "--strict-csv", input_text=source)
-        collision = self._cli(
-            "-", "--strict-csv", "--casefold-headers", input_text=source
-        )
+        collision = self._cli("-", "--strict-csv", "--casefold-headers", input_text=source)
         self.assertEqual(base.returncode, 0, base.stderr)
         self.assertEqual(collision.returncode, 2)
         self.assertIn("duplicate CSV header columns: id", collision.stderr)
