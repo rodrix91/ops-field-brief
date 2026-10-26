@@ -25,9 +25,7 @@ class ActionVerifiedReportTests(unittest.TestCase):
             ('{ "label": "A ``` markdown" }', True, True),
         ):
             with self.subTest(payload=payload, is_json=is_json):
-                self.assertEqual(
-                    run_action._has_valid_report(payload, is_json=is_json), accepted
-                )
+                self.assertEqual(run_action._has_valid_report(payload, is_json=is_json), accepted)
 
     def test_main_refuses_false_green_and_false_quality_failure(self) -> None:
         scenarios = (
@@ -46,9 +44,7 @@ class ActionVerifiedReportTests(unittest.TestCase):
                 with tempfile.TemporaryDirectory() as directory:
                     workspace = Path(directory) / "workspace"
                     workspace.mkdir()
-                    (workspace / "orders.csv").write_text(
-                        "id,buyer\nA,North\n", encoding="utf-8"
-                    )
+                    (workspace / "orders.csv").write_text("id,buyer\nA,North\n", encoding="utf-8")
                     output = Path(directory) / "output.txt"
                     summary = Path(directory) / "summary.md"
                     env = {
@@ -65,16 +61,13 @@ class ActionVerifiedReportTests(unittest.TestCase):
                     )
                     with (
                         patch.dict(os.environ, env, clear=True),
-                        patch.object(
-                            run_action.subprocess, "run", return_value=result
-                        ) as called,
+                        patch.object(run_action.subprocess, "run", return_value=result) as called,
                     ):
                         self.assertEqual(run_action.main(), expected)
                         called.assert_called_once()
                     self.assertEqual(
                         output.read_text(encoding="utf-8"),
-                        f"exit-code={expected}\n"
-                        f"passed={'true' if expected == 0 else 'false'}\n",
+                        f"exit-code={expected}\npassed={'true' if expected == 0 else 'false'}\n",
                     )
                     self.assertEqual(summary.is_file(), has_summary)
                     if has_summary and "--json" in flags:
