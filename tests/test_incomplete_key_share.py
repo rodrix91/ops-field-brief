@@ -164,6 +164,43 @@ class IncompleteKeyShareTests(unittest.TestCase):
                     self.assertEqual(output, "")
                     self.assertIn(expected, error)
 
+    def test_header_only_share_preserves_independent_minimum_row_gate(self):
+        rows = CsvRows([], ["order"])
+        brief = build_brief(
+            rows,
+            ["order"],
+            key="order",
+            max_incomplete_key_share=0,
+            min_rows=1,
+        )
+        self.assertEqual(brief.incomplete_key_share, 0)
+        self.assertFalse(brief.failed_incomplete_key_share)
+        self.assertTrue(brief.failed_rows)
+        self.assertIn("Failed row-count check", render(brief, False))
+
+    def test_unicode_casefold_duplicates_do_not_inflate_incomplete_share(self):
+        rows = [
+            {"order": "Straße", "line": "01"},
+            {"order": "STRASSE", "line": "01"},
+            {"order": "NA", "line": "02"},
+            {"order": " C ", "line": "03"},
+        ]
+        arguments = {
+            "key_fields": ["order", "line"],
+            "casefold_key": True,
+            "max_missing": 1.0,
+            "max_duplicates": 1,
+        }
+        passing = build_brief(rows, ["order"], max_incomplete_key_share=0.25, **arguments)
+        self.assertEqual(passing.duplicate_keys, 1)
+        self.assertEqual(passing.incomplete_key_rows, 1)
+        self.assertEqual(passing.incomplete_key_share, 0.25)
+        self.assertFalse(passing.failed_incomplete_key_share)
+        self.assertFalse(passing.failed_duplicates)
+        failing = build_brief(rows, ["order"], max_incomplete_key_share=0.24, **arguments)
+        self.assertTrue(failing.failed_incomplete_key_share)
+        self.assertFalse(failing.failed_duplicates)
+
 
 if __name__ == "__main__":
     unittest.main()
