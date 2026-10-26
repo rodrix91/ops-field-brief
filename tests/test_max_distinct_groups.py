@@ -124,7 +124,6 @@ class MaxDistinctGroupsTests(unittest.TestCase):
                     self.assertEqual(stdout.getvalue(), "")
                     self.assertIn(message, stderr.getvalue())
 
-
     def test_conflicting_cardinality_bounds_are_configuration_errors(self):
         rows = [{"buyer": "Andes"}, {"buyer": "Paz"}]
         with self.assertRaisesRegex(
@@ -176,7 +175,7 @@ class MaxDistinctGroupsTests(unittest.TestCase):
     def test_cli_conflicting_bounds_exit_two_without_report(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "buyers.csv"
-            path.write_text("shipment,buyer\\nS1,Andes\\nS2,Paz\\n", encoding="utf-8")
+            path.write_text("shipment,buyer\nS1,Andes\nS2,Paz\n", encoding="utf-8")
             args = [
                 str(path),
                 "--required",
