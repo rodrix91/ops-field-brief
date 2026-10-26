@@ -12,6 +12,7 @@ Practical, reproducible checks for CSV extracts used in shipping, order processi
 | Does a business key repeat? | `--key shipment --max-duplicates 0` | Counts extra rows after the first occurrence of each complete key (no blank or missing-value token) |
 | Are business keys incomplete? | `--key order_id,line_id --max-incomplete-keys 0` | Exit `1` when any row has a blank or known missing-value token in a key component; duplicate counting ignores incomplete keys |
 | Are there enough usable business identifiers? | `--key order_id,line_id --min-complete-keys 100` | Exit `1` if fewer than 100 rows have **every** key component present; complete duplicates still count toward the minimum |
+| Are there unexpectedly many distinct identifiers? | `--key order_id,line_id --max-distinct-keys 500` | Exit `1` above 500 **unique complete** key tuples; duplicate rows cannot inflate the count, and it can be combined with a minimum |
 | Are there enough distinct business identifiers? | `--key order_id,line_id --min-distinct-keys 100` | Exit `1` if fewer than 100 **unique complete** key tuples exist, so repeats cannot inflate the count; missing components are excluded |
 | Is the extract unexpectedly small? | `--min-rows 100` | Exit `1` when the data-row count is below the threshold |
 | Is the data concentrated in one group? | `--group buyer --max-group-share 0.60` | Exit `1` if the largest group exceeds 60% of rows; blank, `NA`, `N/A`, `s/d` etc. share the `(blank)` bucket |

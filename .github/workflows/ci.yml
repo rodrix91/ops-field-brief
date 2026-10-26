@@ -228,6 +228,23 @@ jobs:
           args: --required order_id --max-missing 1 --key order_id,line_id --min-distinct-keys 2 --json
           summary: "false"
 
+      - name: Action rejects too many distinct complete business keys
+        id: distinct-key-maximum
+        continue-on-error: true
+        uses: ./
+        with:
+          path: examples/orders-incomplete-keys.csv
+          args: --required order_id --max-missing 1 --key order_id,line_id --max-distinct-keys 1 --json
+          summary: "false"
+
+      - name: Action accepts bounded distinct complete business keys
+        id: distinct-key-range
+        uses: ./
+        with:
+          path: examples/orders-incomplete-keys.csv
+          args: --required order_id --max-missing 1 --key order_id,line_id --min-distinct-keys 2 --max-distinct-keys 2 --json
+          summary: "false"
+
       - name: Action rejects malformed composite key fields
         id: malformed-key
         continue-on-error: true
@@ -276,6 +293,11 @@ jobs:
           ESCAPE_CODE: ${{ steps.escape.outputs.exit-code }}
           ESCAPE_PASSED: ${{ steps.escape.outputs.passed }}
           ESCAPE_OUTCOME: ${{ steps.escape.outcome }}
+          MAX_DISTINCT_KEY_CODE: ${{ steps.distinct-key-maximum.outputs.exit-code }}
+          MAX_DISTINCT_KEY_PASSED: ${{ steps.distinct-key-maximum.outputs.passed }}
+          MAX_DISTINCT_KEY_OUTCOME: ${{ steps.distinct-key-maximum.outcome }}
+          DISTINCT_RANGE_CODE: ${{ steps.distinct-key-range.outputs.exit-code }}
+          DISTINCT_RANGE_PASSED: ${{ steps.distinct-key-range.outputs.passed }}
           DISTINCT_KEY_CODE: ${{ steps.distinct-key-gate.outputs.exit-code }}
           DISTINCT_KEY_PASSED: ${{ steps.distinct-key-gate.outputs.passed }}
           DISTINCT_KEY_OUTCOME: ${{ steps.distinct-key-gate.outcome }}
@@ -309,6 +331,11 @@ jobs:
           test "$SHORT_VERSION_CODE" = 2
           test "$SHORT_VERSION_PASSED" = false
           test "$SHORT_VERSION_OUTCOME" = failure
+          test "$MAX_DISTINCT_KEY_CODE" = 1
+          test "$MAX_DISTINCT_KEY_PASSED" = false
+          test "$MAX_DISTINCT_KEY_OUTCOME" = failure
+          test "$DISTINCT_RANGE_CODE" = 0
+          test "$DISTINCT_RANGE_PASSED" = true
           test "$DISTINCT_KEY_CODE" = 1
           test "$DISTINCT_KEY_PASSED" = false
           test "$DISTINCT_KEY_OUTCOME" = failure
