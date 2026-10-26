@@ -132,10 +132,9 @@ class MinimumDistinctCompleteKeyTests(unittest.TestCase):
     def test_cli_json_markdown_and_configuration_exit_codes(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "orders.csv"
-            path.write_text(
-                "order,line\nA,1\nA,1\nA,2\n,9\n", encoding="utf-8"
-            )
+            path.write_text("order,line\nA,1\nA,1\nA,2\n,9\n", encoding="utf-8")
             base = [str(path), "--required", "order", "--max-missing", "1"]
+
             def execute(*opts: str) -> tuple[int, str, str]:
                 out, err = io.StringIO(), io.StringIO()
                 with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
@@ -149,9 +148,7 @@ class MinimumDistinctCompleteKeyTests(unittest.TestCase):
             self.assertEqual(json.loads(stdout)["distinct_keys"], 2)
             self.assertFalse(json.loads(stdout)["failed_distinct_keys"])
 
-            bad, markdown, stderr = execute(
-                "--key", "order,line", "--min-distinct-keys", "3",
-            )
+            bad, markdown, stderr = execute("--key", "order,line", "--min-distinct-keys", "3")
             self.assertEqual((bad, stderr), (1, ""))
             self.assertIn("Failed distinct business-key check", markdown)
 
