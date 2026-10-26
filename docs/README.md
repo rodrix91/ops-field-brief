@@ -11,9 +11,11 @@ Practical, reproducible checks for CSV extracts used in shipping, order processi
 | Are mandatory cells present? | `--required shipment,buyer,eta --max-missing 0` | Exit `1` when a named field has missing values; missing is evaluated per field |
 | Does a business key repeat? | `--key shipment --max-duplicates 0` | Counts extra rows after the first occurrence of each complete key (no blank or missing-value token) |
 | Are business keys incomplete? | `--key order_id,line_id --max-incomplete-keys 0` | Exit `1` when any row has a blank or known missing-value token in a key component; duplicate counting ignores incomplete keys |
+| Are there enough usable business identifiers? | `--key order_id,line_id --min-complete-keys 100` | Exit `1` if fewer than 100 rows have **every** key component present; complete duplicates still count toward the minimum |
 | Is the extract unexpectedly small? | `--min-rows 100` | Exit `1` when the data-row count is below the threshold |
 | Is the data concentrated in one group? | `--group buyer --max-group-share 0.60` | Exit `1` if the largest group exceeds 60% of rows; blank, `NA`, `N/A`, `s/d` etc. share the `(blank)` bucket |
 | Are columns structurally consistent? | `--strict-csv` | Exit `2` on duplicate or blank headers and rows with the wrong number of fields |
+| Can column names collide across spreadsheets or Unicode casing? | `--strict-csv --casefold-headers` | Exit `2` when headings differ only by Unicode case folding (such as `id`/`ID` or `Straße`/`STRASSE`); original header names remain unchanged |
 | Is a composite key unique? | `--key order_id,line_id --max-duplicates 0` | Repeats are checked on complete tuples, not on each column in isolation |
 
 A comma-separated `--key` must specify every component: `--key order_id,,line_id` (or a leading/trailing comma) is invalid and returns exit `2` rather than silently changing the key. This is checked by the CLI and the reusable Action.
@@ -64,6 +66,18 @@ PYTHONPATH=src python -m ops_field_brief examples/orders-incomplete-keys.csv \
 
 The five-row synthetic fixture includes two rows with a blank key component and one extra duplicate complete key. The limit of one incomplete key fails independently of the duplicate count. Blank or missing includes empty/whitespace-only components and known placeholders such as `NA`, `N/A`, `null` and `s/d`. Incomplete keys are excluded from duplicate counting, and `--max-incomplete-keys` is the independent gate for them. Required-field checks share the same missing-value rules. Without `--max-incomplete-keys`, incomplete keys are reported but do not by themselves fail the command.
 
+For an independent **minimum usable-identifier** gate on that same fixture, combine the two newer options:
+
+```bash
+PYTHONPATH=src python -m ops_field_brief examples/orders-incomplete-keys.csv \
+  --key order_id,line_id \
+  --min-complete-keys 4 \
+  --max-duplicates 0 \
+  --strict-csv --casefold-headers --json
+```
+
+The five-row fixture contains **three complete-key rows** (including one duplicated key) and **two incomplete-key rows**. The command therefore fails with exit `1` because the minimum is four and there is one extra duplicate row. These checks are independent: `--min-complete-keys 3` passes the complete-key threshold without making a repeated business key unique. Strict Unicode case-folding is enabled only alongside `--strict-csv` and does not rename columns, change the original CSV, or alter the default case-sensitive strict check. On duplicate case-equivalent headings, the structure check exits `2` before quality metrics are produced.
+
 ## 3. Interpret the outcome
 
 | Exit code | Meaning | Recommended pipeline action |
@@ -72,7 +86,7 @@ The five-row synthetic fixture includes two rows with a blank key component and 
 | `1` | An enabled completeness, duplicate, row-count, or concentration gate failed | Quarantine or review the extract; do not silently ignore the alert |
 | `2` | CSV structure, file access, encoding, field selection, or CLI arguments are invalid | Repair the input or configuration and rerun the check |
 
-The number of extra duplicate rows is not the number of distinct repeated keys. Blank key components are excluded from duplicate counting. A zero-row extract passes the default gate unless `--min-rows` is set. Treat an empty or unexpectedly small extract as a separate operational risk.
+The number of extra duplicate rows is not the number of distinct repeated keys. Blank key components are excluded from duplicate counting. A zero-row extract passes the default gate unless `--min-rows` or a positive `--min-complete-keys` is set. Treat an empty or unexpectedly small extract as a separate operational risk.
 
 ## 4. Run a gate in GitHub Actions
 
