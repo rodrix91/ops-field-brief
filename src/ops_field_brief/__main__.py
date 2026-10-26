@@ -103,6 +103,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Fail if the CSV has fewer than this many data rows",
     )
     parser.add_argument(
+        "--max-rows",
+        type=int,
+        default=None,
+        help="Fail if the CSV has more than this many data rows",
+    )
+    parser.add_argument(
         "--max-group-share",
         type=float,
         default=None,
@@ -209,6 +215,7 @@ def main(argv: list[str] | None = None) -> int:
             max_incomplete_keys=args.max_incomplete_keys,
             max_incomplete_key_share=args.max_incomplete_key_share,
             min_rows=args.min_rows,
+            max_rows=args.max_rows,
             max_group_share=args.max_group_share,
             max_assigned_group_share=args.max_assigned_group_share,
             max_missing_group_share=args.max_missing_group_share,
@@ -228,6 +235,7 @@ def main(argv: list[str] | None = None) -> int:
             or brief.failed_incomplete_keys
             or brief.failed_incomplete_key_share
             or brief.failed_rows
+            or brief.failed_max_rows
             or brief.failed_group_share
             or brief.failed_assigned_group_share
             or brief.failed_distinct_groups
