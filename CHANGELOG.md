@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Escape all untrusted CSV C0, DEL and C1 control characters as numeric references in Markdown reports and GitHub job-summary source, preventing invisible ANSI/terminal controls or tabs from altering text presentation. Preserve the original CSV/JSON bytes, ordinary Unicode labels and previous Markdown escaping; cover every control code, field names, business keys, group labels and a real CLI CSV fixture.
+
 - Reject additional terminal control characters (ANSI ESC, bell, backspace, DEL and other ASCII controls) in untrusted GitHub Action `path` / `args` inputs to prevent deceptive log rendering. Keep the existing LF/CR/NUL error contract, horizontal-tab argument separators, Unicode paths and fail-closed exit `2` / `passed=false` behavior. Add direct guard and end-to-end no-subprocess regressions.
 
 - Harden the composite Action's JSON job summary against backtick sequences in untrusted CSV fields by choosing a Markdown code fence longer than any sequence in the payload. Preserve the raw JSON output, ordinary triple-fence summaries, Markdown reports and Action outputs; add summary-rendering regression tests.
