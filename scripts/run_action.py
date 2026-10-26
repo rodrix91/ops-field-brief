@@ -45,11 +45,12 @@ def _reject_input_controls(raw: str, label: str) -> None:
     """Prevent untrusted Action inputs from altering workflow logs."""
     if any(character in raw for character in ("\r", "\n", "\x00")):
         raise ValueError(f"Action {label} must not contain line breaks or NUL characters.")
-    # ESC, BEL, backspace, other ASCII controls and DEL can manipulate
-    # terminal/log rendering without introducing additional lines.
-    # Horizontal tabs remain valid separators for shlex arguments.
+    # C0, DEL and C1 controls can manipulate terminal/log rendering.
+    # A tab is only meaningful as a shlex delimiter in args, never in paths.
     if any(
-        (ord(character) < 32 and character != "\t") or ord(character) == 127 for character in raw
+        (ord(character) < 32 and (character != "\t" or label != "args"))
+        or 127 <= ord(character) <= 159
+        for character in raw
     ):
         raise ValueError(f"Action {label} must not contain terminal control characters.")
 
