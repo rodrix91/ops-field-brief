@@ -27,7 +27,10 @@ class MarkdownControlCharacterTests(unittest.TestCase):
                     group="buyer",
                 )
                 markdown = render(report, as_json=False)
-                self.assertNotIn(chr(codepoint), markdown)
+                # Line feeds are part of the Markdown document structure;
+                # only CSV-originated line feeds must be escaped.
+                if codepoint != 10:
+                    self.assertNotIn(chr(codepoint), markdown)
                 self.assertIn(f"customer&#{codepoint};north", markdown)
                 parsed_json = json.loads(render(report, as_json=True))
                 self.assertEqual(parsed_json["top"][0]["value"], original)
