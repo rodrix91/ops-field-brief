@@ -50,7 +50,7 @@ class MarkdownControlCharacterTests(unittest.TestCase):
         self.assertEqual(payload["fields"][0]["name"], original)
 
     def test_cli_preserves_original_csv_data_but_sanitizes_markdown(self) -> None:
-        buyer = "Andes\x1b[31m\x08\x00\x7f\x9b\tNorte"
+        # Python 3.10 csv.writer cannot encode NUL in this fixture; the\n        # direct tests above still verify NUL handling in Markdown and JSON.\n        buyer = "Andes\x1b[31m\x08\x7f\x9b\tNorte"
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "operators.csv"
             with path.open("w", newline="", encoding="utf-8") as handle:
@@ -87,9 +87,9 @@ class MarkdownControlCharacterTests(unittest.TestCase):
             )
         self.assertEqual(markdown.returncode, 0, markdown.stderr)
         self.assertEqual(data.returncode, 0, data.stderr)
-        for char in ("\x1b", "\x08", "\x00", "\x7f", "\x9b", "\t"):
+        for char in ("\x1b", "\x08", "\x7f", "\x9b", "\t"):
             self.assertNotIn(char, markdown.stdout)
-        for codepoint in (27, 8, 0, 127, 155, 9):
+        for codepoint in (27, 8, 127, 155, 9):
             self.assertIn(f"&#{codepoint};", markdown.stdout)
         self.assertEqual(json.loads(data.stdout)["top"][0]["value"], buyer)
 
