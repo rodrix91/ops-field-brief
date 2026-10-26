@@ -43,7 +43,7 @@ class JsonSummaryFenceTests(unittest.TestCase):
                 )
 
     def test_fence_is_longer_than_the_longest_run_even_in_multiline_text(self) -> None:
-        payload = "{\n  \"buyer\": \"a```b\",\n  \"note\": \"cccc``````dddd\"\n}"
+        payload = '{\n  "buyer": "a```b",\n  "note": "cccc``````dddd"\n}'
         summary = self._summary(payload)
         self.assertTrue(summary.startswith("## ops-field-brief\n\n```````json\n"))
         self.assertTrue(summary.endswith(payload + "\n```````\n"))
