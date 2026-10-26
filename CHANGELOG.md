@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add opt-in `--min-distinct-keys N` as an independent minimum-cardinality gate for **unique complete** single or composite business keys. Unlike `--min-complete-keys`, repeated valid IDs count once; incomplete keys are excluded, and `--casefold-key` controls Unicode case-insensitive matching when selected. Enforce nonnegative bounds and `--key` configuration (exit `2`), quality failures (exit `1`), JSON/Markdown output only when enabled, and preserve the historical default report and all existing gates. Include API, CLI, Unicode, empty-data and combined-gate regressions.
+
 - Ensure the reusable Action recognizes argparse's accepted `--json` abbreviations (`--j`, `--js`, `--jso`) when deciding how to fence GitHub job summaries. Previously, abbreviated JSON mode bypassed the defensive Markdown code fence even though the CLI accepted and emitted JSON. Keep ordinary Markdown summaries, the original CLI flags, payload bytes and prior output behavior unchanged; add direct and end-to-end regression tests covering untrusted backtick-bearing labels.
 
 - Reject every Unicode C1 terminal control (U+0080–U+009F) in the reusable GitHub Action `path` and `args` and reject literal tabs in `path`, which is passed as one filename rather than as shell tokens. Keep tabs valid as separators in `args`, retain ordinary Unicode filenames and prior CR/LF/NUL error semantics, and fail with exit `2` / `passed=false` before spawning the CLI. Add direct full-C1-range and end-to-end Action regression coverage. Standalone CLI and source CSV content remain unchanged.
