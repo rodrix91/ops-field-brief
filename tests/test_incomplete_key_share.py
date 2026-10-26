@@ -29,9 +29,7 @@ class IncompleteKeyShareTests(unittest.TestCase):
             "max_duplicate_share": 0.34,
             "max_incomplete_keys": 2,
         }
-        passing = build_brief(
-            rows, ["order"], max_incomplete_key_share=0.4, **arguments
-        )
+        passing = build_brief(rows, ["order"], max_incomplete_key_share=0.4, **arguments)
         self.assertEqual(passing.incomplete_key_rows, 2)
         self.assertEqual(passing.duplicate_keys, 1)
         self.assertEqual(passing.incomplete_key_share, 0.4)
@@ -44,9 +42,7 @@ class IncompleteKeyShareTests(unittest.TestCase):
         self.assertFalse(passing.to_dict()["failed_incomplete_key_share"])
         self.assertIn("Max allowed incomplete-key share: 40.0%", render(passing, False))
 
-        failing = build_brief(
-            rows, ["order"], max_incomplete_key_share=0.39, **arguments
-        )
+        failing = build_brief(rows, ["order"], max_incomplete_key_share=0.39, **arguments)
         self.assertTrue(failing.failed_incomplete_key_share)
         self.assertFalse(failing.failed_incomplete_keys)
         self.assertIn("Failed incomplete-key share check", render(failing, False))
@@ -55,34 +51,46 @@ class IncompleteKeyShareTests(unittest.TestCase):
     def test_all_missing_empty_and_complete_business_keys(self):
         rows = [{"order": " "}, {"order": "n/a"}]
         failing = build_brief(
-            rows, ["order"], key="order", max_missing=1,
+            rows,
+            ["order"],
+            key="order",
+            max_missing=1,
             max_incomplete_key_share=0.99,
         )
         self.assertEqual(failing.incomplete_key_share, 1.0)
         self.assertTrue(failing.failed_incomplete_key_share)
         accepted = build_brief(
-            rows, ["order"], key="order", max_missing=1,
+            rows,
+            ["order"],
+            key="order",
+            max_missing=1,
             max_incomplete_key_share=1,
         )
         self.assertFalse(accepted.failed_incomplete_key_share)
 
         empty = build_brief(
-            CsvRows([], ["order"]), ["order"], key="order",
+            CsvRows([], ["order"]),
+            ["order"],
+            key="order",
             max_incomplete_key_share=0,
         )
         self.assertEqual(empty.incomplete_key_share, 0)
         self.assertFalse(empty.failed_incomplete_key_share)
 
         complete = build_brief(
-            [{"order": "A"}, {"order": "B"}], ["order"], key="order",
+            [{"order": "A"}, {"order": "B"}],
+            ["order"],
+            key="order",
             max_incomplete_key_share=0,
         )
         self.assertFalse(complete.failed_incomplete_key_share)
 
     def test_default_json_and_markdown_unchanged_without_opt_in(self):
         plain = build_brief(
-            [{"order": "A"}, {"order": ""}], ["order"],
-            key="order", max_missing=1,
+            [{"order": "A"}, {"order": ""}],
+            ["order"],
+            key="order",
+            max_missing=1,
         )
         self.assertEqual(plain.incomplete_key_rows, 1)
         self.assertNotIn("max_incomplete_key_share", plain.to_dict())
@@ -96,9 +104,7 @@ class IncompleteKeyShareTests(unittest.TestCase):
         for share in (-0.1, 1.1, float("nan"), float("inf"), -float("inf")):
             with self.subTest(share=share):
                 with self.assertRaisesRegex(ValueError, "between 0 and 1"):
-                    build_brief(
-                        rows, ["order"], key="order", max_incomplete_key_share=share
-                    )
+                    build_brief(rows, ["order"], key="order", max_incomplete_key_share=share)
         with self.assertRaisesRegex(ValueError, "requires --key"):
             build_brief(rows, ["order"], max_incomplete_key_share=0)
 
@@ -110,8 +116,14 @@ class IncompleteKeyShareTests(unittest.TestCase):
                 encoding="utf-8",
             )
             base = [
-                str(path), "--required", "order", "--max-missing", "1",
-                "--key", "order,line", "--json",
+                str(path),
+                "--required",
+                "order",
+                "--max-missing",
+                "1",
+                "--key",
+                "order,line",
+                "--json",
             ]
 
             def execute(arguments: list[str]) -> tuple[int, str, str]:
@@ -120,15 +132,11 @@ class IncompleteKeyShareTests(unittest.TestCase):
                     status = main(arguments)
                 return status, stdout.getvalue(), stderr.getvalue()
 
-            code, output, error = execute(
-                [*base, "--max-incomplete-key-share", "0.4"]
-            )
+            code, output, error = execute([*base, "--max-incomplete-key-share", "0.4"])
             self.assertEqual((code, error), (0, ""))
             self.assertEqual(json.loads(output)["incomplete_key_share"], 0.4)
 
-            code, output, error = execute(
-                [*base, "--max-incomplete-key-share", "0.39"]
-            )
+            code, output, error = execute([*base, "--max-incomplete-key-share", "0.39"])
             self.assertEqual((code, error), (1, ""))
             self.assertTrue(json.loads(output)["failed_incomplete_key_share"])
 
@@ -141,8 +149,11 @@ class IncompleteKeyShareTests(unittest.TestCase):
                 ([*base, "--max-incomplete-key-share", "1.01"], "between 0 and 1"),
                 (
                     [
-                        str(path), "--required", "order",
-                        "--max-incomplete-key-share", "0",
+                        str(path),
+                        "--required",
+                        "order",
+                        "--max-incomplete-key-share",
+                        "0",
                     ],
                     "requires --key",
                 ),
