@@ -134,6 +134,39 @@ The synthetic file has **five rows**, **two incomplete composite keys** and **on
 
 An incomplete key is a blank/whitespace-only key component or one matching a recognized missing-value token (such as `NA`, `N/A`, `null` or `s/d`). The same missing-value rules apply to required-field checks and single or composite business keys, which are excluded from duplicate counting when incomplete. The JSON includes `incomplete_key_rows`, `max_incomplete_keys` and `failed_incomplete_keys`. The count is informational unless the new limit is provided; existing duplicate-key calculations and quality-gate defaults remain unchanged.
 
+## Relative incomplete-key quality gate (opt-in)
+
+For daily exports of different sizes, a fixed `--max-incomplete-keys N` threshold
+may be too strict for large files or too permissive for small ones. Use
+`--max-incomplete-key-share SHARE` alongside `--key` to limit the **fraction of
+all data rows** with any missing business-key component:
+
+```bash
+python -m ops_field_brief examples/orders-incomplete-keys.csv \
+  --required order_id --max-missing 1 --key order_id,line_id \
+  --max-incomplete-key-share 0.30 --json
+```
+
+The example has five rows and two incomplete composite business keys. Its
+incomplete-key share is **2/5 = 40%**, so the 30% limit fails (exit `1`);
+`--max-incomplete-key-share 0.40` passes. A row is incomplete when **any**
+key component is blank or a recognized missing-value token (e.g. `NA`,
+`null`, `s/d`). Unlike `--max-duplicate-share`, which uses only complete
+business-key rows as its denominator, this gate uses **all CSV data rows**.
+
+Accepted limits range from `0` through `1`, inclusive. Negative, non-finite
+or greater-than-one values, and use without `--key`, exit `2`. An empty
+CSV has a zero incomplete-key share and can be separately rejected with
+`--min-rows`; a nonempty extract with no complete keys has a share of
+100%. The percentage gate is independent of the absolute incomplete-key,
+duplicate-key and missing-field gates. It supports single and composite keys,
+and `--casefold-key` does not change which key components are missing.
+
+The default JSON and Markdown outputs are unchanged. When enabled, JSON
+adds `max_incomplete_key_share`, `incomplete_key_share` (rounded to four
+decimal places), and `failed_incomplete_key_share`; Markdown shows the
+observed percentage and a failure explanation when applicable.
+
 ## Structural CSV validation (opt-in)
 
 For critical operational extracts, add `--strict-csv` to reject malformed CSV
