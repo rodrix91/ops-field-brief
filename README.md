@@ -167,6 +167,27 @@ adds `max_incomplete_key_share`, `incomplete_key_share` (rounded to four
 decimal places), and `failed_incomplete_key_share`; Markdown shows the
 observed percentage and a failure explanation when applicable.
 
+## Minimum complete business-key rows (opt-in)
+
+Use `--min-complete-keys N` with `--key` to require a minimum number of
+records whose business identifiers are fully usable. Missing tokens such as
+`NA`, `N/A` and `s/d` in **any** component of a composite key exclude that
+row from the count. Duplicate but complete keys still count as complete rows;
+use `--max-duplicates` or `--max-duplicate-share` separately to check uniqueness.
+
+```bash
+python -m ops_field_brief shipments.csv \
+  --required shipment,buyer --key shipment --min-complete-keys 100 --json
+```
+
+The count is independent of total rows: an export can pass `--min-rows` yet
+fail this gate if its identifiers are largely missing. The threshold is inclusive
+(`N` complete rows pass), `0` is allowed, and empty exports fail only for a
+positive minimum. A failing gate exits `1`; negative limits or the absence of
+`--key` exit `2`. When enabled, JSON includes `min_complete_keys`,
+`complete_key_rows`, and `failed_complete_keys`; Markdown includes the count
+and the failure reason. Omitting the option preserves the previous output.
+
 ## Structural CSV validation (opt-in)
 
 For critical operational extracts, add `--strict-csv` to reject malformed CSV
