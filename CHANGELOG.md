@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add opt-in `--min-complete-keys N` for the minimum number of usable business-key rows, including composite identifiers. Missing tokens exclude a row, duplicates remain countable, and this gate is independent of total-row and duplicate gates. Reject negative limits and missing `--key` as configuration errors, preserve existing output when disabled, and report failing thresholds in Markdown/JSON with dedicated regression coverage.
+
 - Escape all untrusted CSV C0, DEL and C1 control characters as numeric references in Markdown reports and GitHub job-summary source, preventing invisible ANSI/terminal controls or tabs from altering text presentation. Preserve the original CSV/JSON bytes, ordinary Unicode labels and previous Markdown escaping; cover every control code, field names, business keys, group labels and a real CLI CSV fixture.
 
 - Reject additional terminal control characters (ANSI ESC, bell, backspace, DEL and other ASCII controls) in untrusted GitHub Action `path` / `args` inputs to prevent deceptive log rendering. Keep the existing LF/CR/NUL error contract, horizontal-tab argument separators, Unicode paths and fail-closed exit `2` / `passed=false` behavior. Add direct guard and end-to-end no-subprocess regressions.

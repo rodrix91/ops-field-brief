@@ -113,6 +113,8 @@ class Brief:
     failed_missing_group_share: bool = False
     casefold_key: bool = False
     casefold_group: bool = False
+    min_complete_keys: int | None = None
+    failed_complete_keys: bool = False
 
     def to_dict(self) -> dict:
         return {
@@ -136,6 +138,15 @@ class Brief:
             ),
             "max_duplicates": self.max_duplicates,
             "failed_duplicates": self.failed_duplicates,
+            **(
+                {
+                    "min_complete_keys": self.min_complete_keys,
+                    "complete_key_rows": self.complete_key_rows,
+                    "failed_complete_keys": self.failed_complete_keys,
+                }
+                if self.min_complete_keys is not None
+                else {}
+            ),
             **(
                 {
                     "max_duplicate_share": self.max_duplicate_share,
@@ -254,6 +265,7 @@ def build_brief(
     casefold_key: bool = False,
     casefold_group: bool = False,
     max_rows: int | None = None,
+    min_complete_keys: int | None = None,
 ) -> Brief:
     if not 0 <= max_missing <= 1:
         raise ValueError("max_missing must be between 0 and 1")
@@ -261,6 +273,8 @@ def build_brief(
         raise ValueError("top must be 0 or greater")
     if max_duplicates is not None and max_duplicates < 0:
         raise ValueError("max_duplicates must be 0 or greater")
+    if min_complete_keys is not None and min_complete_keys < 0:
+        raise ValueError("min_complete_keys must be 0 or greater")
     if max_duplicate_share is not None and not 0 <= max_duplicate_share <= 1:
         raise ValueError("max_duplicate_share must be between 0 and 1")
     if max_incomplete_keys is not None and max_incomplete_keys < 0:
@@ -325,6 +339,8 @@ def build_brief(
         raise ValueError("duplicate key fields: " + ", ".join(repeated_key_fields))
     if max_duplicates is not None and not effective_key_fields:
         raise ValueError("max_duplicates requires --key")
+    if min_complete_keys is not None and not effective_key_fields:
+        raise ValueError("min_complete_keys requires --key")
     if max_duplicate_share is not None and not effective_key_fields:
         raise ValueError("max_duplicate_share requires --key")
     if max_incomplete_keys is not None and not effective_key_fields:
@@ -389,6 +405,9 @@ def build_brief(
     # A nonempty export without any valid key fails closed when this gate is
     # enabled; missing-key limits remain a separate independent check.
     complete_key_rows = len(keys)
+    failed_complete_keys = bool(
+        min_complete_keys is not None and complete_key_rows < min_complete_keys
+    )
     duplicate_share = duplicate_keys / complete_key_rows if complete_key_rows else 0.0
     failed_duplicate_share = bool(
         max_duplicate_share is not None
@@ -461,6 +480,8 @@ def build_brief(
         key_fields=effective_key_fields,
         max_duplicates=max_duplicates,
         failed_duplicates=failed_duplicates,
+        min_complete_keys=min_complete_keys,
+        failed_complete_keys=failed_complete_keys,
         max_duplicate_share=max_duplicate_share,
         complete_key_rows=complete_key_rows,
         duplicate_share=duplicate_share,
@@ -604,6 +625,9 @@ def render_markdown(brief: Brief) -> str:
             f"{_markdown_text(name)}: {limit:.1%}" for name, limit in brief.max_missing_columns
         )
         lines.append(f"- Field-specific missing limits: {limits}")
+    if brief.min_complete_keys is not None:
+        lines.append(f"- Minimum rows with complete business keys: {brief.min_complete_keys}")
+        lines.append(f"- Rows with complete business keys: {brief.complete_key_rows}")
     if brief.max_duplicates is not None:
         lines.append(f"- Max allowed duplicate extra rows: {brief.max_duplicates}")
     if brief.key_fields:
@@ -645,6 +669,18 @@ def render_markdown(brief: Brief) -> str:
     if brief.failed_fields:
         lines.extend(["", "## Failed fill check", ""])
         lines.append(", ".join(_markdown_text(name) for name in brief.failed_fields))
+    if brief.failed_complete_keys:
+        lines.extend(
+            [
+                "",
+                "## Failed complete-key row-count check",
+                "",
+                (
+                    f"Rows with complete business keys ({brief.complete_key_rows}) are below "
+                    f"the minimum ({brief.min_complete_keys})."
+                ),
+            ]
+        )
     if brief.failed_duplicates:
         lines.extend(
             [
