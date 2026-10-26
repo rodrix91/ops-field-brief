@@ -50,9 +50,7 @@ class JsonAbbreviationSafetyTests(unittest.TestCase):
                     "OPS_FIELD_BRIEF_INPUT_ARGS": f"--required shipment {flag}",
                     "OPS_FIELD_BRIEF_INPUT_SUMMARY": "true",
                 }
-                done = subprocess.CompletedProcess(
-                    args=[], returncode=0, stdout=payload, stderr=""
-                )
+                done = subprocess.CompletedProcess(args=[], returncode=0, stdout=payload, stderr="")
                 with (
                     patch.dict(os.environ, env, clear=True),
                     patch.object(run_action.subprocess, "run", return_value=done) as fake,
