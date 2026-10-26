@@ -324,6 +324,30 @@ unless another gate (such as `--min-rows 1`) rejects it. JSON only adds
 `failed_max_distinct_groups` when enabled, leaving the old output intact.
 Markdown includes the configured maximum and the failure reason.
 
+## Maximum data-row count (opt-in)
+
+A nightly order, shipment, or inventory export can accidentally include a full
+history instead of the requested day because of a missing date filter or a bad
+join. Use `--max-rows N` to reject extracts with **more than N data rows**,
+independently of completeness, repeated-key, and group-concentration checks:
+
+```bash
+python -m ops_field_brief examples/shipments.csv \
+  --required shipment --min-rows 1 --max-rows 1000 --json
+```
+
+The upper bound is inclusive: exactly 1,000 rows passes; 1,001 fails with
+quality-gate exit `1`. `--max-rows 0` accepts header-only exports and rejects
+any data rows. A blank physical CSV line is not a data row. As with the existing
+`--min-rows` gate, this checks the total number of rows independently of the
+`--top` display limit and any group/key selection.
+
+Negative maximums or mutually inconsistent bounds such as `--min-rows 10
+--max-rows 5` are invalid configuration (exit `2`) and **do not produce a
+misleading report**. JSON adds `max_rows` and `failed_max_rows` only when
+enabled; Markdown includes the maximum and an explicit failure section when
+it is exceeded. Previous JSON/Markdown output stays unchanged by default.
+
 ## Install and run
 
 Python 3.10 or newer. No third-party packages. From a checkout:
@@ -337,7 +361,7 @@ python -m ops_field_brief shipments.csv \
 
 After `pip install .`, the same command is available as `ops-field-brief`. Use `ops-field-brief --version` to confirm the installed version.
 
-Exit code `0` means every enabled quality gate passes. Exit code `1` means at least one required field is too empty, repeated keys exceed `--max-duplicates`, incomplete key rows exceed `--max-incomplete-keys`, the data-row count is below `--min-rows`, or the largest `--group` exceeds `--max-group-share`, or the count of real distinct groups falls below `--min-distinct-groups` or exceeds `--max-distinct-groups`, or missing group assignments exceed `--max-missing-group-share`. Exit code `2` means the file or the arguments could not be used, including an unknown `--encoding`, a `--max-missing` or `--max-group-share` outside 0 to 1 (including non-finite values such as `NaN`), a negative `--max-duplicates` or `--min-rows`, an empty, incomplete or repeated `--required` field list, an unknown `--key` or `--group`, using `--max-group-share`, `--max-missing-group-share`, `--min-distinct-groups` or `--max-distinct-groups` without `--group`, a negative `--min-distinct-groups` or `--max-distinct-groups`, a negative `--top`, or an unknown `--delimiter`.
+Exit code `0` means every enabled quality gate passes. Exit code `1` means at least one required field is too empty, repeated keys exceed `--max-duplicates`, incomplete key rows exceed `--max-incomplete-keys`, the data-row count is below `--min-rows` or above `--max-rows`, or the largest `--group` exceeds `--max-group-share`, or the count of real distinct groups falls below `--min-distinct-groups` or exceeds `--max-distinct-groups`, or missing group assignments exceed `--max-missing-group-share`. Exit code `2` means the file or the arguments could not be used, including an unknown `--encoding`, a `--max-missing` or `--max-group-share` outside 0 to 1 (including non-finite values such as `NaN`), a negative `--max-duplicates`, `--min-rows` or `--max-rows`, or a `--min-rows` greater than `--max-rows`, an empty, incomplete or repeated `--required` field list, an unknown `--key` or `--group`, using `--max-group-share`, `--max-missing-group-share`, `--min-distinct-groups` or `--max-distinct-groups` without `--group`, a negative `--min-distinct-groups` or `--max-distinct-groups`, a negative `--top`, or an unknown `--delimiter`.
 
 `--required` trims surrounding spaces but rejects missing field positions such as `shipment,,eta`, leading/trailing commas or whitespace-only segments (exit `2`), rather than silently skipping a quality check. Duplicate field names also produce a configuration error.
 

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add opt-in `--max-rows N` quality gate for unexpectedly oversized CSV exports, complementing `--min-rows` and preserving all existing count, key, group, and field checks. Reject negative and inconsistent row-count limits as configuration errors, report failure via exit `1`, preserve JSON/Markdown schemas unless enabled, and add API/CLI boundary and empty-file regressions.
+
 - Add optional `--max-incomplete-key-share SHARE` to cap the fraction of CSV rows with missing single/composite business-key components, independently of absolute incomplete-key and duplicate gates. Preserve historical JSON/Markdown unless enabled, accept inclusive 0–1 finite limits, reject missing keys or invalid thresholds with exit 2, and cover library, CLI, empty-file, all-incomplete and integration scenarios.
 
 - Add opt-in `--max-duplicate-share SHARE` to cap extra repeated business-key rows as a fraction of complete-key rows, rather than only by an absolute count. Exclude missing key components from both numerator and denominator, fail closed on nonempty exports with no complete keys, support composite keys and Unicode casefold, and retain independent duplicate-count/incomplete-key gates. Only append JSON/Markdown metadata when enabled; cover CLI, library, valid/invalid shares and zero-row regressions.
