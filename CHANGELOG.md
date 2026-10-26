@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add optional `--casefold-headers` alongside `--strict-csv` to reject ambiguous Unicode case-equivalent CSV headers (e.g., `id`/`ID`, `Straße`/`STRASSE`, or Greek sigma forms), while keeping original names and existing case-sensitive validation unchanged unless selected. Reject the option without strict mode before input access (exit 2); add direct API, Unicode, CLI and default-compatibility regressions. No changes to reports, other gates or dependencies.
+
 - Add opt-in `--min-complete-keys N` for the minimum number of usable business-key rows, including composite identifiers. Missing tokens exclude a row, duplicates remain countable, and this gate is independent of total-row and duplicate gates. Reject negative limits and missing `--key` as configuration errors, preserve existing output when disabled, and report failing thresholds in Markdown/JSON with dedicated regression coverage.
 
 - Escape all untrusted CSV C0, DEL and C1 control characters as numeric references in Markdown reports and GitHub job-summary source, preventing invisible ANSI/terminal controls or tabs from altering text presentation. Preserve the original CSV/JSON bytes, ordinary Unicode labels and previous Markdown escaping; cover every control code, field names, business keys, group labels and a real CLI CSV fixture.

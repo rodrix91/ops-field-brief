@@ -5,11 +5,13 @@ from __future__ import annotations
 from collections import Counter
 
 
-def validate_csv_structure(rows: list[dict[str, str]]) -> None:
+def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool = False) -> None:
     """Reject ambiguous headers and ragged rows without changing default parsing.
 
     The normal reader preserves header names on CsvRows, including header-only
-    files. DictReader maps surplus fields under a None key and missing fields
+    files. Set casefold_headers to also reject Unicode case-equivalent labels,
+    without renaming input columns or changing the default strict behavior.
+    DictReader maps surplus fields under a None key and missing fields
     to None values, so both cases can be detected without re-reading the CSV.
     """
     header = getattr(rows, "fieldnames", None)
@@ -23,7 +25,10 @@ def validate_csv_structure(rows: list[dict[str, str]]) -> None:
             raise ValueError(f"blank CSV header at column {position}")
 
     names = [name.strip() for name in header]
-    repeated = [name for name, count in Counter(names).items() if count > 1]
+    # Use Unicode casefold only when requested. Keep original column names
+    # intact so --required, --key and --group continue to match exactly.
+    compared = [name.casefold() if casefold_headers else name for name in names]
+    repeated = [name for name, count in Counter(compared).items() if count > 1]
     if repeated:
         raise ValueError("duplicate CSV header columns: " + ", ".join(repeated))
 

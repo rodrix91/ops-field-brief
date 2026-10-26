@@ -54,6 +54,39 @@ class StrictCsvTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, message):
                     validate_csv_structure(self._rows(source))
 
+    def test_casefold_headers_detects_ascii_and_unicode_collisions(self):
+        for header, message in (
+            ("id,ID,buyer", "duplicate CSV header columns: id"),
+            ("id,buyer,Straße,STRASSE", "duplicate CSV header columns: strasse"),
+            ("id,buyer,Σ,ς", "duplicate CSV header columns: σ"),
+        ):
+            with self.subTest(header=header):
+                rows = self._rows(header + "\n")
+                validate_csv_structure(rows)  # Legacy strict behavior unchanged.
+                with self.assertRaisesRegex(ValueError, message):
+                    validate_csv_structure(rows, casefold_headers=True)
+
+    def test_casefold_headers_preserves_exact_header_names_and_values(self):
+        rows = self._rows("id,buyer,STRASSE\n1,Andes,ok\n")
+        validate_csv_structure(rows, casefold_headers=True)
+        self.assertEqual(rows.fieldnames, ("id", "buyer", "STRASSE"))
+        self.assertEqual(rows[0]["STRASSE"], "ok")
+
+    def test_casefold_cli_requires_strict_mode_before_opening_input(self):
+        result = self._cli("/nonexistent/data.csv", "--casefold-headers")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("--casefold-headers requires --strict-csv", result.stderr)
+        self.assertNotIn("No such file", result.stderr)
+
+    def test_casefold_cli_rejects_collision_without_altering_legacy(self):
+        source = "id,ID,buyer\nA,B,Andes\n"
+        base = self._cli("-", "--strict-csv", input_text=source)
+        collision = self._cli("-", "--strict-csv", "--casefold-headers", input_text=source)
+        self.assertEqual(base.returncode, 0, base.stderr)
+        self.assertEqual(collision.returncode, 2)
+        self.assertIn("duplicate CSV header columns: id", collision.stderr)
+        self.assertEqual(collision.stdout, "")
+
     def test_rejects_ragged_rows_with_logical_row_number(self):
         cases = (
             ("id,buyer\n1,Andes\n2,Paz,extra\n", "row 2 has more fields"),

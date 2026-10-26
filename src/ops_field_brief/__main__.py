@@ -152,6 +152,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Reject malformed quoting, duplicate/blank headers, and ragged rows",
     )
+    parser.add_argument(
+        "--casefold-headers",
+        action="store_true",
+        help="With --strict-csv, reject headers equivalent under Unicode casefold",
+    )
     parser.add_argument("--json", action="store_true", help="Write JSON instead of Markdown")
     return parser.parse_args(argv)
 
@@ -184,6 +189,9 @@ def main(argv: list[str] | None = None) -> int:
         if any(not field for field in key_fields):
             print("empty column in --key; specify every key field", file=sys.stderr)
             return 2
+    if args.casefold_headers and not args.strict_csv:
+        print("--casefold-headers requires --strict-csv", file=sys.stderr)
+        return 2
     try:
         missing_limits: dict[str, float] = {}
         for spec in args.max_missing_column:
@@ -205,7 +213,7 @@ def main(argv: list[str] | None = None) -> int:
             strict=args.strict_csv,
         )
         if args.strict_csv:
-            validate_csv_structure(rows)
+            validate_csv_structure(rows, casefold_headers=args.casefold_headers)
         brief = build_brief(
             rows,
             required,
