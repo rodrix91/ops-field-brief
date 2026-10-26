@@ -285,6 +285,12 @@ def build_brief(
         raise ValueError("max_distinct_groups must be 0 or greater")
     if max_distinct_groups is not None and not group:
         raise ValueError("max_distinct_groups requires --group")
+    if (
+        min_distinct_groups is not None
+        and max_distinct_groups is not None
+        and min_distinct_groups > max_distinct_groups
+    ):
+        raise ValueError("min_distinct_groups cannot exceed max_distinct_groups")
     if max_missing_group_share is not None and not 0 <= max_missing_group_share <= 1:
         raise ValueError("max_missing_group_share must be between 0 and 1")
     if max_missing_group_share is not None and not group:
