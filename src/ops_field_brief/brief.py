@@ -85,9 +85,7 @@ class CsvRows(list[dict[str, str]]):
                             internal_newlines += (
                                 cell.count("\n") + cell.count("\r") - cell.count("\r\n")
                             )
-                source_lines.append(
-                    source_line_offset + rows.line_num - internal_newlines
-                )
+                source_lines.append(source_line_offset + rows.line_num - internal_newlines)
             super().__init__(parsed)
         else:
             super().__init__(rows)
