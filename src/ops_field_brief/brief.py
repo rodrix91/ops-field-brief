@@ -621,7 +621,9 @@ def _detect_delimiter(sample: str) -> str:
             for candidate in DELIMITERS.values():
                 if any(
                     len(record) != 1
-                    for record in csv.reader(io.StringIO(sample), delimiter=candidate, strict=True)
+                    for record in csv.reader(
+                        io.StringIO(sample, newline=""), delimiter=candidate, strict=True
+                    )
                     if record  # csv.reader ignores empty physical lines
                 ):
                     single_column = False
@@ -640,10 +642,13 @@ def _excel_sep_directive(text: str) -> tuple[str, str] | None:
 
     Only used with delimiter auto. Lookalikes remain ordinary CSV text.
     """
-    first, _, remainder = text.partition("\n")
-    first = first.removesuffix("\r")
+    # Bare CR, LF and CRLF are all valid CSV physical line endings.
+    # A split on LF alone can mistake a CR-only Excel preamble for a header.
+    end = min((index for index in (text.find("\r"), text.find("\n")) if index >= 0), default=len(text))
+    first = text[:end]
+    ending_width = 2 if text[end : end + 2] == "\r\n" else int(end < len(text))
     if len(first) == 5 and first.startswith("sep=") and first[-1] in ",;\t|":
-        return first[-1], remainder
+        return first[-1], text[end + ending_width :]
     return None
 
 
@@ -674,7 +679,9 @@ def read_csv(
                     if len(text) <= 8192:
                         raise
                     delimiter = _detect_delimiter(text)
-            reader = csv.DictReader(io.StringIO(text), delimiter=delimiter, strict=strict)
+            reader = csv.DictReader(
+                io.StringIO(text, newline=""), delimiter=delimiter, strict=strict
+            )
             return CsvRows(
                 reader, reader.fieldnames, source_line_offset=int(excel_hint is not None)
             )
