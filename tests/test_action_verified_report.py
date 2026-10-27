@@ -74,6 +74,36 @@ class ActionVerifiedReportTests(unittest.TestCase):
         no_flags["failed_fields"] = []
         self.assertFalse(run_action._has_valid_report(json.dumps(no_flags), is_json=True))
 
+    def test_json_report_rejects_corrupted_missingness_and_field_identity(self) -> None:
+        clean = json.loads(self._report())
+        base_field = clean["fields"][0]
+        invalid_fields = (
+            {"missing_rate": None},
+            {"missing_rate": True},
+            {"missing_rate": -0.1},
+            {"missing_rate": 1.1},
+            {"missing_rate": float("nan")},
+            {"missing_rate": float("inf")},
+            {"missing_rate": 0.5},
+            {"missing_rate": "0.0"},
+            {"missing_rate": 0.0, "name": ""},
+            {"missing_rate": 0.0, "name": "  "},
+        )
+        for change in invalid_fields:
+            with self.subTest(change=change):
+                report = dict(clean, fields=[dict(base_field, **change)])
+                self.assertFalse(run_action._has_valid_report(json.dumps(report), is_json=True))
+        duplicated = dict(clean, fields=[base_field, dict(base_field)])
+        self.assertFalse(run_action._has_valid_report(json.dumps(duplicated), is_json=True))
+        for names in (["unknown"], ["id", "id"]):
+            with self.subTest(failed_fields=names):
+                report = dict(clean, failed_fields=names)
+                self.assertFalse(
+                    run_action._has_valid_report(json.dumps(report), is_json=True, exit_code=1)
+                )
+        empty = json.loads(json.dumps(build_brief([], ["id"]).to_dict()))
+        self.assertTrue(run_action._has_valid_report(json.dumps(empty), is_json=True))
+
     def test_main_refuses_false_green_and_false_quality_failure(self) -> None:
         good = self._report()
         failed = self._report(failing=True)

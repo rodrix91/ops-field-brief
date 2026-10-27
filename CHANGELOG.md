@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Strengthen the reusable Action JSON integrity gate by reconciling each field's missing-rate display against its actual missing count and total rows, rejecting NaN/Infinity, duplicate field identities and unknown or repeated failure labels. Preserve the standalone CLI's schema and exit codes; add negative and empty-export regressions.
+
 - Validate the reusable GitHub Action's JSON output against the operational report contract: nonnegative row counts, populated field metrics with reconciled filled/missing totals, and reported quality-gate flags that agree with exit `0` or `1`. Malformed, incomplete or contradictory reports now fail closed with exit `3` and `passed=false` rather than exposing misleading summaries; the standalone CLI, JSON schema and existing functionality remain unchanged. Add focused negative and compatibility regressions.
 
 - Add opt-in `--max-distinct-keys N`, a maximum-cardinality quality gate on **unique complete** single/composite business keys, independent of row-count, completeness, and duplicate gates. Exclude known missing-value tokens, respect optional Unicode `--casefold-key`, validate nonnegative bounds and `--key`, and reject conflicting minimum/maximum ranges. Preserve the default JSON/Markdown layouts and prior gates; include API, CLI, Unicode, empty-export, configuration, and reusable Action regressions.

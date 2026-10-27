@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import shlex
@@ -120,12 +121,24 @@ def _has_valid_report(text: str, *, is_json: bool, exit_code: int = 0) -> bool:
         if not all(
             isinstance(field, dict)
             and isinstance(field.get("name"), str)
+            and bool(field["name"].strip())
             and type(field.get("filled")) is int
             and type(field.get("missing")) is int
             and field["filled"] >= 0
             and field["missing"] >= 0
             and field["filled"] + field["missing"] == rows
+            and type(field.get("missing_rate")) in (int, float)
+            and math.isfinite(field["missing_rate"])
+            and 0 <= field["missing_rate"] <= 1
+            and field["missing_rate"] == (round(field["missing"] / rows, 4) if rows else 0)
             for field in fields
+        ):
+            return False
+        field_names = [field["name"] for field in fields]
+        if (
+            len(field_names) != len(set(field_names))
+            or len(failed_fields) != len(set(failed_fields))
+            or not set(failed_fields).issubset(field_names)
         ):
             return False
         failure_flags = [
