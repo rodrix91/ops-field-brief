@@ -58,10 +58,8 @@ class ExcelExampleTests(unittest.TestCase):
         self.assertEqual(data["duplicate_keys"], 0)
         self.assertEqual(data["key"], "order_id")
         self.assertEqual(data["failed_fields"], [])
-        self.assertEqual([(x["name"], x["filled"]) for x in data["fields"]], [
-            ("order_id", 4),
-            ("buyer", 4),
-        ])
+        filled = [(item["name"], item["filled"]) for item in data["fields"]]
+        self.assertEqual(filled, [("order_id", 4), ("buyer", 4)])
 
     def test_explicit_separator_does_not_consume_directive(self) -> None:
         rows = read_csv(SAMPLE, delimiter=";", strict=True)
