@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Render Unicode line and paragraph separators (U+2028/U+2029) in untrusted CSV fields and group labels as inert ASCII markers in Markdown and Action summaries, preventing invisible visual line breaks while keeping JSON values unchanged. Add library and CLI regressions.
+
 - Render Unicode bidirectional formatting controls from untrusted CSV labels and group values as visible ASCII [U+XXXX] markers in Markdown and GitHub job summaries. Unlike HTML numeric references, these cannot be decoded back into direction-changing characters by a Markdown renderer. Keep original JSON values, ordinary multilingual text and existing C0/C1 escaping unchanged; add direct and CLI regression tests.
 
 - Read `.gz` operational CSV exports directly using Python's standard-library streaming gzip reader, preserving delimiter autodetection, strict CSV checks, BOM stripping, explicit encodings and existing gate semantics. Invalid/truncated gzip data fails with input exit `2` rather than a traceback; stdin remains plain text. Add gzip, malformed archive and CLI regression coverage without changing uncompressed reports or adding runtime dependencies.
