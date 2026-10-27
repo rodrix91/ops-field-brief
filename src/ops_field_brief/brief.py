@@ -38,6 +38,13 @@ _MARKDOWN_ESCAPES.update({codepoint: f"[U+{codepoint:04X}]" for codepoint in _BI
 # Unicode line/paragraph separators are valid CSV text but may create visual
 # line breaks in rendered Markdown. Use inert markers and preserve the JSON data.
 _MARKDOWN_ESCAPES.update({codepoint: f"[U+{codepoint:04X}]" for codepoint in (0x2028, 0x2029)})
+# These format characters are visually invisible or discretionary in Markdown.
+# Render explicit ASCII markers to reveal potentially different CSV identifiers.
+# Preserve the source text and the JSON representation unchanged.
+_INVISIBLE_FORMAT_CONTROLS = (0x00AD, 0x200B, 0x2060, 0xFEFF)
+_MARKDOWN_ESCAPES.update(
+    {codepoint: f"[U+{codepoint:04X}]" for codepoint in _INVISIBLE_FORMAT_CONTROLS}
+)
 
 
 def _markdown_text(value: str) -> str:
