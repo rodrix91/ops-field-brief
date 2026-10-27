@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Read `.gz` operational CSV exports directly using Python's standard-library streaming gzip reader, preserving delimiter autodetection, strict CSV checks, BOM stripping, explicit encodings and existing gate semantics. Invalid/truncated gzip data fails with input exit `2` rather than a traceback; stdin remains plain text. Add gzip, malformed archive and CLI regression coverage without changing uncompressed reports or adding runtime dependencies.
+
 - Harden reusable GitHub Action JSON report validation against forged or missing base quality-gate flags and contradictory duplicate/incomplete business-key counters. Only documented failed_* outcomes count toward the CI status; optional genuine gates remain supported. Add negative and multi-gate regression tests without changing the CLI JSON schema.
 
 - Reconcile every Markdown required-field missing percentage against the measured missing/total rows to the rendered one-decimal precision in the reusable Action. Reject inconsistent ratios, duplicate/blank field labels, malformed numeric cells and false-green reports without affecting the original CLI report or JSON schema. Add regression tests including zero-row and escaped-label examples.
