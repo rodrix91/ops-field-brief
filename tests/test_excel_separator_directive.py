@@ -74,7 +74,7 @@ class ExcelSeparatorDirectiveTests(unittest.TestCase):
     def test_explicit_delimiter_does_not_skip_excel_hint(self) -> None:
         rows = read_csv(Path("-"), delimiter=";", stdin=io.StringIO("sep=;\nid;buyer\nA1;Andes\n"))
         self.assertEqual(rows.fieldnames, ("sep=", ""))
-        with self.assertRaisesRegex(ValueError, "more fields"):
+        with self.assertRaisesRegex(ValueError, "blank CSV header at column 2"):
             validate_csv_structure(rows)
 
     def test_real_cli_auto_uses_correct_header_and_key_gate(self) -> None:
