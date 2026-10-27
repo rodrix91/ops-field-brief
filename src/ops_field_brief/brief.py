@@ -29,6 +29,12 @@ _MARKDOWN_ESCAPES.update({ord("&"): "&amp;", ord("<"): "&lt;"})
 _MARKDOWN_ESCAPES.update(
     {codepoint: f"&#{codepoint};" for codepoint in (*range(32), *range(127, 160))}
 )
+# Unicode bidirectional formatting controls can visually reorder a report even
+# when HTML numeric references are used (Markdown renderers decode them).
+# Render an explicit, inert ASCII marker instead. Leave ordinary RTL letters,
+# accents and combining marks unchanged, and preserve the original JSON data.
+_BIDI_CONTROLS = (0x061C, 0x200E, 0x200F, *range(0x202A, 0x202F), *range(0x2066, 0x2070))
+_MARKDOWN_ESCAPES.update({codepoint: f"[U+{codepoint:04X}]" for codepoint in _BIDI_CONTROLS})
 
 
 def _markdown_text(value: str) -> str:

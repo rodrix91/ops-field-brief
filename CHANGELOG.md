@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Render Unicode bidirectional formatting controls from untrusted CSV labels and group values as visible ASCII [U+XXXX] markers in Markdown and GitHub job summaries. Unlike HTML numeric references, these cannot be decoded back into direction-changing characters by a Markdown renderer. Keep original JSON values, ordinary multilingual text and existing C0/C1 escaping unchanged; add direct and CLI regression tests.
+
 - Read `.gz` operational CSV exports directly using Python's standard-library streaming gzip reader, preserving delimiter autodetection, strict CSV checks, BOM stripping, explicit encodings and existing gate semantics. Invalid/truncated gzip data fails with input exit `2` rather than a traceback; stdin remains plain text. Add gzip, malformed archive and CLI regression coverage without changing uncompressed reports or adding runtime dependencies.
 
 - Harden reusable GitHub Action JSON report validation against forged or missing base quality-gate flags and contradictory duplicate/incomplete business-key counters. Only documented failed_* outcomes count toward the CI status; optional genuine gates remain supported. Add negative and multi-gate regression tests without changing the CLI JSON schema.
