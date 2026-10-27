@@ -227,6 +227,7 @@ def _has_valid_report(text: str, *, is_json: bool, exit_code: int = 0) -> bool:
             or not isinstance(key_fields, list)
             or not all(isinstance(name, str) and name.strip() for name in key_fields)
             or len(key_fields) != len(set(key_fields))
+            or report.get("key") != (",".join(key_fields) or None)
             or (not key_fields and (duplicates != 0 or incomplete != 0))
         ):
             return False
