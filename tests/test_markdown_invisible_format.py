@@ -30,7 +30,8 @@ class MarkdownInvisibleFormatTests(unittest.TestCase):
                 markdown = render(brief, as_json=False)
                 self.assertNotIn(chr(codepoint), markdown)
                 self.assertIn(f"Andes[U+{codepoint:04X}]Norte", markdown)
-                self.assertEqual(json.loads(render(brief, as_json=True))["top"][0]["value"], original)
+                payload = json.loads(render(brief, as_json=True))
+                self.assertEqual(payload["top"][0]["value"], original)
 
     def test_required_column_and_business_key_show_markers_only_in_markdown(self) -> None:
         for codepoint in INVISIBLE:
