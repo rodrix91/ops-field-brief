@@ -46,7 +46,9 @@ class ExcelSeparatorDirectiveTests(unittest.TestCase):
         self.assertEqual(rows, [{"id": "A1", "buyer": "Andes"}, {"id": "A2", "buyer": "Paz"}])
 
     def test_stdin_auto_with_header_only_preserves_header(self) -> None:
-        rows = read_csv(Path("-"), delimiter=None, strict=True, stdin=io.StringIO("sep=|\nid|buyer\n"))
+        rows = read_csv(
+            Path("-"), delimiter=None, strict=True, stdin=io.StringIO("sep=|\nid|buyer\n")
+        )
         validate_csv_structure(rows)
         self.assertEqual(rows.fieldnames, ("id", "buyer"))
         self.assertEqual(rows, [])
