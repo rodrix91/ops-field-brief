@@ -68,6 +68,37 @@ class ActionVerifiedReportTests(unittest.TestCase):
         empty = render_markdown(build_brief([], ["id"]))
         self.assertTrue(run_action._has_valid_report(empty, is_json=False, exit_code=0))
 
+    def test_markdown_fails_closed_on_corrupt_percentages_and_duplicate_fields(self) -> None:
+        good = render_markdown(
+            build_brief([{"id": "A"}, {"id": ""}, {"id": "B"}], ["id"])
+        )
+        self.assertTrue(run_action._has_valid_report(good, is_json=False, exit_code=1))
+        measured_row = "| id | 2 | 1 | 33.3% |"
+        self.assertIn(measured_row, good)
+        corrupted = (
+            good.replace(measured_row, "| id | 2 | 1 | 0.0% |"),
+            good.replace(measured_row, "| id | 2 | 1 | 33.4% |"),
+            good.replace(measured_row, "| id | 2 | 1 | 333.3% |"),
+            good.replace(measured_row, "| id | 2 | 1 | -1.0% |"),
+            good.replace(measured_row, "| id | 2 | 1 | nan% |"),
+            good.replace(measured_row, "| id | 2 | 1 | 33.33% |"),
+            good.replace(measured_row, "| id | 02 | 1 | 33.3% |"),
+            good.replace(measured_row, "| id | 2 | 01 | 33.3% |"),
+            good.replace(measured_row, measured_row + "\\n" + measured_row),
+            good.replace(measured_row, "|   | 2 | 1 | 33.3% |"),
+        )
+        for report in corrupted:
+            with self.subTest(report=report):
+                self.assertFalse(
+                    run_action._has_valid_report(report, is_json=False, exit_code=1)
+                )
+        empty = render_markdown(build_brief([], ["id"]))
+        self.assertTrue(run_action._has_valid_report(empty, is_json=False, exit_code=0))
+        escaped_name = render_markdown(build_brief([{"SLA|met": "yes"}], ["SLA|met"]))
+        self.assertTrue(
+            run_action._has_valid_report(escaped_name, is_json=False, exit_code=0)
+        )
+
     def test_json_report_shape_and_counts_fail_closed(self) -> None:
         clean = json.loads(self._report())
         invalid = (
