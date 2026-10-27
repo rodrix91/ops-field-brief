@@ -43,6 +43,17 @@ The hint is recognized **only** in auto mode; an explicitly chosen delimiter
 keeps its previous behavior. Similar-looking data lines are not treated as
 directives. No output schema or gate threshold changes.
 
+## Visible hidden-format characters in Markdown
+
+Operational CSV labels occasionally contain invisible format characters from
+copy/paste or spreadsheet exports. Markdown reports and Action job summaries
+show soft hyphens (U+00AD), zero-width spaces (U+200B), word joiners (U+2060),
+and embedded byte-order marks (U+FEFF) as literal `[U+XXXX]` markers. This
+helps distinguish, for example, `Andes` from `An[U+200B]des` in a customer
+breakdown. JSON retains every original code point, and the checks still use
+the original identifiers; ordinary multilingual text and script joiners remain
+unchanged. This is a presentation safeguard, not data normalization.
+
 ## Case-insensitive group matching (opt-in)
 
 The same counterparty may appear in an operational export as `ACME`,
