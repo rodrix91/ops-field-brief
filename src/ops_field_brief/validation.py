@@ -32,8 +32,12 @@ def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool
     if repeated:
         raise ValueError("duplicate CSV header columns: " + ", ".join(repeated))
 
+    source_lines: tuple[int, ...] = getattr(rows, "source_lines", ())
     for row_number, row in enumerate(rows, 1):
+        # Keep the long-standing logical record number, and append the actual
+        # starting file line for readers that retain physical CSV positions.
+        suffix = f" (source line {source_lines[row_number - 1]})" if source_lines else ""
         if None in row:
-            raise ValueError(f"CSV data row {row_number} has more fields than the header")
+            raise ValueError(f"CSV data row {row_number} has more fields than the header{suffix}")
         if any(row.get(name) is None for name in header):
-            raise ValueError(f"CSV data row {row_number} has fewer fields than the header")
+            raise ValueError(f"CSV data row {row_number} has fewer fields than the header{suffix}")
