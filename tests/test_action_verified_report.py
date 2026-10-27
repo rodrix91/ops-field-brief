@@ -69,9 +69,7 @@ class ActionVerifiedReportTests(unittest.TestCase):
         self.assertTrue(run_action._has_valid_report(empty, is_json=False, exit_code=0))
 
     def test_markdown_fails_closed_on_corrupt_percentages_and_duplicate_fields(self) -> None:
-        good = render_markdown(
-            build_brief([{"id": "A"}, {"id": ""}, {"id": "B"}], ["id"])
-        )
+        good = render_markdown(build_brief([{"id": "A"}, {"id": ""}, {"id": "B"}], ["id"]))
         self.assertTrue(run_action._has_valid_report(good, is_json=False, exit_code=1))
         measured_row = "| id | 2 | 1 | 33.3% |"
         self.assertIn(measured_row, good)
@@ -89,15 +87,11 @@ class ActionVerifiedReportTests(unittest.TestCase):
         )
         for report in corrupted:
             with self.subTest(report=report):
-                self.assertFalse(
-                    run_action._has_valid_report(report, is_json=False, exit_code=1)
-                )
+                self.assertFalse(run_action._has_valid_report(report, is_json=False, exit_code=1))
         empty = render_markdown(build_brief([], ["id"]))
         self.assertTrue(run_action._has_valid_report(empty, is_json=False, exit_code=0))
         escaped_name = render_markdown(build_brief([{"SLA|met": "yes"}], ["SLA|met"]))
-        self.assertTrue(
-            run_action._has_valid_report(escaped_name, is_json=False, exit_code=0)
-        )
+        self.assertTrue(run_action._has_valid_report(escaped_name, is_json=False, exit_code=0))
 
     def test_json_report_shape_and_counts_fail_closed(self) -> None:
         clean = json.loads(self._report())
