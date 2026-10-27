@@ -25,8 +25,10 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - name: Install quality tooling
-        run: python -m pip install -r requirements-dev.txt
+      - name: Check declared dependency pins match the lock
+        run: python scripts/check_dev_lock.py
+      - name: Install fully hashed quality tooling
+        run: python -m pip install --require-hashes -r requirements-dev.lock
       - name: Run tests with branch coverage
         env:
           PYTHONPATH: src
