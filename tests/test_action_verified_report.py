@@ -18,9 +18,7 @@ class ActionVerifiedReportTests(unittest.TestCase):
     @staticmethod
     def _report(*, failing: bool = False) -> str:
         rows = [{"id": "A"}, {"id": "A"}] if failing else [{"id": "A"}]
-        return json.dumps(
-            build_brief(rows, ["id"], key="id", max_duplicates=0).to_dict()
-        ) + "\n"
+        return json.dumps(build_brief(rows, ["id"], key="id", max_duplicates=0).to_dict()) + "\n"
 
     def test_valid_and_invalid_rendered_report_payloads(self) -> None:
         good = self._report()
