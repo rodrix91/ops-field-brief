@@ -50,7 +50,7 @@ class CompressedCsvTests(unittest.TestCase):
             self.assertEqual(rows[0]["shipment"], "S1")
 
     def test_gzip_autodetects_semicolon_even_with_long_quoted_field(self) -> None:
-        text = "shipment;buyer\nS1;\"" + ("x" * 9000) + "\"\nS2;Paz\n"
+        text = 'shipment;buyer\nS1;"' + ("x" * 9000) + '"\nS2;Paz\n'
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "long.csv.gz"
             path.write_bytes(gzip.compress(text.encode("utf-8")))
