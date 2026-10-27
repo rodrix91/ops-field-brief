@@ -36,7 +36,7 @@ class MarkdownBidiControlsTests(unittest.TestCase):
         field = "order\u202e_id"
         report = build_brief([{field: "A1"}], [field], key=field)
         markdown = render(report, as_json=False)
-        self.assertIn("order[U+202E]_id", markdown)
+        self.assertIn(r"order[U+202E]\_id", markdown)
         self.assertNotIn("\u202e", markdown)
         payload = json.loads(render(report, as_json=True))
         self.assertEqual(payload["key"], field)
