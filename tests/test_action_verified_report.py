@@ -10,7 +10,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from ops_field_brief.brief import build_brief
+from ops_field_brief.brief import build_brief, render_markdown
 from scripts import run_action
 
 
@@ -23,10 +23,18 @@ class ActionVerifiedReportTests(unittest.TestCase):
     def test_valid_and_invalid_rendered_report_payloads(self) -> None:
         good = self._report()
         failed = self._report(failing=True)
+        good_markdown = render_markdown(build_brief([{"id": "A"}], ["id"]))
+        bad_markdown = render_markdown(build_brief([{"id": ""}], ["id"]))
         for payload, is_json, code, accepted in (
             ("", False, 0, False),
             ("   \t", False, 0, False),
-            ("# Operational field brief\n", False, 0, True),
+            ("# Operational field brief\n", False, 0, False),
+            (good_markdown, False, 0, True),
+            (bad_markdown, False, 1, True),
+            (bad_markdown, False, 0, False),
+            (good_markdown, False, 1, False),
+            ("completed successfully\n", False, 0, False),
+            (good_markdown.split("## Required fields")[0], False, 0, False),
             ("", True, 0, False),
             (" { ", True, 0, False),
             ('["not a report"]', True, 0, False),
@@ -41,6 +49,24 @@ class ActionVerifiedReportTests(unittest.TestCase):
                     run_action._has_valid_report(payload, is_json=is_json, exit_code=code),
                     accepted,
                 )
+
+    def test_markdown_report_requires_structural_measurements(self) -> None:
+        source = render_markdown(build_brief([{"id": "A"}], ["id"]))
+        for corrupted in (
+            source.replace("- Rows: 1", "- Rows: unknown"),
+            source.replace("| id | 1 | 0 |", "| id | 0 | 0 |"),
+            source.replace("|---|---:|---:|---:|", "|---|---|---|---|"),
+            source.replace("## Required fields", "## Missing fields"),
+            source.replace("| id | 1 | 0 | 0.0% |", ""),
+            source[:-1],
+            "OK\n",
+        ):
+            with self.subTest(corrupted=corrupted):
+                self.assertFalse(
+                    run_action._has_valid_report(corrupted, is_json=False, exit_code=0)
+                )
+        empty = render_markdown(build_brief([], ["id"]))
+        self.assertTrue(run_action._has_valid_report(empty, is_json=False, exit_code=0))
 
     def test_json_report_shape_and_counts_fail_closed(self) -> None:
         clean = json.loads(self._report())
@@ -107,13 +133,19 @@ class ActionVerifiedReportTests(unittest.TestCase):
     def test_main_refuses_false_green_and_false_quality_failure(self) -> None:
         good = self._report()
         failed = self._report(failing=True)
+        good_md = render_markdown(build_brief([{"id": "A"}], ["id"]))
+        bad_md = render_markdown(build_brief([{"id": ""}], ["id"]))
         scenarios = (
             (0, "", "", 3, False),
             (0, "   \n", "", 3, False),
             (0, "{not json", "--json", 3, False),
             (0, "[]", "--js", 3, False),
             (1, "", "--required id", 3, False),
-            (0, "# Operational field brief\n", "", 0, True),
+            (0, good_md, "", 0, True),
+            (1, bad_md, "--required id", 1, True),
+            (0, "# Operational field brief\n", "", 3, False),
+            (0, "OK\n", "", 3, False),
+            (1, good_md, "--required id", 3, False),
             (0, good, "--js", 0, True),
             (1, failed, "--json", 1, True),
             (0, failed, "--json", 3, False),
