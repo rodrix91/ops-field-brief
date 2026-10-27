@@ -58,6 +58,8 @@ PYTHONPATH=src python -m ops_field_brief examples/shipments-semicolon.csv \
 
 Use `--delimiter auto` only when the separator varies, and specify `--encoding cp1252` or `latin-1` explicitly if the source file uses that encoding.
 
+When exports arrive gzip-compressed, point the same command at `exports/shipments.csv.gz` instead of unpacking it first. Gzip is recognized by `.gz`; `--delimiter auto`, `--strict-csv` and `--encoding` continue to apply to the decompressed records. Corrupt or truncated archives return input error `2`, while data-quality failures still return `1`.
+
 For an extract with a composite order-line identifier, separate missing-key risk from repeated-key risk:
 
 ```bash
