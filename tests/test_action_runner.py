@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from ops_field_brief.brief import build_brief, render_markdown
 from scripts import run_action
 
 
@@ -99,7 +100,10 @@ class ActionPathTests(unittest.TestCase):
                 "OPS_FIELD_BRIEF_INPUT_SUMMARY": "false",
             }
             completed = subprocess.CompletedProcess(
-                args=[], returncode=0, stdout="# Operational field brief\n", stderr=""
+                args=[],
+                returncode=0,
+                stdout=render_markdown(build_brief([{"shipment": "A1"}], ["shipment"])),
+                stderr="",
             )
             with patch.dict(os.environ, env, clear=True):
                 with patch.object(run_action.subprocess, "run", return_value=completed) as mocked:
