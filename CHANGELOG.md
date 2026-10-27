@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add a checked-in synthetic `sep=;` Excel operations fixture with a runnable, documented auto-delimiter and quality-gate command. Guard its exact header, required-field accounting and JSON CLI behavior with cross-platform regressions. Preserve all existing CSV examples and parsing semantics.
+
 - Display CSV-sourced soft hyphens (U+00AD), zero-width spaces (U+200B), word joiners (U+2060), and byte-order marks embedded in labels (U+FEFF) as visible, inert `[U+XXXX]` markers in Markdown and GitHub Action summaries. Prevent visually identical but distinct group/key labels from being hidden in presentation while preserving original Unicode JSON values, ordinary letters, and joiners used by writing systems. Add API and real CLI regression tests.
 
 - With `--delimiter auto`, recognize an exact Excel `sep=;`, `sep=,`, `sep=|`, or tab separator directive on the first text line and skip it before interpreting the actual CSV header. Support local and gzip exports, stdin, BOM and CRLF; preserve explicitly selected delimiter behavior, reject ambiguous lookalikes, and keep strict CSV and JSON gate semantics. Add reader and CLI regressions.
