@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Harden reusable GitHub Action JSON report validation against forged or missing base quality-gate flags and contradictory duplicate/incomplete business-key counters. Only documented failed_* outcomes count toward the CI status; optional genuine gates remain supported. Add negative and multi-gate regression tests without changing the CLI JSON schema.
+
 - Reconcile every Markdown required-field missing percentage against the measured missing/total rows to the rendered one-decimal precision in the reusable Action. Reject inconsistent ratios, duplicate/blank field labels, malformed numeric cells and false-green reports without affecting the original CLI report or JSON schema. Add regression tests including zero-row and escaped-label examples.
 
 - Validate the reusable GitHub Action's Markdown output structurally, not merely for nonempty text: require an operational heading, row count, measured required-field table, and failure sections consistent with the CLI exit code. This blocks reportless false successes while preserving genuine Markdown/JSON reports and the standalone CLI. Extend regression tests to normal, failing, empty-data and truncated reports.

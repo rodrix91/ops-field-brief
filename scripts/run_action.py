@@ -186,14 +186,52 @@ def _has_valid_report(text: str, *, is_json: bool, exit_code: int = 0) -> bool:
             or not set(failed_fields).issubset(field_names)
         ):
             return False
-        failure_flags = [
-            value
+        # These controls and counters are always emitted by Brief.to_dict().
+        # Accepting arbitrary failed_* names can turn unrelated JSON into a
+        # claimed quality gate, so recognize only supported optional flags.
+        supported_flags = {
+            "failed_duplicates",
+            "failed_incomplete_keys",
+            "failed_complete_keys",
+            "failed_incomplete_key_share",
+            "failed_duplicate_share",
+            "failed_distinct_keys",
+            "failed_max_distinct_keys",
+            "failed_rows",
+            "failed_max_rows",
+            "failed_group_share",
+            "failed_assigned_group_share",
+            "failed_distinct_groups",
+            "failed_max_distinct_groups",
+            "failed_missing_group_share",
+        }
+        failure_flags = {
+            name: value
             for name, value in report.items()
             if name.startswith("failed_") and name != "failed_fields"
-        ]
-        if not failure_flags or not all(isinstance(flag, bool) for flag in failure_flags):
+        }
+        if (
+            not {"failed_duplicates", "failed_incomplete_keys"} <= failure_flags.keys()
+            or not failure_flags.keys() <= supported_flags
+            or not all(isinstance(flag, bool) for flag in failure_flags.values())
+        ):
             return False
-        has_failures = bool(failed_fields) or any(failure_flags)
+        duplicates = report.get("duplicate_keys")
+        incomplete = report.get("incomplete_key_rows")
+        key_fields = report.get("key_fields")
+        if (
+            type(duplicates) is not int
+            or not 0 <= duplicates <= rows
+            or type(incomplete) is not int
+            or not 0 <= incomplete <= rows
+            or not isinstance(key_fields, list)
+            or not all(isinstance(name, str) and name.strip() for name in key_fields)
+            or len(key_fields) != len(set(key_fields))
+            or report.get("key") != (",".join(key_fields) or None)
+            or (not key_fields and (duplicates != 0 or incomplete != 0))
+        ):
+            return False
+        has_failures = bool(failed_fields) or any(failure_flags.values())
         return has_failures == (exit_code == 1)
     return _has_valid_markdown_report(text, exit_code)
 
