@@ -128,9 +128,11 @@ def _has_valid_report(text: str, *, is_json: bool, exit_code: int = 0) -> bool:
             for field in fields
         ):
             return False
-        failures = (value for name, value in report.items() if name.startswith("failed_")
-                    and name != "failed_fields")
-        failure_flags = list(failures)
+        failure_flags = [
+            value
+            for name, value in report.items()
+            if name.startswith("failed_") and name != "failed_fields"
+        ]
         if not failure_flags or not all(isinstance(flag, bool) for flag in failure_flags):
             return False
         has_failures = bool(failed_fields) or any(failure_flags)
