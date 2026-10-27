@@ -4,11 +4,14 @@ Project status: 0.3.0, maintained by rodrix91. Small, focused, additive changes 
 
 ## Setup
 
-Requires Python 3.10 or newer. Runtime remains standard-library only. Development tooling is pinned separately:
+Requires Python 3.10 or newer. Runtime remains standard-library only. Development tooling uses a reviewed, fully hashed lockfile; `requirements-dev.txt` retains the directly pinned versions:
 
 ```bash
-python -m pip install -r requirements-dev.txt
+python -m pip install --require-hashes -r requirements-dev.lock
+python scripts/check_dev_lock.py
 ```
+
+When changing direct tooling, update `requirements-dev.txt`, run the read-only [hashed lock preview](.github/workflows/lock-preview.yml), download its generated `requirements-dev.lock` artifact, inspect and commit the lockfile on the PR branch. Re-run the complete CI matrix before merging; the preview alone is not sufficient. The lock is generated using `uv==0.12.22` and `uv pip compile requirements-dev.txt --generate-hashes --universal --python-version 3.10 -o requirements-dev.lock`.
 
 Run the compatibility suite with:
 
