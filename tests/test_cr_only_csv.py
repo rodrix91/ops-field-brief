@@ -61,10 +61,13 @@ class CarriageReturnCsvTests(unittest.TestCase):
         )
         validate_csv_structure(rows)
         self.assertEqual(rows.fieldnames, ("id", "buyer"))
-        self.assertEqual(rows, [
-            {"id": "A1", "buyer": "Andes"},
-            {"id": "A2", "buyer": "Paz"},
-        ])
+        self.assertEqual(
+            rows,
+            [
+                {"id": "A1", "buyer": "Andes"},
+                {"id": "A2", "buyer": "Paz"},
+            ],
+        )
         self.assertEqual(rows.source_lines, (3, 4))
 
     def test_cr_only_regular_and_gzip_excel_files(self) -> None:
@@ -108,9 +111,18 @@ class CarriageReturnCsvTests(unittest.TestCase):
             path.write_bytes(b"sep=;\rorder_id;buyer\rA1;Andes\rA2;Paz\r")
             result = subprocess.run(
                 [
-                    sys.executable, "-m", "ops_field_brief", str(path),
-                    "--required", "order_id,buyer", "--key", "order_id",
-                    "--delimiter", "auto", "--strict-csv", "--json",
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "order_id,buyer",
+                    "--key",
+                    "order_id",
+                    "--delimiter",
+                    "auto",
+                    "--strict-csv",
+                    "--json",
                 ],
                 cwd=ROOT,
                 env={**os.environ, "PYTHONPATH": str(ROOT / "src")},
