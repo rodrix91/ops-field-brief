@@ -155,6 +155,55 @@ class ActionVerifiedReportTests(unittest.TestCase):
         empty = json.loads(json.dumps(build_brief([], ["id"]).to_dict()))
         self.assertTrue(run_action._has_valid_report(json.dumps(empty), is_json=True))
 
+    def test_json_report_requires_real_base_flags_and_key_counters(self) -> None:
+        clean = json.loads(self._report())
+        for missing in ("failed_duplicates", "failed_incomplete_keys", "duplicate_keys",
+                        "incomplete_key_rows", "key_fields"):
+            with self.subTest(missing=missing):
+                report = dict(clean)
+                del report[missing]
+                self.assertFalse(run_action._has_valid_report(json.dumps(report), is_json=True))
+
+        changes = (
+            {"failed_made_up": True},
+            {"failed_made_up": False},
+            {"duplicate_keys": True},
+            {"duplicate_keys": -1},
+            {"duplicate_keys": 2},
+            {"incomplete_key_rows": True},
+            {"incomplete_key_rows": -1},
+            {"incomplete_key_rows": 2},
+            {"key_fields": "id"},
+            {"key_fields": [None]},
+            {"key_fields": ["id", "id"]},
+            {"key_fields": []},
+        )
+        for change in changes:
+            with self.subTest(change=change):
+                report = dict(clean, **change)
+                self.assertFalse(run_action._has_valid_report(json.dumps(report), is_json=True))
+
+        # Optional named quality gates remain valid, including genuine failures.
+        rows = [{"id": "A", "group": "north"}, {"id": "A", "group": "north"}]
+        for options in (
+            {"max_duplicate_share": 0.1},
+            {"min_complete_keys": 3},
+            {"min_distinct_keys": 2},
+            {"max_distinct_keys": 0},
+            {"max_group_share": 0.4},
+            {"max_assigned_group_share": 0.4},
+            {"min_distinct_groups": 2},
+            {"max_distinct_groups": 0},
+            {"max_missing_group_share": 0.0},
+        ):
+            with self.subTest(options=options):
+                report = build_brief(rows, ["id"], key="id", group="group", **options)
+                self.assertTrue(
+                    run_action._has_valid_report(
+                        json.dumps(report.to_dict()), is_json=True, exit_code=1
+                    )
+                )
+
     def test_main_refuses_false_green_and_false_quality_failure(self) -> None:
         good = self._report()
         failed = self._report(failing=True)
