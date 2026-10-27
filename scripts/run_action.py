@@ -114,15 +114,27 @@ def _has_valid_markdown_report(text: str, exit_code: int) -> bool:
         "|---|---:|---:|---:|",
     ]:
         return False
-    measured = 0
+    seen_fields: set[str] = set()
     for line in lines[section + 4 :]:
         if not line:
             break
-        field = re.fullmatch(r"\| .+ \| (\d+) \| (\d+) \| (\d+(?:\.\d+)?)% \|", line)
-        if field is None or int(field.group(1)) + int(field.group(2)) != rows:
+        field = re.fullmatch(
+            r"\| (.+) \| (0|[1-9]\d*) \| (0|[1-9]\d*) \| ([0-9]+\.[0-9])% \|",
+            line,
+        )
+        if field is None:
             return False
-        measured += 1
-    if not measured:
+        name, filled_text, missing_text, shown_rate = field.groups()
+        filled, missing = int(filled_text), int(missing_text)
+        if (
+            not name.strip()
+            or name in seen_fields
+            or filled + missing != rows
+            or shown_rate + "%" != (f"{missing / rows:.1%}" if rows else "0.0%")
+        ):
+            return False
+        seen_fields.add(name)
+    if not seen_fields:
         return False
     has_failure_section = any(line.startswith("## Failed ") for line in lines)
     return has_failure_section == (exit_code == 1)

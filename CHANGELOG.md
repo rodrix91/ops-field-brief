@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reconcile every Markdown required-field missing percentage against the measured missing/total rows to the rendered one-decimal precision in the reusable Action. Reject inconsistent ratios, duplicate/blank field labels, malformed numeric cells and false-green reports without affecting the original CLI report or JSON schema. Add regression tests including zero-row and escaped-label examples.
+
 - Validate the reusable GitHub Action's Markdown output structurally, not merely for nonempty text: require an operational heading, row count, measured required-field table, and failure sections consistent with the CLI exit code. This blocks reportless false successes while preserving genuine Markdown/JSON reports and the standalone CLI. Extend regression tests to normal, failing, empty-data and truncated reports.
 
 - Strengthen the reusable Action JSON integrity gate by reconciling each field's missing-rate display against its actual missing count and total rows, rejecting NaN/Infinity, duplicate field identities and unknown or repeated failure labels. Preserve the standalone CLI's schema and exit codes; add negative and empty-export regressions.
