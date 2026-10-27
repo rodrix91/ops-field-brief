@@ -61,15 +61,34 @@ DELIMITERS = {
 
 
 class CsvRows(list[dict[str, str]]):
-    """CSV rows that retain the parsed header even when there are no data rows."""
+    """CSV rows retaining the header and physical source lines when available."""
 
     def __init__(
         self,
         rows: Iterable[dict[str, str]],
         fieldnames: Iterable[str | None] | None,
     ) -> None:
-        super().__init__(rows)
+        # DictReader.line_num counts physical input lines, including newlines
+        # inside quoted fields. A CSV record may therefore span several lines.
+        source_lines: list[int] = []
+        if isinstance(rows, csv.DictReader):
+            parsed: list[dict[str, str]] = []
+            for row in rows:
+                parsed.append(row)
+                internal_newlines = 0
+                for value in row.values():
+                    cells = value if isinstance(value, list) else (value,)
+                    for cell in cells:
+                        if isinstance(cell, str):
+                            internal_newlines += (
+                                cell.count("\n") + cell.count("\r") - cell.count("\r\n")
+                            )
+                source_lines.append(rows.line_num - internal_newlines)
+            super().__init__(parsed)
+        else:
+            super().__init__(rows)
         self.fieldnames = tuple(name for name in (fieldnames or ()) if name is not None)
+        self.source_lines = tuple(source_lines)
 
 
 @dataclass(frozen=True)
