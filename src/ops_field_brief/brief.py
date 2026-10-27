@@ -8,6 +8,7 @@ repeat, and which counterparties account for the rows.
 from __future__ import annotations
 
 import csv
+import gzip
 import io
 import json
 from collections import Counter
@@ -628,7 +629,13 @@ def read_csv(
             fieldnames[0] = fieldnames[0].lstrip("\ufeff")
             reader.fieldnames = fieldnames
         return CsvRows(reader, reader.fieldnames)
-    with path.open(newline="", encoding=codec) as handle:
+    # Accept compressed operational exports without changing CSV parsing.
+    # The suffix selects compression; stdin stays a plain text stream.
+    if path.suffix.lower() == ".gz":
+        stream = gzip.open(path, "rt", newline="", encoding=codec)
+    else:
+        stream = path.open(newline="", encoding=codec)
+    with stream as handle:
         if delimiter is None:
             sample = handle.read(8192)
             try:
