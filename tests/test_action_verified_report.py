@@ -84,7 +84,7 @@ class ActionVerifiedReportTests(unittest.TestCase):
             good.replace(measured_row, "| id | 2 | 1 | 33.33% |"),
             good.replace(measured_row, "| id | 02 | 1 | 33.3% |"),
             good.replace(measured_row, "| id | 2 | 01 | 33.3% |"),
-            good.replace(measured_row, measured_row + "\\n" + measured_row),
+            good.replace(measured_row, measured_row + "\n" + measured_row),
             good.replace(measured_row, "|   | 2 | 1 | 33.3% |"),
         )
         for report in corrupted:
