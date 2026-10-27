@@ -26,6 +26,23 @@ For a concise checklist of operational gates, example commands, and safe CI inte
 
 Operational extracts (shipments, orders, inventory movements) often need a fast check before they enter a process: are the required fields present, does the business key repeat, which counterparties dominate the file, and did the extract contain enough rows to be plausible? This tool answers those questions with one command and a clear exit code.
 
+## Excel `sep=` headers (with `--delimiter auto`)
+
+Some Excel CSV exports place a standalone `sep=;` line before the real
+header. With `--delimiter auto`, the reader honors an **exact** first-line
+`sep=;`, `sep=,`, `sep=|`, or tab separator hint and analyzes the
+following header instead of treating the hint as a column. This works with
+UTF-8 BOM, CRLF, gzip exports and stdin:
+
+```bash
+python -m ops_field_brief exports/orders.csv --required order_id \
+  --delimiter auto --strict-csv --json
+```
+
+The hint is recognized **only** in auto mode; an explicitly chosen delimiter
+keeps its previous behavior. Similar-looking data lines are not treated as
+directives. No output schema or gate threshold changes.
+
 ## Case-insensitive group matching (opt-in)
 
 The same counterparty may appear in an operational export as `ACME`,

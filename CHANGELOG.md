@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- With `--delimiter auto`, recognize an exact Excel `sep=;`, `sep=,`, `sep=|`, or tab separator directive on the first text line and skip it before interpreting the actual CSV header. Support local and gzip exports, stdin, BOM and CRLF; preserve explicitly selected delimiter behavior, reject ambiguous lookalikes, and keep strict CSV and JSON gate semantics. Add reader and CLI regressions.
+
 - Render Unicode line and paragraph separators (U+2028/U+2029) in untrusted CSV fields and group labels as inert ASCII markers in Markdown and Action summaries, preventing invisible visual line breaks while keeping JSON values unchanged. Add library and CLI regressions.
 
 - Render Unicode bidirectional formatting controls from untrusted CSV labels and group values as visible ASCII [U+XXXX] markers in Markdown and GitHub job summaries. Unlike HTML numeric references, these cannot be decoded back into direction-changing characters by a Markdown renderer. Keep original JSON values, ordinary multilingual text and existing C0/C1 escaping unchanged; add direct and CLI regression tests.

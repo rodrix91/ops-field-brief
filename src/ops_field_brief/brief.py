@@ -607,6 +607,18 @@ def _detect_delimiter(sample: str) -> str:
         ) from exc
 
 
+def _excel_sep_directive(text: str) -> tuple[str, str] | None:
+    """Read an exact Excel sep= line, returning its delimiter and remaining text.
+
+    Only used with delimiter auto. Lookalikes remain ordinary CSV text.
+    """
+    first, _, remainder = text.partition("\n")
+    first = first.removesuffix("\r")
+    if len(first) == 5 and first.startswith("sep=") and first[-1] in ",;\t|":
+        return first[-1], remainder
+    return None
+
+
 def read_csv(
     path: Path,
     delimiter: str | None = ",",
@@ -622,14 +634,18 @@ def read_csv(
             text = stdin.read()
             if is_utf8:
                 text = text.lstrip("\ufeff")
-            try:
-                delimiter = _detect_delimiter(text[:8192])
-            except ValueError:
-                # The sample may stop inside a long quoted CSV field.
-                # Stdin is already buffered in full, so retry with whole text.
-                if len(text) <= 8192:
-                    raise
-                delimiter = _detect_delimiter(text)
+            excel_hint = _excel_sep_directive(text)
+            if excel_hint is not None:
+                delimiter, text = excel_hint
+            else:
+                try:
+                    delimiter = _detect_delimiter(text[:8192])
+                except ValueError:
+                    # The sample may stop inside a long quoted CSV field.
+                    # Stdin is already buffered in full, so retry with whole text.
+                    if len(text) <= 8192:
+                        raise
+                    delimiter = _detect_delimiter(text)
             reader = csv.DictReader(io.StringIO(text), delimiter=delimiter, strict=strict)
             return CsvRows(reader, reader.fieldnames)
         reader = csv.DictReader(stdin, delimiter=delimiter, strict=strict)
@@ -647,16 +663,22 @@ def read_csv(
     with stream as handle:
         if delimiter is None:
             sample = handle.read(8192)
-            try:
-                delimiter = _detect_delimiter(sample)
-            except ValueError:
-                # Retry on the complete input only when the initial prefix
-                # cannot be classified (e.g. a quote crosses character 8192).
-                remainder = handle.read()
-                if not remainder:
-                    raise
-                delimiter = _detect_delimiter(sample + remainder)
-            handle.seek(0)
+            excel_hint = _excel_sep_directive(sample)
+            if excel_hint is not None:
+                delimiter = excel_hint[0]
+                handle.seek(0)
+                handle.readline()  # Skip only the exact Excel hint, never the CSV header.
+            else:
+                try:
+                    delimiter = _detect_delimiter(sample)
+                except ValueError:
+                    # Retry on the complete input only when the initial prefix
+                    # cannot be classified (e.g. a quote crosses character 8192).
+                    remainder = handle.read()
+                    if not remainder:
+                        raise
+                    delimiter = _detect_delimiter(sample + remainder)
+                handle.seek(0)
         reader = csv.DictReader(handle, delimiter=delimiter, strict=strict)
         return CsvRows(reader, reader.fieldnames)
 
