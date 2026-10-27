@@ -157,8 +157,14 @@ class ActionVerifiedReportTests(unittest.TestCase):
 
     def test_json_report_requires_real_base_flags_and_key_counters(self) -> None:
         clean = json.loads(self._report())
-        for missing in ("failed_duplicates", "failed_incomplete_keys", "duplicate_keys",
-                        "incomplete_key_rows", "key_fields"):
+        for missing in (
+            "failed_duplicates",
+            "failed_incomplete_keys",
+            "duplicate_keys",
+            "incomplete_key_rows",
+            "key_fields",
+            "key",
+        ):
             with self.subTest(missing=missing):
                 report = dict(clean)
                 del report[missing]
@@ -177,6 +183,9 @@ class ActionVerifiedReportTests(unittest.TestCase):
             {"key_fields": [None]},
             {"key_fields": ["id", "id"]},
             {"key_fields": []},
+            {"key": None},
+            {"key": "other"},
+            {"key_fields": ["other"]},
         )
         for change in changes:
             with self.subTest(change=change):
@@ -184,7 +193,7 @@ class ActionVerifiedReportTests(unittest.TestCase):
                 self.assertFalse(run_action._has_valid_report(json.dumps(report), is_json=True))
 
         # Optional named quality gates remain valid, including genuine failures.
-        rows = [{"id": "A", "group": "north"}, {"id": "A", "group": "north"}]
+        rows = [{"id": "A", "group": "north"}, {"id": "A", "group": ""}]
         for options in (
             {"max_duplicate_share": 0.1},
             {"min_complete_keys": 3},
