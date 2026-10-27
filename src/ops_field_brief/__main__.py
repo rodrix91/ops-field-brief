@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import io
 import sys
+import zlib
 from pathlib import Path
 
 from ops_field_brief import __version__
@@ -257,7 +258,7 @@ def main(argv: list[str] | None = None) -> int:
             min_distinct_groups=args.min_distinct_groups,
             max_distinct_groups=args.max_distinct_groups,
         )
-    except (OSError, ValueError, LookupError, csv_error()) as exc:
+    except (OSError, EOFError, zlib.error, ValueError, LookupError, csv_error()) as exc:
         print(str(exc), file=sys.stderr)
         return 2
     sys.stdout.write(render(brief, args.json))
