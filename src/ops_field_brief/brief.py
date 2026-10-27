@@ -37,9 +37,7 @@ _BIDI_CONTROLS = (0x061C, 0x200E, 0x200F, *range(0x202A, 0x202F), *range(0x2066,
 _MARKDOWN_ESCAPES.update({codepoint: f"[U+{codepoint:04X}]" for codepoint in _BIDI_CONTROLS})
 # Unicode line/paragraph separators are valid CSV text but may create visual
 # line breaks in rendered Markdown. Use inert markers and preserve the JSON data.
-_MARKDOWN_ESCAPES.update(
-    {codepoint: f"[U+{codepoint:04X}]" for codepoint in (0x2028, 0x2029)}
-)
+_MARKDOWN_ESCAPES.update({codepoint: f"[U+{codepoint:04X}]" for codepoint in (0x2028, 0x2029)})
 
 
 def _markdown_text(value: str) -> str:

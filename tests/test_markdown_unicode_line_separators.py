@@ -70,8 +70,7 @@ class MarkdownUnicodeLineSeparatorsTests(unittest.TestCase):
                 args, cwd=ROOT, env=env, capture_output=True, text=True, check=False
             )
             data = subprocess.run(
-                [*args, "--json"], cwd=ROOT, env=env, capture_output=True, text=True,
-                check=False
+                [*args, "--json"], cwd=ROOT, env=env, capture_output=True, text=True, check=False
             )
         self.assertEqual(markdown.returncode, 0, markdown.stderr)
         self.assertEqual(data.returncode, 0, data.stderr)
