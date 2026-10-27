@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Display CSV-sourced soft hyphens (U+00AD), zero-width spaces (U+200B), word joiners (U+2060), and byte-order marks embedded in labels (U+FEFF) as visible, inert `[U+XXXX]` markers in Markdown and GitHub Action summaries. Prevent visually identical but distinct group/key labels from being hidden in presentation while preserving original Unicode JSON values, ordinary letters, and joiners used by writing systems. Add API and real CLI regression tests.
+
 - With `--delimiter auto`, recognize an exact Excel `sep=;`, `sep=,`, `sep=|`, or tab separator directive on the first text line and skip it before interpreting the actual CSV header. Support local and gzip exports, stdin, BOM and CRLF; preserve explicitly selected delimiter behavior, reject ambiguous lookalikes, and keep strict CSV and JSON gate semantics. Add reader and CLI regressions.
 
 - Render Unicode line and paragraph separators (U+2028/U+2029) in untrusted CSV fields and group labels as inert ASCII markers in Markdown and Action summaries, preventing invisible visual line breaks while keeping JSON values unchanged. Add library and CLI regressions.
