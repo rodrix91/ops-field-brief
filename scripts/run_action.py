@@ -95,6 +95,42 @@ def _requests_json(args: list[str]) -> bool:
     return any(option in {"--j", "--js", "--jso", "--json"} for option in args)
 
 
+def _has_valid_markdown_report(text: str, exit_code: int) -> bool:
+    """Accept a measured Markdown brief, not an arbitrary successful message."""
+    lines = text.splitlines()
+    if (
+        not text.endswith("\n")
+        or len(lines) < 11
+        or lines[:2] != ["# Operational field brief", ""]
+    ):
+        return False
+    rows_match = re.fullmatch(r"- Rows: (0|[1-9][0-9]*)", lines[2])
+    if rows_match is None:
+        return False
+    rows = int(rows_match.group(1))
+    try:
+        section = lines.index("## Required fields")
+    except ValueError:
+        return False
+    if (
+        lines[section + 1 : section + 4]
+        != ["", "| Field | Filled | Missing | Missing rate |", "|---|---:|---:|---:|"]
+    ):
+        return False
+    measured = 0
+    for line in lines[section + 4 :]:
+        if not line:
+            break
+        field = re.fullmatch(r"\| .+ \| (\d+) \| (\d+) \| (\d+(?:\.\d+)?)% \|", line)
+        if field is None or int(field.group(1)) + int(field.group(2)) != rows:
+            return False
+        measured += 1
+    if not measured:
+        return False
+    has_failure_section = any(line.startswith("## Failed ") for line in lines)
+    return has_failure_section == (exit_code == 1)
+
+
 def _has_valid_report(text: str, *, is_json: bool, exit_code: int = 0) -> bool:
     """Reject missing, malformed and self-contradictory action reports."""
     if not text.strip():
@@ -150,7 +186,7 @@ def _has_valid_report(text: str, *, is_json: bool, exit_code: int = 0) -> bool:
             return False
         has_failures = bool(failed_fields) or any(failure_flags)
         return has_failures == (exit_code == 1)
-    return True
+    return _has_valid_markdown_report(text, exit_code)
 
 
 def main() -> int:
