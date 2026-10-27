@@ -10,8 +10,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from scripts import run_action
 from ops_field_brief.brief import build_brief
+from scripts import run_action
 
 
 class ActionVerifiedReportTests(unittest.TestCase):
