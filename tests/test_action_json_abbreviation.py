@@ -10,6 +10,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from ops_field_brief.brief import build_brief
 from scripts import run_action
 
 
@@ -31,7 +32,13 @@ class JsonAbbreviationSafetyTests(unittest.TestCase):
                 self.assertFalse(run_action._requests_json(args))
 
     def test_main_fences_untrusted_json_for_every_accepted_abbreviation(self) -> None:
-        payload = json.dumps({"buyer": "supplier ```\n## forged heading"})
+        payload = json.dumps(
+            build_brief(
+                [{"shipment": "A1", "buyer": "supplier ```\n## forged heading"}],
+                ["shipment"],
+                group="buyer",
+            ).to_dict()
+        )
         for flag in ("--j", "--js", "--jso", "--json"):
             with self.subTest(flag=flag), tempfile.TemporaryDirectory() as directory:
                 workspace = Path(directory) / "workspace"

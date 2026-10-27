@@ -94,15 +94,49 @@ def _requests_json(args: list[str]) -> bool:
     return any(option in {"--j", "--js", "--jso", "--json"} for option in args)
 
 
-def _has_valid_report(text: str, *, is_json: bool) -> bool:
-    """Never mark a quality check successful without an actual report."""
+def _has_valid_report(text: str, *, is_json: bool, exit_code: int = 0) -> bool:
+    """Reject missing, malformed and self-contradictory action reports."""
     if not text.strip():
         return False
     if is_json:
         try:
-            return isinstance(json.loads(text), dict)
+            report = json.loads(text)
         except ValueError:
             return False
+        if not isinstance(report, dict):
+            return False
+        rows = report.get("rows")
+        fields = report.get("fields")
+        failed_fields = report.get("failed_fields")
+        if (
+            type(rows) is not int
+            or rows < 0
+            or not isinstance(fields, list)
+            or not fields
+            or not isinstance(failed_fields, list)
+            or not all(isinstance(name, str) for name in failed_fields)
+        ):
+            return False
+        if not all(
+            isinstance(field, dict)
+            and isinstance(field.get("name"), str)
+            and type(field.get("filled")) is int
+            and type(field.get("missing")) is int
+            and field["filled"] >= 0
+            and field["missing"] >= 0
+            and field["filled"] + field["missing"] == rows
+            for field in fields
+        ):
+            return False
+        failure_flags = [
+            value
+            for name, value in report.items()
+            if name.startswith("failed_") and name != "failed_fields"
+        ]
+        if not failure_flags or not all(isinstance(flag, bool) for flag in failure_flags):
+            return False
+        has_failures = bool(failed_fields) or any(failure_flags)
+        return has_failures == (exit_code == 1)
     return True
 
 
@@ -157,7 +191,7 @@ def main() -> int:
     exit_code = completed.returncode
     is_json = _requests_json(extra_args)
     invalid_report = exit_code in (0, 1) and not _has_valid_report(
-        completed.stdout, is_json=is_json
+        completed.stdout, is_json=is_json, exit_code=exit_code
     )
     if invalid_report:
         # An exit code alone is not evidence that any CSV was evaluated.
