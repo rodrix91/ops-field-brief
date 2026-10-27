@@ -73,9 +73,7 @@ class StrictCsvSourceLineTests(unittest.TestCase):
         self.assertEqual(rows.source_lines, ())
         with self.assertRaises(ValueError) as caught:
             validate_csv_structure(rows)
-        self.assertEqual(
-            str(caught.exception), "CSV data row 2 has fewer fields than the header"
-        )
+        self.assertEqual(str(caught.exception), "CSV data row 2 has fewer fields than the header")
 
     def test_cli_reports_physical_line_without_traceback(self) -> None:
         source = 'id,buyer\n1,"North\nSouth"\n2,Andes,extra\n'
