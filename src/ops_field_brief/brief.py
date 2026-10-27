@@ -67,6 +67,8 @@ class CsvRows(list[dict[str, str]]):
         self,
         rows: Iterable[dict[str, str]],
         fieldnames: Iterable[str | None] | None,
+        *,
+        source_line_offset: int = 0,
     ) -> None:
         # DictReader.line_num counts physical input lines, including newlines
         # inside quoted fields. A CSV record may therefore span several lines.
@@ -83,7 +85,7 @@ class CsvRows(list[dict[str, str]]):
                             internal_newlines += (
                                 cell.count("\n") + cell.count("\r") - cell.count("\r\n")
                             )
-                source_lines.append(rows.line_num - internal_newlines)
+                source_lines.append(source_line_offset + rows.line_num - internal_newlines)
             super().__init__(parsed)
         else:
             super().__init__(rows)
@@ -673,7 +675,9 @@ def read_csv(
                         raise
                     delimiter = _detect_delimiter(text)
             reader = csv.DictReader(io.StringIO(text), delimiter=delimiter, strict=strict)
-            return CsvRows(reader, reader.fieldnames)
+            return CsvRows(
+                reader, reader.fieldnames, source_line_offset=int(excel_hint is not None)
+            )
         reader = csv.DictReader(stdin, delimiter=delimiter, strict=strict)
         if is_utf8 and reader.fieldnames and reader.fieldnames[0].startswith("\ufeff"):
             fieldnames = list(reader.fieldnames)
@@ -687,11 +691,13 @@ def read_csv(
     else:
         stream = path.open(newline="", encoding=codec)
     with stream as handle:
+        source_line_offset = 0
         if delimiter is None:
             sample = handle.read(8192)
             excel_hint = _excel_sep_directive(sample)
             if excel_hint is not None:
                 delimiter = excel_hint[0]
+                source_line_offset = 1
                 handle.seek(0)
                 handle.readline()  # Skip only the exact Excel hint, never the CSV header.
             else:
@@ -706,7 +712,7 @@ def read_csv(
                     delimiter = _detect_delimiter(sample + remainder)
                 handle.seek(0)
         reader = csv.DictReader(handle, delimiter=delimiter, strict=strict)
-        return CsvRows(reader, reader.fieldnames)
+        return CsvRows(reader, reader.fieldnames, source_line_offset=source_line_offset)
 
 
 def render_markdown(brief: Brief) -> str:
