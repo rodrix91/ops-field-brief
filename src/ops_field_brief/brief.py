@@ -644,7 +644,10 @@ def _excel_sep_directive(text: str) -> tuple[str, str] | None:
     """
     # Bare CR, LF and CRLF are all valid CSV physical line endings.
     # A split on LF alone can mistake a CR-only Excel preamble for a header.
-    end = min((index for index in (text.find("\r"), text.find("\n")) if index >= 0), default=len(text))
+    end = min(
+        (index for index in (text.find("\r"), text.find("\n")) if index >= 0),
+        default=len(text),
+    )
     first = text[:end]
     ending_width = 2 if text[end : end + 2] == "\r\n" else int(end < len(text))
     if len(first) == 5 and first.startswith("sep=") and first[-1] in ",;\t|":
