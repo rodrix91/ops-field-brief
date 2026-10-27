@@ -34,10 +34,21 @@ header. With `--delimiter auto`, the reader honors an **exact** first-line
 following header instead of treating the hint as a column. This works with
 UTF-8 BOM, CRLF, gzip exports and stdin:
 
+A **synthetic, checked-in Excel export** is available at
+[`examples/orders-excel-sep.csv`](examples/orders-excel-sep.csv), with four
+order records, three columns and a genuine first-line `sep=;` hint.
+From the repository root (Python 3.10+), run:
+
 ```bash
-python -m ops_field_brief exports/orders.csv --required order_id \
-  --delimiter auto --strict-csv --json
+PYTHONPATH=src python -m ops_field_brief examples/orders-excel-sep.csv \
+  --required order_id,buyer --key order_id --max-duplicates 0 \
+  --group buyer --delimiter auto --strict-csv --json
 ```
+
+Expected: **exit 0**, JSON with four rows and zero duplicate business keys.
+The `eta` column intentionally has one blank value, but is not part of the
+required-field gate in this demonstration. This is sample input, not a
+production customer extract. The command is covered by a real CLI regression.
 
 The hint is recognized **only** in auto mode; an explicitly chosen delimiter
 keeps its previous behavior. Similar-looking data lines are not treated as
