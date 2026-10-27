@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Report the actual physical file line alongside the existing logical data-row number when `--strict-csv` finds a ragged operational export. Account for quoted multiline cells, blank physical lines, multiline headers, CRLF, gzip and auto-detected Excel `sep=` hints without changing non-strict parsing or quality-gate metrics. Add API and real CLI regression tests.
+
 - Add a checked-in synthetic `sep=;` Excel operations fixture with a runnable, documented auto-delimiter and quality-gate command. Guard its exact header, required-field accounting and JSON CLI behavior with cross-platform regressions. Preserve all existing CSV examples and parsing semantics.
 
 - Display CSV-sourced soft hyphens (U+00AD), zero-width spaces (U+200B), word joiners (U+2060), and byte-order marks embedded in labels (U+FEFF) as visible, inert `[U+XXXX]` markers in Markdown and GitHub Action summaries. Prevent visually identical but distinct group/key labels from being hidden in presentation while preserving original Unicode JSON values, ordinary letters, and joiners used by writing systems. Add API and real CLI regression tests.
