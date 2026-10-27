@@ -65,8 +65,11 @@ class StrictCsvSourceLineTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "source line 5"):
             validate_csv_structure(rows)
 
-    def test_direct_csvrows_retains_logical_diagnostics_without_source_metadata(self) -> None:
-        rows = CsvRows([{"id": "1", "buyer": "ok"}, {"id": "2", "buyer": None}], ["id", "buyer"])
+    def test_direct_csvrows_keep_logical_numbers(self) -> None:
+        rows = CsvRows(
+            [{"id": "1", "buyer": "ok"}, {"id": "2", "buyer": None}],
+            ["id", "buyer"],
+        )
         self.assertEqual(rows.source_lines, ())
         with self.assertRaises(ValueError) as caught:
             validate_csv_structure(rows)
