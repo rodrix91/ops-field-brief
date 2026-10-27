@@ -98,11 +98,7 @@ def _requests_json(args: list[str]) -> bool:
 def _has_valid_markdown_report(text: str, exit_code: int) -> bool:
     """Accept a measured Markdown brief, not an arbitrary successful message."""
     lines = text.splitlines()
-    if (
-        not text.endswith("\n")
-        or len(lines) < 11
-        or lines[:2] != ["# Operational field brief", ""]
-    ):
+    if not text.endswith("\n") or len(lines) < 11 or lines[:2] != ["# Operational field brief", ""]:
         return False
     rows_match = re.fullmatch(r"- Rows: (0|[1-9][0-9]*)", lines[2])
     if rows_match is None:
@@ -112,10 +108,11 @@ def _has_valid_markdown_report(text: str, exit_code: int) -> bool:
         section = lines.index("## Required fields")
     except ValueError:
         return False
-    if (
-        lines[section + 1 : section + 4]
-        != ["", "| Field | Filled | Missing | Missing rate |", "|---|---:|---:|---:|"]
-    ):
+    if lines[section + 1 : section + 4] != [
+        "",
+        "| Field | Filled | Missing | Missing rate |",
+        "|---|---:|---:|---:|",
+    ]:
         return False
     measured = 0
     for line in lines[section + 4 :]:
