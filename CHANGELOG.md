@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Validate the reusable GitHub Action's JSON output against the operational report contract: nonnegative row counts, populated field metrics with reconciled filled/missing totals, and reported quality-gate flags that agree with exit `0` or `1`. Malformed, incomplete or contradictory reports now fail closed with exit `3` and `passed=false` rather than exposing misleading summaries; the standalone CLI, JSON schema and existing functionality remain unchanged. Add focused negative and compatibility regressions.
+
 - Add opt-in `--max-distinct-keys N`, a maximum-cardinality quality gate on **unique complete** single/composite business keys, independent of row-count, completeness, and duplicate gates. Exclude known missing-value tokens, respect optional Unicode `--casefold-key`, validate nonnegative bounds and `--key`, and reject conflicting minimum/maximum ranges. Preserve the default JSON/Markdown layouts and prior gates; include API, CLI, Unicode, empty-export, configuration, and reusable Action regressions.
 
 - Fail closed in the reusable GitHub Action if the analyzer returns exit `0` or `1` without a nonempty report, or returns malformed/non-object JSON when `--json` (including argparse abbreviations) is requested. Reportless false successes now produce error exit `3`, `passed=false` and no new job summary; genuine analysis/configuration failure exit codes remain unchanged. Add direct and runner-level regressions for missing output, invalid JSON and valid Markdown/JSON including failed quality gates. The standalone CLI and output schema are unchanged.
