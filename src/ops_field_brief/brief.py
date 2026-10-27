@@ -607,7 +607,6 @@ def _detect_delimiter(sample: str) -> str:
         ) from exc
 
 
-
 def _excel_sep_directive(text: str) -> tuple[str, str] | None:
     """Read an exact Excel sep= line, returning its delimiter and remaining text.
 
@@ -618,6 +617,7 @@ def _excel_sep_directive(text: str) -> tuple[str, str] | None:
     if len(first) == 5 and first.startswith("sep=") and first[-1] in ",;\t|":
         return first[-1], remainder
     return None
+
 
 def read_csv(
     path: Path,
