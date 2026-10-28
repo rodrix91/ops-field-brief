@@ -31,6 +31,65 @@ class CarriageReturnCsvTests(unittest.TestCase):
         self.assertEqual([row["buyer"] for row in rows], ["Andes", "Paz"])
         self.assertEqual(rows.source_lines, (2, 3))
 
+    def test_cr_only_explicit_stdin_preserves_rows_and_source_lines(self) -> None:
+        rows = read_csv(
+            Path("-"),
+            delimiter=",",
+            strict=True,
+            stdin=io.StringIO("id,buyer\\rA1,Andes\\rA2,Paz\\r"),
+        )
+        validate_csv_structure(rows)
+        self.assertEqual(rows.fieldnames, ("id", "buyer"))
+        self.assertEqual([row["buyer"] for row in rows], ["Andes", "Paz"])
+        self.assertEqual(rows.source_lines, (2, 3))
+
+    def test_cr_only_explicit_stdin_multiline_and_ragged_error(self) -> None:
+        rows = read_csv(
+            Path("-"),
+            delimiter=",",
+            strict=True,
+            stdin=io.StringIO('id,buyer\\rA1,"North\\rSouth"\\rA2\\r'),
+        )
+        self.assertEqual(rows[0]["buyer"], "North\\rSouth")
+        self.assertEqual(rows.source_lines, (2, 4))
+        with self.assertRaises(ValueError) as caught:
+            validate_csv_structure(rows)
+        self.assertEqual(
+            str(caught.exception),
+            "CSV data row 2 has fewer fields than the header (source line 4)",
+        )
+
+    def test_explicit_stdin_with_bom_and_single_column_cr_lines(self) -> None:
+        rows = read_csv(
+            Path("-"),
+            delimiter=",",
+            strict=True,
+            stdin=io.StringIO("\\ufeffbuyer\\rAndes\\rPaz\\r"),
+        )
+        validate_csv_structure(rows)
+        self.assertEqual(rows.fieldnames, ("buyer",))
+        self.assertEqual(rows, [{"buyer": "Andes"}, {"buyer": "Paz"}])
+        self.assertEqual(rows.source_lines, (2, 3))
+
+    def test_explicit_stdin_preserves_lf_and_crlf_records(self) -> None:
+        for newline in ("\\n", "\\r\\n"):
+            with self.subTest(newline=repr(newline)):
+                stream = io.StringIO(newline.join(("id,buyer", "A1,Andes", "A2,Paz", "")))
+                rows = read_csv(Path("-"), delimiter=",", strict=True, stdin=stream)
+                validate_csv_structure(rows)
+                self.assertEqual(rows.source_lines, (2, 3))
+                self.assertEqual(rows[1]["buyer"], "Paz")
+
+    def test_explicit_separator_does_not_skip_excel_sep_preamble(self) -> None:
+        rows = read_csv(
+            Path("-"),
+            delimiter=";",
+            stdin=io.StringIO("sep=;\\rid;buyer\\rA1;Andes\\r"),
+        )
+        self.assertEqual(rows.fieldnames, ("sep=;",))
+        with self.assertRaisesRegex(ValueError, "more fields than the header"):
+            validate_csv_structure(rows)
+
     def test_cr_only_one_column_auto_stdin(self) -> None:
         rows = read_csv(
             Path("-"),
