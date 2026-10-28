@@ -688,7 +688,11 @@ def read_csv(
             return CsvRows(
                 reader, reader.fieldnames, source_line_offset=int(excel_hint is not None)
             )
-        reader = csv.DictReader(stdin, delimiter=delimiter, strict=strict)
+        # Preserve CR-only records and quoted line breaks even when a caller
+        # supplies an already-opened text stream without newline="".
+        reader = csv.DictReader(
+            io.StringIO(stdin.read(), newline=""), delimiter=delimiter, strict=strict
+        )
         if is_utf8 and reader.fieldnames and reader.fieldnames[0].startswith("\ufeff"):
             fieldnames = list(reader.fieldnames)
             fieldnames[0] = fieldnames[0].lstrip("\ufeff")
