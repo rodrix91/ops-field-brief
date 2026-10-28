@@ -457,7 +457,8 @@ def build_brief(
             if all(not _is_missing(value) for value in key_value):
                 keys.append(
                     tuple(normalize("NFC", value.casefold()) for value in key_value)
-                    if casefold_key else key_value
+                    if casefold_key
+                    else key_value
                 )
             else:
                 incomplete_key_rows += 1
