@@ -72,7 +72,7 @@ The same counterparty may appear in an operational export as `ACME`,
 Counting these as separate groups can **understate customer/supplier concentration**
 and **overstate the number of distinct counterparties**. Enable
 `--casefold-group` alongside `--group` to normalize non-missing group labels
-using Python's Unicode `str.casefold()`:
+using Python's Unicode `str.casefold()` plus canonical NFC normalization:
 
 ```bash
 python -m ops_field_brief examples/shipments.csv \
@@ -81,7 +81,7 @@ python -m ops_field_brief examples/shipments.csv \
 ```
 
 The option affects all group-derived metrics: displayed top groups (their labels
-are shown in normalized lowercase/casefold form), top-group concentration,
+are shown in normalized lowercase/casefold and NFC form), top-group concentration,
 minimum distinct non-missing groups and missing-group share (the last is
 unchanged for a given dataset). Trimming, missing placeholders (`NA`, `N/A`,
 `s/d`, etc.) and the safe distinction between missing values and a real
@@ -109,9 +109,11 @@ python -m ops_field_brief examples/shipments.csv \
   --casefold-key --json
 ```
 
-The option uses Python's Unicode `str.casefold()` for each **non-missing**
-key component after trimming surrounding whitespace. Thus `Straße` and
-`STRASSE` match, including in composite keys, while fields with missing
+The option uses Python's Unicode `str.casefold()` followed by NFC canonical
+normalization for each **non-missing** key component after trimming surrounding
+whitespace. Thus `Straße` and `STRASSE` match, as do `Café` and `Cafe` plus a
+combining accent, including in composite keys. Compatibility-only lookalikes
+such as `①` and `1` remain distinct. Fields with missing
 tokens such as `NA` remain excluded from duplicate counting and continue to
 contribute to incomplete-key counts. The original CSV and displayed key-field
 names are never rewritten. Case-sensitive matching remains the default,
@@ -308,7 +310,9 @@ This check works with stdin, explicit delimiters, and `--delimiter auto`.
 For extra protection against ambiguous Excel or cross-system column names,
 combine `--strict-csv --casefold-headers`. This also rejects headers that
 differ only by Unicode case folding—for example `id` versus `ID`,
-`Straße` versus `STRASSE`, or `Σ` versus `ς`.
+`Straße` versus `STRASSE`, or `Σ` versus `ς`. It also catches
+canonically equivalent accents (`Café` versus `Cafe` plus a combining accent)
+without applying broader NFKC compatibility folding.
 It operates **only in strict mode**; using it without `--strict-csv`
 returns configuration exit code `2` before opening the input.
 The default strict check stays case-sensitive, and the option never

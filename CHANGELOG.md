@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Detect canonically equivalent Unicode (NFC) values when opt-in `--casefold-key`, `--casefold-group` or `--casefold-headers` comparisons are enabled. This prevents composed/decomposed accents from hiding duplicate business identifiers, splitting counterparty concentration, or bypassing strict duplicate-header checks. Preserve case-sensitive defaults, original CSV values, missing tokens, JSON schema and historical releases; add library and CLI regressions.
+
 - Advertise Python 3.14 in package metadata following the successful Linux, Windows and macOS CI compatibility matrix; keep runtime requirements, package version, and released tags unchanged.
 
 - Extend CI unit-test coverage to Python 3.14 on Linux, Windows and macOS while retaining all previously tested Python versions. This adds compatibility evidence without changing application behavior or release metadata until the matrix is verified.

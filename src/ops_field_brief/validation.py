@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter
+from unicodedata import normalize
 
 
 def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool = False) -> None:
@@ -25,9 +26,10 @@ def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool
             raise ValueError(f"blank CSV header at column {position}")
 
     names = [name.strip() for name in header]
-    # Use Unicode casefold only when requested. Keep original column names
-    # intact so --required, --key and --group continue to match exactly.
-    compared = [name.casefold() if casefold_headers else name for name in names]
+    # With the opt-in flag, compare both case-insensitively and under Unicode
+    # canonical equivalence (NFC). Keep original column names untouched so
+    # --required, --key and --group continue to match exactly.
+    compared = [normalize("NFC", name.casefold()) if casefold_headers else name for name in names]
     repeated = [name for name, count in Counter(compared).items() if count > 1]
     if repeated:
         raise ValueError("duplicate CSV header columns: " + ", ".join(repeated))
