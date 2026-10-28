@@ -86,8 +86,8 @@ class CarriageReturnCsvTests(unittest.TestCase):
             delimiter=";",
             stdin=io.StringIO("sep=;\rid;buyer\rA1;Andes\r"),
         )
-        self.assertEqual(rows.fieldnames, ("sep=;",))
-        with self.assertRaisesRegex(ValueError, "more fields than the header"):
+        self.assertEqual(rows.fieldnames, ("sep=", ""))
+        with self.assertRaisesRegex(ValueError, "blank CSV header at column 2"):
             validate_csv_structure(rows)
 
     def test_cr_only_one_column_auto_stdin(self) -> None:
