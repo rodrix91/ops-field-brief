@@ -36,7 +36,7 @@ class CarriageReturnCsvTests(unittest.TestCase):
             Path("-"),
             delimiter=",",
             strict=True,
-            stdin=io.StringIO("id,buyer\\rA1,Andes\\rA2,Paz\\r"),
+            stdin=io.StringIO("id,buyer\rA1,Andes\rA2,Paz\r"),
         )
         validate_csv_structure(rows)
         self.assertEqual(rows.fieldnames, ("id", "buyer"))
@@ -48,9 +48,9 @@ class CarriageReturnCsvTests(unittest.TestCase):
             Path("-"),
             delimiter=",",
             strict=True,
-            stdin=io.StringIO('id,buyer\\rA1,"North\\rSouth"\\rA2\\r'),
+            stdin=io.StringIO('id,buyer\rA1,"North\rSouth"\rA2\r'),
         )
-        self.assertEqual(rows[0]["buyer"], "North\\rSouth")
+        self.assertEqual(rows[0]["buyer"], "North\rSouth")
         self.assertEqual(rows.source_lines, (2, 4))
         with self.assertRaises(ValueError) as caught:
             validate_csv_structure(rows)
@@ -64,7 +64,7 @@ class CarriageReturnCsvTests(unittest.TestCase):
             Path("-"),
             delimiter=",",
             strict=True,
-            stdin=io.StringIO("\\ufeffbuyer\\rAndes\\rPaz\\r"),
+            stdin=io.StringIO("\ufeffbuyer\rAndes\rPaz\r"),
         )
         validate_csv_structure(rows)
         self.assertEqual(rows.fieldnames, ("buyer",))
@@ -72,7 +72,7 @@ class CarriageReturnCsvTests(unittest.TestCase):
         self.assertEqual(rows.source_lines, (2, 3))
 
     def test_explicit_stdin_preserves_lf_and_crlf_records(self) -> None:
-        for newline in ("\\n", "\\r\\n"):
+        for newline in ("\n", "\r\n"):
             with self.subTest(newline=repr(newline)):
                 stream = io.StringIO(newline.join(("id,buyer", "A1,Andes", "A2,Paz", "")))
                 rows = read_csv(Path("-"), delimiter=",", strict=True, stdin=stream)
@@ -84,7 +84,7 @@ class CarriageReturnCsvTests(unittest.TestCase):
         rows = read_csv(
             Path("-"),
             delimiter=";",
-            stdin=io.StringIO("sep=;\\rid;buyer\\rA1;Andes\\r"),
+            stdin=io.StringIO("sep=;\rid;buyer\rA1;Andes\r"),
         )
         self.assertEqual(rows.fieldnames, ("sep=;",))
         with self.assertRaisesRegex(ValueError, "more fields than the header"):
