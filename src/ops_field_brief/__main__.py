@@ -36,13 +36,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--casefold-key",
         action="store_true",
-        help="Compare business-key values without case differences (requires --key)",
+        help="Compare business-key values without case or canonical Unicode differences (requires --key)",
     )
     parser.add_argument("--group", help="Column to rank by row count")
     parser.add_argument(
         "--casefold-group",
         action="store_true",
-        help="Merge group values differing only in case (requires --group)",
+        help="Merge group values differing only in case or canonical Unicode form (requires --group)",
     )
     parser.add_argument(
         "--max-missing",
@@ -174,7 +174,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--casefold-headers",
         action="store_true",
-        help="With --strict-csv, reject headers equivalent under Unicode casefold",
+        help="With --strict-csv, reject headers equivalent under Unicode casefold and NFC",
     )
     parser.add_argument("--json", action="store_true", help="Write JSON instead of Markdown")
     return parser.parse_args(argv)
