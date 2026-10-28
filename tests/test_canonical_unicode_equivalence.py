@@ -21,8 +21,13 @@ class CanonicalUnicodeCasefoldTests(unittest.TestCase):
             {"order_id": "Cafe\u0301", "buyer": "E\u0301lite"},
         ]
         plain = build_brief(
-            rows, ["order_id"], key="order_id", group="buyer",
-            max_duplicates=0, max_group_share=0.5, min_distinct_groups=2,
+            rows,
+            ["order_id"],
+            key="order_id",
+            group="buyer",
+            max_duplicates=0,
+            max_group_share=0.5,
+            min_distinct_groups=2,
         )
         self.assertEqual(plain.duplicate_keys, 0)
         self.assertEqual(plain.distinct_groups, 2)
@@ -32,9 +37,15 @@ class CanonicalUnicodeCasefoldTests(unittest.TestCase):
         self.assertNotIn("casefold_group", plain.to_dict())
 
         canonical = build_brief(
-            rows, ["order_id"], key="order_id", group="buyer",
-            max_duplicates=0, max_group_share=0.5, min_distinct_groups=2,
-            casefold_key=True, casefold_group=True,
+            rows,
+            ["order_id"],
+            key="order_id",
+            group="buyer",
+            max_duplicates=0,
+            max_group_share=0.5,
+            min_distinct_groups=2,
+            casefold_key=True,
+            casefold_group=True,
         )
         self.assertEqual(canonical.duplicate_keys, 1)
         self.assertTrue(canonical.failed_duplicates)
@@ -54,8 +65,12 @@ class CanonicalUnicodeCasefoldTests(unittest.TestCase):
         ]
         plain = build_brief(rows, ["id"], key_fields=["id", "line"])
         canonical = build_brief(
-            rows, ["id"], key_fields=["id", "line"],
-            casefold_key=True, max_duplicates=0, min_distinct_keys=2,
+            rows,
+            ["id"],
+            key_fields=["id", "line"],
+            casefold_key=True,
+            max_duplicates=0,
+            min_distinct_keys=2,
         )
         self.assertEqual(plain.duplicate_keys, 0)
         self.assertEqual(canonical.duplicate_keys, 1)
@@ -70,8 +85,12 @@ class CanonicalUnicodeCasefoldTests(unittest.TestCase):
             {"id": "1", "group": "1"},
         ]
         folded = build_brief(
-            rows, ["id"], key="id", group="group",
-            casefold_key=True, casefold_group=True,
+            rows,
+            ["id"],
+            key="id",
+            group="group",
+            casefold_key=True,
+            casefold_group=True,
         )
         self.assertEqual(folded.duplicate_keys, 0)
         self.assertEqual(folded.distinct_groups, 2)
@@ -88,13 +107,22 @@ class CanonicalUnicodeCasefoldTests(unittest.TestCase):
     def test_cli_canonical_equivalence_changes_only_opt_in_quality_gates(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "customers.csv"
-            path.write_text(
-                "id,buyer\nCafé,Élite\nCafe\u0301,E\u0301lite\n", encoding="utf-8"
-            )
+            path.write_text("id,buyer\nCafé,Élite\nCafe\u0301,E\u0301lite\n", encoding="utf-8")
             common = [
-                str(path), "--required", "id", "--key", "id", "--group", "buyer",
-                "--max-duplicates", "0", "--max-group-share", "0.5",
-                "--min-distinct-groups", "2", "--json",
+                str(path),
+                "--required",
+                "id",
+                "--key",
+                "id",
+                "--group",
+                "buyer",
+                "--max-duplicates",
+                "0",
+                "--max-group-share",
+                "0.5",
+                "--min-distinct-groups",
+                "2",
+                "--json",
             ]
             plain_out = io.StringIO()
             with contextlib.redirect_stdout(plain_out):
