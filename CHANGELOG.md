@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Handle bare-CR legacy CSV records when an explicit delimiter is used with stdin, including quoted multiline cells, UTF-8 BOM headers, accurate strict source-line errors and one-column files. Preserve LF/CRLF behavior and keep Excel `sep=` hints auto-delimiter-only. Add direct reader regression tests without changing business-gate semantics.
+
 - Support legacy CSV files with bare carriage-return (`CR`) physical line endings when reading stdin with `--delimiter auto`, including single-column files and embedded CR inside quoted values. Recognize exact Excel `sep=` hints terminated by CR on stdin, local files and gzip without changing LF/CRLF parsing, explicit-delimiter mode, strict validation, or business gate calculations. Add reader, CLI, BOM, compressed-file and source-line regression tests.
 
 - Report the actual physical file line alongside the existing logical data-row number when `--strict-csv` finds a ragged operational export. Account for quoted multiline cells, blank physical lines, multiline headers, CRLF, gzip and auto-detected Excel `sep=` hints without changing non-strict parsing or quality-gate metrics. Add API and real CLI regression tests.
