@@ -15,6 +15,7 @@ from collections import Counter
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
+from unicodedata import normalize
 
 MISSING = {"", "na", "n/a", "null", "none", "s/d", "s.d.", "n/d", "n.d.", "-"}
 
@@ -455,7 +456,8 @@ def build_brief(
             key_value = tuple(_clean(row.get(name, "")) for name in effective_key_fields)
             if all(not _is_missing(value) for value in key_value):
                 keys.append(
-                    tuple(value.casefold() for value in key_value) if casefold_key else key_value
+                    tuple(normalize("NFC", value.casefold()) for value in key_value)
+                    if casefold_key else key_value
                 )
             else:
                 incomplete_key_rows += 1
@@ -464,7 +466,7 @@ def build_brief(
             if _is_missing(label):
                 groups[None] += 1
             else:
-                groups[label.casefold() if casefold_group else label] += 1
+                groups[normalize("NFC", label.casefold()) if casefold_group else label] += 1
 
     duplicate_keys = 0
     if effective_key_fields:
