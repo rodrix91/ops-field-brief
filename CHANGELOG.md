@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Advertise Python 3.14 in package metadata following the successful Linux, Windows and macOS CI compatibility matrix; keep runtime requirements, package version, and released tags unchanged.
+
 - Extend CI unit-test coverage to Python 3.14 on Linux, Windows and macOS while retaining all previously tested Python versions. This adds compatibility evidence without changing application behavior or release metadata until the matrix is verified.
 
 - Handle bare-CR legacy CSV records when an explicit delimiter is used with stdin, including quoted multiline cells, UTF-8 BOM headers, accurate strict source-line errors and one-column files. Preserve LF/CRLF behavior and keep Excel `sep=` hints auto-delimiter-only. Add direct reader regression tests without changing business-gate semantics.
