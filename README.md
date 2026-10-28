@@ -32,7 +32,7 @@ Some Excel CSV exports place a standalone `sep=;` line before the real
 header. With `--delimiter auto`, the reader honors an **exact** first-line
 `sep=;`, `sep=,`, `sep=|`, or tab separator hint and analyzes the
 following header instead of treating the hint as a column. This works with
-UTF-8 BOM, CRLF, legacy CR-only line endings, gzip exports and stdin:
+UTF-8 BOM, CRLF, legacy CR-only line endings, gzip exports and stdin. CR-only records are also supported when an **explicit** delimiter is selected for stdin; `sep=` directives are still recognized **only** with `--delimiter auto`:
 
 A **synthetic, checked-in Excel export** is available at
 [`examples/orders-excel-sep.csv`](examples/orders-excel-sep.csv), with four
