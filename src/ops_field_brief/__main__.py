@@ -36,13 +36,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--casefold-key",
         action="store_true",
-        help="Compare business-key values without case or canonical Unicode differences (requires --key)",
+        help="Ignore case and canonical Unicode differences in business keys (requires --key)",
     )
     parser.add_argument("--group", help="Column to rank by row count")
     parser.add_argument(
         "--casefold-group",
         action="store_true",
-        help="Merge group values differing only in case or canonical Unicode form (requires --group)",
+        help="Merge group values ignoring case and Unicode NFC (requires --group)",
     )
     parser.add_argument(
         "--max-missing",
