@@ -65,8 +65,10 @@ def main() -> int:
                 "-c",
                 (
                     "from importlib.metadata import version; "
+                    "from pathlib import Path; "
                     "import ops_field_brief; "
                     "assert version('ops-field-brief') == ops_field_brief.__version__; "
+                    "assert Path(ops_field_brief.__file__).with_name('py.typed').is_file(); "
                     "print(ops_field_brief.__version__)"
                 ),
             ],
