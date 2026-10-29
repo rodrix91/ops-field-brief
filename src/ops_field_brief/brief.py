@@ -613,31 +613,40 @@ def build_brief(
 
 
 def _detect_delimiter(sample: str) -> str:
-    try:
-        return csv.Sniffer().sniff(sample, delimiters=",;\t|").delimiter
-    except csv.Error as exc:
-        # Sniffer cannot identify a separator in valid single-column files.
-        # Accept those only when every candidate parses every sampled CSV
-        # record as exactly one field; still reject inconsistent or bad CSV.
+    """Choose a separator only when exactly one candidate parses consistently.
+
+    Sniffer can arbitrarily pick comma when both comma and semicolon split
+    every row into valid columns. That silently assigns the wrong headers and
+    corrupts operational gates. Fail closed on ties and irregular records.
+    Keep the original comma fallback for genuine single-column CSV files.
+    """
+    candidates: list[str] = []
+    single_column = bool(sample.strip())
+    for delimiter in DELIMITERS.values():
         try:
-            single_column = bool(sample.strip())
-            for candidate in DELIMITERS.values():
-                if any(
-                    len(record) != 1
-                    for record in csv.reader(
-                        io.StringIO(sample, newline=""), delimiter=candidate, strict=True
-                    )
-                    if record  # csv.reader ignores empty physical lines
-                ):
-                    single_column = False
-                    break
-            if single_column:
-                return ","
+            widths = {
+                len(record)
+                for record in csv.reader(
+                    io.StringIO(sample, newline=""), delimiter=delimiter, strict=True
+                )
+                if record  # blank physical CSV lines are ignored by the reader
+            }
         except csv.Error:
-            pass
-        raise ValueError(
-            "could not detect delimiter; use --delimiter comma, semicolon, tab, or pipe"
-        ) from exc
+            single_column = False
+            continue
+        if len(widths) != 1:
+            single_column = False
+            continue
+        width = next(iter(widths))
+        if width > 1:
+            candidates.append(delimiter)
+            single_column = False
+
+    if len(candidates) == 1:
+        return candidates[0]
+    if not candidates and single_column:
+        return ","
+    raise ValueError("could not detect delimiter; use --delimiter comma, semicolon, tab, or pipe")
 
 
 def _excel_sep_directive(text: str) -> tuple[str, str] | None:

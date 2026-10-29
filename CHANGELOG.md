@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reject ambiguous automatic CSV delimiters when more than one supported separator consistently splits the sample into multiple columns; `csv.Sniffer` previously chose a separator and could silently misread field names. Preserve explicit delimiters, decimal-comma semicolon exports, quoted delimiters, blank lines and single-column fallback; add library, file and CLI regressions.
+
 - Detect canonically equivalent Unicode (NFC) values when opt-in `--casefold-key`, `--casefold-group` or `--casefold-headers` comparisons are enabled. This prevents composed/decomposed accents from hiding duplicate business identifiers, splitting counterparty concentration, or bypassing strict duplicate-header checks. Preserve case-sensitive defaults, original CSV values, missing tokens, JSON schema and historical releases; add library and CLI regressions.
 
 - Advertise Python 3.14 in package metadata following the successful Linux, Windows and macOS CI compatibility matrix; keep runtime requirements, package version, and released tags unchanged.
