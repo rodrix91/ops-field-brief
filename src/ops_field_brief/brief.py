@@ -646,9 +646,7 @@ def _detect_delimiter(sample: str) -> str:
         return candidates[0]
     if not candidates and single_column:
         return ","
-    raise ValueError(
-        "could not detect delimiter; use --delimiter comma, semicolon, tab, or pipe"
-    )
+    raise ValueError("could not detect delimiter; use --delimiter comma, semicolon, tab, or pipe")
 
 
 def _excel_sep_directive(text: str) -> tuple[str, str] | None:
