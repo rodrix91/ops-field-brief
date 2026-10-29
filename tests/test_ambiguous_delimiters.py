@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import io
-import json
 import os
 import subprocess
 import sys
@@ -39,8 +38,15 @@ class AmbiguousDelimiterTests(unittest.TestCase):
             path.write_text(AMBIGUOUS, encoding="utf-8")
             result = subprocess.run(
                 [
-                    sys.executable, "-m", "ops_field_brief", str(path),
-                    "--required", "id", "--delimiter", "auto", "--json",
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "id",
+                    "--delimiter",
+                    "auto",
+                    "--json",
                 ],
                 cwd=ROOT,
                 env={**os.environ, "PYTHONPATH": str(ROOT / "src")},
