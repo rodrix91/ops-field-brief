@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Bound auto-delimiter detection for strict CSV file inputs when an 8 KiB sniff window stops inside a long unquoted record. Detect from completed records instead of reading the entire remaining file into one string; preserve fallback on incomplete quoted samples, ambiguous delimiter rejection, permissive defaults, Excel `sep=` directives and strict row-shape/quoting validation. Cover comma, semicolon, pipe, tab, LF, CRLF, CR, stdin, file, source lines and real CLI behavior.
+
 - Verify that the PEP 561 `py.typed` marker is present in a freshly installed wheel on Linux, Windows and macOS, not just in the Ubuntu packaging job. Keep package metadata and the real installed CLI/JSON report smoke tests in place. No release, version or runtime changes.
 
 - Reject ambiguous automatic CSV delimiters when more than one supported separator consistently splits the sample into multiple columns; `csv.Sniffer` previously chose a separator and could silently misread field names. Preserve explicit delimiters, decimal-comma semicolon exports, quoted delimiters, blank lines and single-column fallback; add library, file and CLI regressions.
