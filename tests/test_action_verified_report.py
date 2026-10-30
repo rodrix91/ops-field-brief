@@ -72,9 +72,7 @@ class ActionVerifiedReportTests(unittest.TestCase):
         for number in ("NaN", "Infinity", "-Infinity", "1e999", "-1e999"):
             with self.subTest(number=number):
                 top_level = clean[:-1] + f', "extra": {number}' + "}"
-                nested = clean.replace(
-                    '"name": "id"', f'"name": "id", "extra": {number}', 1
-                )
+                nested = clean.replace('"name": "id"', f'"name": "id", "extra": {number}', 1)
                 self.assertNotEqual(nested, clean)
                 for payload in (top_level, nested):
                     self.assertFalse(run_action._has_valid_report(payload, is_json=True))
