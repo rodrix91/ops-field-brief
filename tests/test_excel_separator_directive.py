@@ -23,9 +23,7 @@ class ExcelSeparatorDirectiveTests(unittest.TestCase):
         for delimiter in (",", ";", "\t", "|"):
             for spelling in ("sep=", "SEP=", "Sep=", "sEp="):
                 for ending in ("\n", "\r\n", "\r", ""):
-                    with self.subTest(
-                        delimiter=delimiter, spelling=spelling, ending=repr(ending)
-                    ):
+                    with self.subTest(delimiter=delimiter, spelling=spelling, ending=repr(ending)):
                         self.assertEqual(
                             _excel_sep_directive(
                                 f"{spelling}{delimiter}{ending}id{delimiter}buyer"
@@ -44,9 +42,7 @@ class ExcelSeparatorDirectiveTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             for source in ("stdin", "file", "gzip"):
                 with self.subTest(source=source):
-                    path = Path(directory) / (
-                        "mixed.csv.gz" if source == "gzip" else "mixed.csv"
-                    )
+                    path = Path(directory) / ("mixed.csv.gz" if source == "gzip" else "mixed.csv")
                     if source != "stdin":
                         raw = text.encode("utf-8-sig")
                         path.write_bytes(gzip.compress(raw) if source == "gzip" else raw)
