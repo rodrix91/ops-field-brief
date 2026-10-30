@@ -99,7 +99,7 @@ def query_gemini_api(prompt: str, api_key: str) -> str | None:
                     text = part.get("text")
                     if isinstance(text, str) and text.strip():
                         return text
-    except (urllib.error.URLError, TimeoutError, KeyError, json.JSONDecodeError) as err:
+    except (urllib.error.URLError, TimeoutError, KeyError, json.JSONDecodeError, UnicodeError) as err:
         # Do not disclose credentials if a transport exception includes them.
         detail = str(err).replace(api_key, "[REDACTED]") if api_key else str(err)
         sys.stderr.write(f"Gemini API request note: {detail}\n")
