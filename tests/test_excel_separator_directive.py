@@ -125,7 +125,7 @@ class ExcelSeparatorDirectiveTests(unittest.TestCase):
     def test_real_cli_auto_uses_correct_header_and_key_gate(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "orders.csv"
-            path.write_text("sep=;\norder_id;buyer\nA1;Andes\nA2;Paz\n", encoding="utf-8")
+            path.write_text("Sep=;\norder_id;buyer\nA1;Andes\nA2;Paz\n", encoding="utf-8")
             result = subprocess.run(
                 [
                     sys.executable,
