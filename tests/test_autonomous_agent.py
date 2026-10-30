@@ -2,7 +2,7 @@ import io
 import json
 import os
 import unittest
-from contextlib import redirect_stderr
+from contextlib import redirect_stderr, redirect_stdout
 from unittest.mock import patch
 
 from scripts import autonomous_agent as agent
@@ -76,6 +76,28 @@ class AutonomousAgentTests(unittest.TestCase):
                 payload
             ).encode("utf-8")
             self.assertEqual(agent.query_gemini_api("Review", "test-key"), "Useful response")
+
+    def test_invalid_gemini_utf8_does_not_interrupt_local_audit(self):
+        secret = "test-private-api-key"
+        responses = (b"\xff", b'{"candidates": [\xe2\x82]}')
+        for body in responses:
+            with self.subTest(body=body):
+                errors = io.StringIO()
+                output = io.StringIO()
+                audit = self.healthy_audit()
+                with (
+                    patch.object(agent.urllib.request, "urlopen") as urlopen,
+                    patch.object(agent, "run_tests", return_value=(True, "OK")),
+                    patch.object(agent, "audit_repository", return_value=audit),
+                    patch.dict(os.environ, {"GEMINI_API_KEY": secret}, clear=True),
+                    redirect_stderr(errors),
+                    redirect_stdout(output),
+                ):
+                    urlopen.return_value.__enter__.return_value.read.return_value = body
+                    self.assertEqual(agent.main(["--allow-external-api"]), 0)
+                self.assertIn("Gemini API request note:", errors.getvalue())
+                self.assertIn("without text candidate", output.getvalue())
+                self.assertNotIn(secret, errors.getvalue())
 
     def test_gemini_error_does_not_print_secret(self):
         secret = "credential-do-not-log"
