@@ -679,6 +679,11 @@ def _excel_sep_directive(text: str) -> tuple[str, str] | None:
     )
     first = text[:end]
     ending_width = 2 if text[end : end + 2] == "\r\n" else int(end < len(text))
+    # Excel-style exports may quote the *whole* separator declaration as one
+    # CSV field. Require exactly one matching pair of double quotes: do not
+    # treat arbitrary quoted data or malformed lookalikes as a preamble.
+    if len(first) == 7 and first.startswith('"') and first.endswith('"'):
+        first = first[1:-1]
     if len(first) == 5 and first[:4].lower() == "sep=" and first[-1] in ",;\t|":
         return first[-1], text[end + ending_width :]
     return None
