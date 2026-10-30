@@ -52,7 +52,13 @@ class AutonomousAgentTests(unittest.TestCase):
                     self.assertIsNone(agent.query_gemini_api("Review", "test-key"))
 
     def test_gemini_selects_first_nonempty_text_from_mixed_parts(self):
-        parts = [None, {"text": ""}, {"thought": True}, {"text": "Useful response"}, {"text": "Later"}]
+        parts = [
+            None,
+            {"text": ""},
+            {"thought": True},
+            {"text": "Useful response"},
+            {"text": "Later"},
+        ]
         payload = {"candidates": [{"content": {"parts": parts}}]}
         with patch.object(agent.urllib.request, "urlopen") as urlopen:
             urlopen.return_value.__enter__.return_value.read.return_value = json.dumps(
