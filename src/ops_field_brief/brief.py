@@ -649,6 +649,21 @@ def _detect_delimiter(sample: str) -> str:
     raise ValueError("could not detect delimiter; use --delimiter comma, semicolon, tab, or pipe")
 
 
+def _complete_sniff_records(sample: str) -> str:
+    """Omit a cut-off trailing record when the sniff window holds earlier rows.
+
+    The caller only uses this for strict parsing with additional source text.
+    Two terminated physical lines guard against trusting a lone header;
+    multiline quoted records still fall back to a full sniff if incomplete.
+    """
+    last_break = max(sample.rfind("\r"), sample.rfind("\n"))
+    if last_break < 0:
+        return sample
+    complete = sample[: last_break + 1]
+    line_breaks = complete.count("\r") + complete.count("\n") - complete.count("\r\n")
+    return complete if line_breaks >= 2 else sample
+
+
 def _excel_sep_directive(text: str) -> tuple[str, str] | None:
     """Read an exact Excel sep= line, returning its delimiter and remaining text.
 
@@ -687,10 +702,13 @@ def read_csv(
                 delimiter, text = excel_hint
             else:
                 try:
-                    delimiter = _detect_delimiter(text[:8192])
+                    prefix = text[:8192]
+                    if strict and len(text) > 8192 and not prefix.endswith(("\r", "\n")):
+                        prefix = _complete_sniff_records(prefix)
+                    delimiter = _detect_delimiter(prefix)
                 except ValueError:
-                    # The sample may stop inside a long quoted CSV field.
-                    # Stdin is already buffered in full, so retry with whole text.
+                    # The sample may end inside a quoted record or be too short.
+                    # Stdin is already buffered in full; retry with all text.
                     if len(text) <= 8192:
                         raise
                     delimiter = _detect_delimiter(text)
@@ -727,12 +745,20 @@ def read_csv(
                 handle.seek(0)
                 handle.readline()  # Skip only the exact Excel hint, never the CSV header.
             else:
+                # In strict mode, discard an unfinished last physical record
+                # from the 8-KiB window when source text continues. Otherwise
+                # a valid long unquoted field forces an unbounded read() merely
+                # to select a delimiter before DictReader starts streaming.
+                first_extra = ""
+                if strict and len(sample) == 8192 and not sample.endswith(("\r", "\n")):
+                    first_extra = handle.read(1)
+                prefix = _complete_sniff_records(sample) if first_extra else sample
                 try:
-                    delimiter = _detect_delimiter(sample)
+                    delimiter = _detect_delimiter(prefix)
                 except ValueError:
-                    # Retry on the complete input only when the initial prefix
-                    # cannot be classified (e.g. a quote crosses character 8192).
-                    remainder = handle.read()
+                    # A quoted record may cross the sample window; retry with
+                    # the complete text, including the peeked character.
+                    remainder = first_extra + handle.read()
                     if not remainder:
                         raise
                     delimiter = _detect_delimiter(sample + remainder)
