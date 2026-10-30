@@ -66,6 +66,19 @@ class ActionVerifiedReportTests(unittest.TestCase):
         overwritten = clean.replace('"rows": 1', '"rows": 999, "rows": 1', 1)
         self.assertFalse(run_action._has_valid_report(overwritten, is_json=True))
 
+    def test_json_report_rejects_nonfinite_numbers_even_in_unchecked_metadata(self) -> None:
+        clean = self._report().strip()
+        self.assertTrue(run_action._has_valid_report(clean, is_json=True))
+        for number in ("NaN", "Infinity", "-Infinity", "1e999", "-1e999"):
+            with self.subTest(number=number):
+                top_level = clean[:-1] + f', "extra": {number}' + "}"
+                nested = clean.replace(
+                    '"name": "id"', f'"name": "id", "extra": {number}', 1
+                )
+                self.assertNotEqual(nested, clean)
+                for payload in (top_level, nested):
+                    self.assertFalse(run_action._has_valid_report(payload, is_json=True))
+
     def test_markdown_report_requires_structural_measurements(self) -> None:
         source = render_markdown(build_brief([{"id": "A"}], ["id"]))
         for corrupted in (
@@ -235,7 +248,9 @@ class ActionVerifiedReportTests(unittest.TestCase):
         good_md = render_markdown(build_brief([{"id": "A"}], ["id"]))
         bad_md = render_markdown(build_brief([{"id": ""}], ["id"]))
         duplicate_json = good.replace('"rows": 1', '"rows": 1, "rows": 1', 1)
+        nonfinite_json = good.strip()[:-1] + ', "extra": NaN}'
         scenarios = (
+            (0, nonfinite_json, "--json", 3, False),
             (0, duplicate_json, "--json", 3, False),
             (0, "", "", 3, False),
             (0, "   \n", "", 3, False),
