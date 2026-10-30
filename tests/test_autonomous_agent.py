@@ -1,8 +1,11 @@
 import io
 import json
 import os
+import subprocess
+import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
+from pathlib import Path
 from unittest.mock import patch
 
 from scripts import autonomous_agent as agent
@@ -19,6 +22,56 @@ class AutonomousAgentTests(unittest.TestCase):
             "changelog_present": True,
             "changelog_characters": 40,
         }
+
+    def test_run_tests_rejects_empty_or_missing_unittest_summaries(self):
+        outcomes = (
+            ("Ran 0 tests in 0.000s\n\nOK\n", "", "no tests"),
+            ("OK\n", "", "missing summary"),
+            ("OK\n", "Ran 99 tests in 0.001s", "fake stdout summary"),
+        )
+        for stderr, stdout, label in outcomes:
+            with self.subTest(label=label):
+                completed = subprocess.CompletedProcess(
+                    args=["python", "-m", "unittest"],
+                    returncode=0,
+                    stdout=stdout,
+                    stderr=stderr,
+                )
+                with patch.object(agent.subprocess, "run", return_value=completed):
+                    passed, log = agent.run_tests()
+                self.assertFalse(passed)
+                self.assertIn("No unittest test cases were executed.", log)
+
+    def test_run_tests_accepts_real_positive_summary_and_checks_exit_code(self):
+        summary = "Ran 1 test in 0.001s\n\nOK\n"
+        for code, expected in ((0, True), (1, False)):
+            with self.subTest(code=code):
+                completed = subprocess.CompletedProcess(
+                    args=["python", "-m", "unittest"],
+                    returncode=code,
+                    stdout="Example output",
+                    stderr=summary,
+                )
+                with patch.object(agent.subprocess, "run", return_value=completed) as execute:
+                    passed, log = agent.run_tests()
+                self.assertEqual(passed, expected)
+                self.assertIn("Ran 1 test", log)
+                self.assertEqual(execute.call_args.kwargs["check"], False)
+
+    def test_audit_does_not_count_helper_only_test_directory(self):
+        with tempfile.TemporaryDirectory() as location:
+            root = Path(location)
+            (root / "src" / "ops_field_brief").mkdir(parents=True)
+            (root / "tests").mkdir()
+            (root / "src" / "ops_field_brief" / "brief.py").write_text("x = 1\n")
+            (root / "tests" / "helper.py").write_text("x = 1\n")
+            (root / "tests" / "__init__.py").write_text("")
+            (root / "README.md").write_text("README\n")
+            (root / "CHANGELOG.md").write_text("Changes\n")
+            with patch.object(agent, "ROOT", root):
+                self.assertEqual(agent.audit_repository()["test_files"], [])
+                (root / "tests" / "test_valid.py").write_text("def test_valid(): pass\n")
+                self.assertEqual(agent.audit_repository()["test_files"], ["test_valid.py"])
 
     def test_gemini_authenticates_in_header_without_exposing_key_in_url(self):
         secret = "example-secret-should-not-appear-in-url"
