@@ -501,6 +501,15 @@ misleading report**. JSON adds `max_rows` and `failed_max_rows` only when
 enabled; Markdown includes the maximum and an explicit failure section when
 it is exceeded. Previous JSON/Markdown output stays unchanged by default.
 
+## Public API group-ranking limit
+
+The Python `build_brief(rows, required, group=..., top_n=N)` API accepts only a
+non-negative integer for `top_n`. Unlike an accidental boolean or a fractional
+value, valid `top_n=0` suppresses the displayed group list while retaining all
+row counts, missing-field checks and concentration metrics. Invalid types are
+rejected with a clear `ValueError`, including when no `group` is selected.
+The CLI's `--top` option already parses integers, and its behavior is unchanged.
+
 ## Install and run
 
 Python 3.10 or newer. No third-party packages. From a checkout:
