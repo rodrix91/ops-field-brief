@@ -46,9 +46,9 @@ class AutonomousAgentTests(unittest.TestCase):
         with patch.object(agent.urllib.request, "urlopen") as urlopen:
             for payload in malformed:
                 with self.subTest(payload=payload):
-                    urlopen.return_value.__enter__.return_value.read.return_value = (
-                        json.dumps(payload).encode("utf-8")
-                    )
+                    urlopen.return_value.__enter__.return_value.read.return_value = json.dumps(
+                        payload
+                    ).encode("utf-8")
                     self.assertIsNone(agent.query_gemini_api("Review", "test-key"))
 
     def test_gemini_selects_first_nonempty_text_from_mixed_parts(self):
