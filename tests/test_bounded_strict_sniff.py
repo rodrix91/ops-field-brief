@@ -108,9 +108,16 @@ class BoundedStrictSniffTests(unittest.TestCase):
             )
             result = subprocess.run(
                 [
-                    sys.executable, "-m", "ops_field_brief", str(path),
-                    "--required", "id,buyer", "--delimiter", "auto",
-                    "--strict-csv", "--json",
+                    sys.executable,
+                    "-m",
+                    "ops_field_brief",
+                    str(path),
+                    "--required",
+                    "id,buyer",
+                    "--delimiter",
+                    "auto",
+                    "--strict-csv",
+                    "--json",
                 ],
                 cwd=ROOT,
                 env={**os.environ, "PYTHONPATH": str(ROOT / "src")},
