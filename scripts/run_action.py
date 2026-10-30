@@ -140,13 +140,23 @@ def _has_valid_markdown_report(text: str, exit_code: int) -> bool:
     return has_failure_section == (exit_code == 1)
 
 
+def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    """Reject repeated report keys, including those inside field and group objects."""
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate JSON object key")
+        result[key] = value
+    return result
+
+
 def _has_valid_report(text: str, *, is_json: bool, exit_code: int = 0) -> bool:
     """Reject missing, malformed and self-contradictory action reports."""
     if not text.strip():
         return False
     if is_json:
         try:
-            report = json.loads(text)
+            report = json.loads(text, object_pairs_hook=_unique_json_object)
         except ValueError:
             return False
         if not isinstance(report, dict):
