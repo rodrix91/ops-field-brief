@@ -38,7 +38,7 @@ class QuotedExcelSeparatorTests(unittest.TestCase):
     def test_near_misses_remain_data_not_directives(self) -> None:
         for text in (
             '"sep=;x\nid;buyer',
-            'sep=;xx\nid;buyer',
+            "sep=;xx\nid;buyer",
             '"sep=;;"\nid;buyer',
             '"sep=;"extra\nid;buyer',
             'sep=;"\nid;buyer',
