@@ -130,6 +130,37 @@ class AutonomousAgentTests(unittest.TestCase):
             ).encode("utf-8")
             self.assertEqual(agent.query_gemini_api("Review", "test-key"), "Useful response")
 
+    def test_gemini_uses_later_candidate_if_earlier_one_is_unusable(self):
+        response = {
+            "candidates": [
+                None,
+                {},
+                {"content": {"parts": None}},
+                {"content": {"parts": [{"text": "  "}, {"text": 42}]}},
+                {"content": {"parts": [{"text": "Actual assessment"}]}},
+                {"content": {"parts": [{"text": "Later assessment"}]}},
+            ]
+        }
+        with patch.object(agent.urllib.request, "urlopen") as urlopen:
+            urlopen.return_value.__enter__.return_value.read.return_value = json.dumps(
+                response
+            ).encode("utf-8")
+            self.assertEqual(agent.query_gemini_api("Review", "test-key"), "Actual assessment")
+
+    def test_gemini_keeps_first_valid_candidate_and_rejects_all_invalid(self):
+        examples = (
+            ({"candidates": [{"content": {"parts": [{"text": "First"}]}},
+                             {"content": {"parts": [{"text": "Second"}]}}]}, "First"),
+            ({"candidates": [None, {}, {"content": {"parts": ["nothing", {"text": 1}]}}]}, None),
+        )
+        with patch.object(agent.urllib.request, "urlopen") as urlopen:
+            for payload, expected in examples:
+                with self.subTest(expected=expected):
+                    urlopen.return_value.__enter__.return_value.read.return_value = json.dumps(
+                        payload
+                    ).encode("utf-8")
+                    self.assertEqual(agent.query_gemini_api("Review", "test-key"), expected)
+
     def test_invalid_gemini_utf8_does_not_interrupt_local_audit(self):
         secret = "test-private-api-key"
         responses = (b"\xff", b'{"candidates": [\xe2\x82]}')
