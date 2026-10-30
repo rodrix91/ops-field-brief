@@ -50,6 +50,24 @@ class ActionVerifiedReportTests(unittest.TestCase):
                     accepted,
                 )
 
+    def test_json_report_rejects_duplicate_keys_at_every_depth(self) -> None:
+        clean = self._report()
+        for marker in (
+            '"rows": 1',
+            '"name": "id"',
+            '"filled": 1',
+            '"failed_duplicates": false',
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, clean)
+                corrupted = clean.replace(marker, marker + ", " + marker, 1)
+                self.assertFalse(
+                    run_action._has_valid_report(corrupted, is_json=True, exit_code=0)
+                )
+        # A late conflicting value must not be allowed to overwrite a measured result.
+        overwritten = clean.replace('"rows": 1', '"rows": 999, "rows": 1', 1)
+        self.assertFalse(run_action._has_valid_report(overwritten, is_json=True))
+
     def test_markdown_report_requires_structural_measurements(self) -> None:
         source = render_markdown(build_brief([{"id": "A"}], ["id"]))
         for corrupted in (
@@ -218,7 +236,9 @@ class ActionVerifiedReportTests(unittest.TestCase):
         failed = self._report(failing=True)
         good_md = render_markdown(build_brief([{"id": "A"}], ["id"]))
         bad_md = render_markdown(build_brief([{"id": ""}], ["id"]))
+        duplicate_json = good.replace('"rows": 1', '"rows": 1, "rows": 1', 1)
         scenarios = (
+            (0, duplicate_json, "--json", 3, False),
             (0, "", "", 3, False),
             (0, "   \n", "", 3, False),
             (0, "{not json", "--json", 3, False),
