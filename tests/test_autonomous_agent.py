@@ -154,9 +154,7 @@ class AutonomousAgentTests(unittest.TestCase):
                 {"content": {"parts": [{"text": "Second"}]}},
             ]
         }
-        all_invalid = {
-            "candidates": [None, {}, {"content": {"parts": ["nothing", {"text": 1}]}}]
-        }
+        all_invalid = {"candidates": [None, {}, {"content": {"parts": ["nothing", {"text": 1}]}}]}
         with patch.object(agent.urllib.request, "urlopen") as urlopen:
             for payload, expected in ((first, "First"), (all_invalid, None)):
                 with self.subTest(expected=expected):
