@@ -19,8 +19,11 @@ from ops_field_brief.validation import validate_csv_structure
 ROOT = Path(__file__).resolve().parents[1]
 
 
-class _BoundedReader(io.StringIO):
-    """A file that permits buffered sniffing but rejects read-to-EOF."""
+class _BoundedReader(io.TextIOWrapper):
+    """Replicate Path.open(newline="") including legacy bare-CR line boundaries."""
+
+    def __init__(self, source: str) -> None:
+        super().__init__(io.BytesIO(source.encode("utf-8")), encoding="utf-8", newline="")
 
     def read(self, size: int = -1) -> str:
         if size < 0:
