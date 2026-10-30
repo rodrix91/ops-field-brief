@@ -34,7 +34,9 @@ class _BoundedReader(io.TextIOWrapper):
 class BoundedStrictSniffTests(unittest.TestCase):
     def test_only_trim_after_two_complete_physical_lines(self) -> None:
         self.assertEqual(_complete_sniff_records("no newline"), "no newline")
-        self.assertEqual(_complete_sniff_records("id,buyer\nA1,unfinished"), "id,buyer\nA1,unfinished")
+        self.assertEqual(
+            _complete_sniff_records("id,buyer\nA1,unfinished"), "id,buyer\nA1,unfinished"
+        )
         self.assertEqual(
             _complete_sniff_records("id,buyer\rA1,Ana\rA2,unfinished"),
             "id,buyer\rA1,Ana\r",
