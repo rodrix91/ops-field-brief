@@ -7,7 +7,6 @@ import unittest
 
 from ops_field_brief.brief import build_brief
 
-
 ROWS = [
     {"shipment": "S1", "buyer": "Andes"},
     {"shipment": "S2", "buyer": "Paz"},
