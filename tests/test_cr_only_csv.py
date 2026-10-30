@@ -160,7 +160,7 @@ class CarriageReturnCsvTests(unittest.TestCase):
         )
 
     def test_cr_only_excel_hint_lookalikes_are_not_directives(self) -> None:
-        for text in ("SEP=;\rid;buyer", "sep=;extra\rid;buyer", "sep=: \rid:buyer"):
+        for text in ("sép=;\rid;buyer", "sep=;extra\rid;buyer", "sep=: \rid:buyer"):
             with self.subTest(text=text):
                 self.assertIsNone(_excel_sep_directive(text))
 

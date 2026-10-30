@@ -679,7 +679,7 @@ def _excel_sep_directive(text: str) -> tuple[str, str] | None:
     )
     first = text[:end]
     ending_width = 2 if text[end : end + 2] == "\r\n" else int(end < len(text))
-    if len(first) == 5 and first.startswith("sep=") and first[-1] in ",;\t|":
+    if len(first) == 5 and first[:4].lower() == "sep=" and first[-1] in ",;\t|":
         return first[-1], text[end + ending_width :]
     return None
 
