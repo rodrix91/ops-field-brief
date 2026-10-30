@@ -54,6 +54,19 @@ The hint is recognized **only** in auto mode; an explicitly chosen delimiter
 keeps its previous behavior. Similar-looking data lines are not treated as
 directives. No output schema or gate threshold changes.
 
+## Bounded auto-delimiter sniffing in strict mode
+
+For `--delimiter auto --strict-csv`, the file reader selects a delimiter from
+complete CSV records inside the initial 8 KiB sample when an unquoted row
+crosses the sample boundary. It no longer reads the entire remaining file into
+one large string simply because the final sampled record is incomplete.
+The strict reader still rejects malformed quoted fields, and
+`--strict-csv` also rejects ragged rows and ambiguous headers. Ambiguous
+separators continue to require an explicit `--delimiter`. Existing
+permissive mode, one-column detection and Excel `sep=` handling are unchanged.
+This is an input-memory improvement, not a guarantee of constant memory for
+the resulting report: the analyzer still materializes the parsed CSV rows.
+
 ## Visible hidden-format characters in Markdown
 
 Operational CSV labels occasionally contain invisible format characters from
