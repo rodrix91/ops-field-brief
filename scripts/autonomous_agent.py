@@ -78,11 +78,27 @@ def query_gemini_api(prompt: str, api_key: str) -> str | None:
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
             body = json.loads(resp.read().decode("utf-8"))
-            candidates = body.get("candidates", [])
-            if candidates:
-                parts = candidates[0].get("content", {}).get("parts", [])
-                if parts:
-                    return parts[0].get("text", "")
+            # API responses are untrusted: blocked, partial, and non-text
+            # responses should not interrupt an otherwise successful audit.
+            if not isinstance(body, dict):
+                return None
+            candidates = body.get("candidates")
+            if not isinstance(candidates, list) or not candidates:
+                return None
+            candidate = candidates[0]
+            if not isinstance(candidate, dict):
+                return None
+            content = candidate.get("content")
+            if not isinstance(content, dict):
+                return None
+            parts = content.get("parts")
+            if not isinstance(parts, list):
+                return None
+            for part in parts:
+                if isinstance(part, dict):
+                    text = part.get("text")
+                    if isinstance(text, str) and text.strip():
+                        return text
     except (urllib.error.URLError, TimeoutError, KeyError, json.JSONDecodeError) as err:
         # Do not disclose credentials if a transport exception includes them.
         detail = str(err).replace(api_key, "[REDACTED]") if api_key else str(err)
