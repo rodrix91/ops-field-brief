@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import urllib.error
@@ -32,7 +33,14 @@ def run_tests() -> tuple[bool, str]:
         check=False,
     )
     output = result.stdout + "\n" + result.stderr
-    return (result.returncode == 0, output.strip())
+    # unittest exits with code zero even when discovery finds no tests.
+    # Parse only its stderr summary, not arbitrary output from the tests.
+    counts = re.findall(r"(?m)^Ran ([0-9]+) tests? in [0-9.]+s$", result.stderr)
+    if result.returncode != 0:
+        return False, output.strip()
+    if not counts or int(counts[-1]) == 0:
+        return False, (output + "\nNo unittest test cases were executed.").strip()
+    return True, output.strip()
 
 
 def audit_repository() -> dict:
@@ -43,7 +51,8 @@ def audit_repository() -> dict:
     changelog_path = ROOT / "CHANGELOG.md"
 
     py_sources = list(src_dir.glob("*.py"))
-    test_files = list(tests_dir.glob("*.py"))
+    # Match unittest discover's default test*.py pattern; ignore helpers.
+    test_files = list(tests_dir.glob("test*.py"))
 
     has_readme = readme_path.is_file()
     has_changelog = changelog_path.is_file()
