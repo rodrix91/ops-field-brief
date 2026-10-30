@@ -151,7 +151,7 @@ def main(argv: list[str] | None = None) -> int:
     if not audit["changelog_present"] or audit["changelog_characters"] == 0:
         problems.append("CHANGELOG.md is absent or empty")
     if problems:
-        sys.stderr.write("Repository audit failed: " + "; ".join(problems) + "\\n")
+        sys.stderr.write("Repository audit failed: " + "; ".join(problems) + "\n")
         return 1
 
     # 3. External assessment is opt-in twice: explicit flag + API key.
