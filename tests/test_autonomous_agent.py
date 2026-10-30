@@ -30,6 +30,40 @@ class AutonomousAgentTests(unittest.TestCase):
         )
         self.assertEqual(urlopen.call_args.kwargs["timeout"], 30)
 
+    def test_gemini_malformed_response_shapes_are_ignored(self):
+        malformed = (
+            None,
+            [],
+            "not an object",
+            {},
+            {"candidates": {}},
+            {"candidates": [None]},
+            {"candidates": [{"content": None}]},
+            {"candidates": [{"content": {"parts": None}}]},
+            {"candidates": [{"content": {"parts": [None, {"text": 3}]}}]},
+            {"candidates": [{"content": {"parts": [{"text": "   "}]}}]},
+        )
+        with patch.object(agent.urllib.request, "urlopen") as urlopen:
+            for payload in malformed:
+                with self.subTest(payload=payload):
+                    urlopen.return_value.__enter__.return_value.read.return_value = (
+                        json.dumps(payload).encode("utf-8")
+                    )
+                    self.assertIsNone(agent.query_gemini_api("Review", "test-key"))
+
+    def test_gemini_selects_first_nonempty_text_from_mixed_parts(self):
+        payload = {
+            "candidates": [
+                {"content": {"parts": [None, {"text": ""}, {"thought": True},
+                                        {"text": "Useful response"}, {"text": "Later"}]}}
+            ]
+        }
+        with patch.object(agent.urllib.request, "urlopen") as urlopen:
+            urlopen.return_value.__enter__.return_value.read.return_value = json.dumps(
+                payload
+            ).encode("utf-8")
+            self.assertEqual(agent.query_gemini_api("Review", "test-key"), "Useful response")
+
     def test_gemini_error_does_not_print_secret(self):
         secret = "credential-do-not-log"
         error = agent.urllib.error.URLError(f"diagnostic contained {secret}")
