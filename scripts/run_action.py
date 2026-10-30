@@ -150,13 +150,31 @@ def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
     return result
 
 
+def _reject_nonfinite_json(value: str) -> None:
+    """Refuse nonstandard NaN and Infinity JSON constants at any depth."""
+    raise ValueError(f"nonstandard JSON number: {value}")
+
+
+def _finite_json_float(value: str) -> float:
+    """Refuse exponent overflow that would become infinite in Python."""
+    number = float(value)
+    if not math.isfinite(number):
+        raise ValueError("nonfinite JSON number")
+    return number
+
+
 def _has_valid_report(text: str, *, is_json: bool, exit_code: int = 0) -> bool:
     """Reject missing, malformed and self-contradictory action reports."""
     if not text.strip():
         return False
     if is_json:
         try:
-            report = json.loads(text, object_pairs_hook=_unique_json_object)
+            report = json.loads(
+                text,
+                object_pairs_hook=_unique_json_object,
+                parse_constant=_reject_nonfinite_json,
+                parse_float=_finite_json_float,
+            )
         except ValueError:
             return False
         if not isinstance(report, dict):
