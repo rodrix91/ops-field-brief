@@ -64,11 +64,15 @@ def audit_repository() -> dict:
 
 def query_gemini_api(prompt: str, api_key: str) -> str | None:
     """Queries Google Gemini API using only the Python standard library."""
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+    # Keep credentials out of URLs, which may be recorded in HTTP and error logs.
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
-        url, data=data, headers={"Content-Type": "application/json"}, method="POST"
+        url,
+        data=data,
+        headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
+        method="POST",
     )
 
     try:
