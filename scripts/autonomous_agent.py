@@ -94,20 +94,20 @@ def query_gemini_api(prompt: str, api_key: str) -> str | None:
             candidates = body.get("candidates")
             if not isinstance(candidates, list) or not candidates:
                 return None
-            candidate = candidates[0]
-            if not isinstance(candidate, dict):
-                return None
-            content = candidate.get("content")
-            if not isinstance(content, dict):
-                return None
-            parts = content.get("parts")
-            if not isinstance(parts, list):
-                return None
-            for part in parts:
-                if isinstance(part, dict):
-                    text = part.get("text")
-                    if isinstance(text, str) and text.strip():
-                        return text
+            for candidate in candidates:
+                if not isinstance(candidate, dict):
+                    continue
+                content = candidate.get("content")
+                if not isinstance(content, dict):
+                    continue
+                parts = content.get("parts")
+                if not isinstance(parts, list):
+                    continue
+                for part in parts:
+                    if isinstance(part, dict):
+                        text = part.get("text")
+                        if isinstance(text, str) and text.strip():
+                            return text
     except (
         urllib.error.URLError,
         TimeoutError,
