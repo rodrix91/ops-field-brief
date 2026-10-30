@@ -61,9 +61,7 @@ class ActionVerifiedReportTests(unittest.TestCase):
             with self.subTest(marker=marker):
                 self.assertIn(marker, clean)
                 corrupted = clean.replace(marker, marker + ", " + marker, 1)
-                self.assertFalse(
-                    run_action._has_valid_report(corrupted, is_json=True, exit_code=0)
-                )
+                self.assertFalse(run_action._has_valid_report(corrupted, is_json=True, exit_code=0))
         # A late conflicting value must not be allowed to overwrite a measured result.
         overwritten = clean.replace('"rows": 1', '"rows": 999, "rows": 1', 1)
         self.assertFalse(run_action._has_valid_report(overwritten, is_json=True))
