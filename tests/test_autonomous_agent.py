@@ -79,7 +79,7 @@ class AutonomousAgentTests(unittest.TestCase):
 
     def test_invalid_gemini_utf8_does_not_interrupt_local_audit(self):
         secret = "test-private-api-key"
-        responses = (b"\\xff", b'{"candidates": [\\xe2\\x82]}')
+        responses = (b"\xff", b'{"candidates": [\xe2\x82]}')
         for body in responses:
             with self.subTest(body=body):
                 errors = io.StringIO()
