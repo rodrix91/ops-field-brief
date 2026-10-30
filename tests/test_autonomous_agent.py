@@ -9,6 +9,17 @@ from scripts import autonomous_agent as agent
 
 
 class AutonomousAgentTests(unittest.TestCase):
+    @staticmethod
+    def healthy_audit():
+        return {
+            "source_files": ["brief.py"],
+            "test_files": ["test_brief.py"],
+            "readme_present": True,
+            "readme_characters": 200,
+            "changelog_present": True,
+            "changelog_characters": 40,
+        }
+
     def test_gemini_authenticates_in_header_without_exposing_key_in_url(self):
         secret = "example-secret-should-not-appear-in-url"
         body = b'{"candidates":[{"content":{"parts":[{"text":"assessment"}]}}]}'
@@ -78,8 +89,50 @@ class AutonomousAgentTests(unittest.TestCase):
         self.assertNotIn(secret, output.getvalue())
         self.assertIn("[REDACTED]", output.getvalue())
 
+    def test_incomplete_repository_fails_audit_before_external_api(self):
+        cases = (
+            ("no Python source modules", {"source_files": []}),
+            ("no Python test modules", {"test_files": []}),
+            ("README.md is absent or empty", {"readme_present": False}),
+            ("README.md is absent or empty", {"readme_characters": 0}),
+            ("CHANGELOG.md is absent or empty", {"changelog_present": False}),
+            ("CHANGELOG.md is absent or empty", {"changelog_characters": 0}),
+        )
+        for expected, change in cases:
+            with self.subTest(expected=expected, change=change):
+                audit = self.healthy_audit()
+                audit.update(change)
+                errors = io.StringIO()
+                with (
+                    patch.object(agent, "run_tests", return_value=(True, "OK")),
+                    patch.object(agent, "audit_repository", return_value=audit),
+                    patch.object(agent, "query_gemini_api") as query,
+                    patch.dict(os.environ, {"GEMINI_API_KEY": "dummy-key"}, clear=True),
+                    redirect_stderr(errors),
+                ):
+                    self.assertEqual(agent.main(["--allow-external-api"]), 1)
+                self.assertIn("Repository audit failed:", errors.getvalue())
+                self.assertIn(expected, errors.getvalue())
+                query.assert_not_called()
+
+    def test_multiple_missing_components_are_reported_together(self):
+        audit = self.healthy_audit()
+        audit.update({"source_files": [], "test_files": [], "readme_present": False})
+        errors = io.StringIO()
+        with (
+            patch.object(agent, "run_tests", return_value=(True, "OK")),
+            patch.object(agent, "audit_repository", return_value=audit),
+            patch.object(agent, "query_gemini_api") as query,
+            redirect_stderr(errors),
+        ):
+            self.assertEqual(agent.main([]), 1)
+        self.assertIn("no Python source modules", errors.getvalue())
+        self.assertIn("no Python test modules", errors.getvalue())
+        self.assertIn("README.md is absent or empty", errors.getvalue())
+        query.assert_not_called()
+
     def test_api_key_alone_keeps_audit_local_only(self):
-        audit = {"source_files": ["brief.py"], "test_files": ["test_brief.py"]}
+        audit = self.healthy_audit()
         with (
             patch.object(agent, "run_tests", return_value=(True, "OK")),
             patch.object(agent, "audit_repository", return_value=audit),
@@ -90,7 +143,7 @@ class AutonomousAgentTests(unittest.TestCase):
         query.assert_not_called()
 
     def test_external_flag_without_key_keeps_audit_local_only(self):
-        audit = {"source_files": ["brief.py"], "test_files": ["test_brief.py"]}
+        audit = self.healthy_audit()
         with (
             patch.object(agent, "run_tests", return_value=(True, "OK")),
             patch.object(agent, "audit_repository", return_value=audit),
@@ -101,7 +154,7 @@ class AutonomousAgentTests(unittest.TestCase):
         query.assert_not_called()
 
     def test_external_api_requires_flag_and_key(self):
-        audit = {"source_files": ["brief.py"], "test_files": ["test_brief.py"]}
+        audit = self.healthy_audit()
         with (
             patch.object(agent, "run_tests", return_value=(True, "OK")),
             patch.object(agent, "audit_repository", return_value=audit),

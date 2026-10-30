@@ -139,6 +139,20 @@ def main(argv: list[str] | None = None) -> int:
         f"Repository status: {len(audit['source_files'])} sources, "
         f"{len(audit['test_files'])} test modules."
     )
+    # The scheduled job must not report success for a partial checkout or a
+    # repository that has lost the documented entry points and test modules.
+    problems = []
+    if not audit["source_files"]:
+        problems.append("no Python source modules")
+    if not audit["test_files"]:
+        problems.append("no Python test modules")
+    if not audit["readme_present"] or audit["readme_characters"] == 0:
+        problems.append("README.md is absent or empty")
+    if not audit["changelog_present"] or audit["changelog_characters"] == 0:
+        problems.append("CHANGELOG.md is absent or empty")
+    if problems:
+        sys.stderr.write("Repository audit failed: " + "; ".join(problems) + "\n")
+        return 1
 
     # 3. External assessment is opt-in twice: explicit flag + API key.
     api_key = os.getenv("GEMINI_API_KEY")
