@@ -1,11 +1,47 @@
+import io
+import json
 import os
 import unittest
+from contextlib import redirect_stderr
 from unittest.mock import patch
 
 from scripts import autonomous_agent as agent
 
 
 class AutonomousAgentTests(unittest.TestCase):
+    def test_gemini_authenticates_in_header_without_exposing_key_in_url(self):
+        secret = "example-secret-should-not-appear-in-url"
+        body = b'{"candidates":[{"content":{"parts":[{"text":"assessment"}]}}]}'
+        with patch.object(agent.urllib.request, "urlopen") as urlopen:
+            urlopen.return_value.__enter__.return_value.read.return_value = body
+            self.assertEqual(agent.query_gemini_api("Review the audit", secret), "assessment")
+        request = urlopen.call_args.args[0]
+        self.assertEqual(
+            request.full_url,
+            "https://generativelanguage.googleapis.com/v1beta/models/"
+            "gemini-2.5-flash:generateContent",
+        )
+        self.assertEqual(request.get_method(), "POST")
+        self.assertEqual(request.get_header("X-goog-api-key"), secret)
+        self.assertNotIn(secret, request.full_url)
+        self.assertEqual(
+            json.loads(request.data),
+            {"contents": [{"parts": [{"text": "Review the audit"}]}]},
+        )
+        self.assertEqual(urlopen.call_args.kwargs["timeout"], 30)
+
+    def test_gemini_error_does_not_print_secret(self):
+        secret = "credential-do-not-log"
+        error = agent.urllib.error.URLError(f"diagnostic contained {secret}")
+        output = io.StringIO()
+        with (
+            patch.object(agent.urllib.request, "urlopen", side_effect=error),
+            redirect_stderr(output),
+        ):
+            self.assertIsNone(agent.query_gemini_api("Review", secret))
+        self.assertNotIn(secret, output.getvalue())
+        self.assertIn("[REDACTED]", output.getvalue())
+
     def test_api_key_alone_keeps_audit_local_only(self):
         audit = {"source_files": ["brief.py"], "test_files": ["test_brief.py"]}
         with (
