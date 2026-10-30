@@ -148,13 +148,17 @@ class AutonomousAgentTests(unittest.TestCase):
             self.assertEqual(agent.query_gemini_api("Review", "test-key"), "Actual assessment")
 
     def test_gemini_keeps_first_valid_candidate_and_rejects_all_invalid(self):
-        examples = (
-            ({"candidates": [{"content": {"parts": [{"text": "First"}]}},
-                             {"content": {"parts": [{"text": "Second"}]}}]}, "First"),
-            ({"candidates": [None, {}, {"content": {"parts": ["nothing", {"text": 1}]}}]}, None),
-        )
+        first = {
+            "candidates": [
+                {"content": {"parts": [{"text": "First"}]}},
+                {"content": {"parts": [{"text": "Second"}]}},
+            ]
+        }
+        all_invalid = {
+            "candidates": [None, {}, {"content": {"parts": ["nothing", {"text": 1}]}}]
+        }
         with patch.object(agent.urllib.request, "urlopen") as urlopen:
-            for payload, expected in examples:
+            for payload, expected in ((first, "First"), (all_invalid, None)):
                 with self.subTest(expected=expected):
                     urlopen.return_value.__enter__.return_value.read.return_value = json.dumps(
                         payload
