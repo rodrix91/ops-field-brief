@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Validate that the public `build_brief(top_n=...)` group-ranking limit is an integer and not a boolean. Reject float, string, `None` and non-finite inputs explicitly rather than silently interpreting `True` as one group or raising a slicing `TypeError`. Preserve the existing negative-integer message, `top_n=0` and all operational metrics. Add API regression tests; keep CLI parsing and package version unchanged.
+
 - Bound auto-delimiter detection for strict CSV file inputs when an 8 KiB sniff window stops inside a long unquoted record. Detect from completed records instead of reading the entire remaining file into one string; preserve fallback on incomplete quoted samples, ambiguous delimiter rejection, permissive defaults, Excel `sep=` directives and strict row-shape/quoting validation. Cover comma, semicolon, pipe, tab, LF, CRLF, CR, stdin, file, source lines and real CLI behavior.
 
 - Verify that the PEP 561 `py.typed` marker is present in a freshly installed wheel on Linux, Windows and macOS, not just in the Ubuntu packaging job. Keep package metadata and the real installed CLI/JSON report smoke tests in place. No release, version or runtime changes.

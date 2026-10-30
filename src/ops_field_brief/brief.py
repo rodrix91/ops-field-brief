@@ -333,6 +333,8 @@ def build_brief(
 ) -> Brief:
     if not 0 <= max_missing <= 1:
         raise ValueError("max_missing must be between 0 and 1")
+    if isinstance(top_n, bool) or not isinstance(top_n, int):
+        raise ValueError("top must be a non-negative integer")
     if top_n < 0:
         raise ValueError("top must be 0 or greater")
     if max_duplicates is not None and max_duplicates < 0:
