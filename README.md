@@ -30,10 +30,11 @@ Operational extracts (shipments, orders, inventory movements) often need a fast 
 
 Some Excel CSV exports place a standalone `sep=;` line before the real
 header. With `--delimiter auto`, the reader honors an **exact** first-line
-`sep=;`, `SEP=;` or `Sep=;` (also comma, pipe or tab separator hints) and analyzes the
-following header instead of treating the hint as a column. Only the four ASCII
-letters of `sep=` are case-insensitive; the directive still needs exactly one
-supported separator character and no extra text. This works with
+`sep=;`, `SEP=;`, `Sep=;` or the fully quoted `"sep=;"` (also comma, pipe
+or tab hints) and analyzes the following header instead of treating the hint
+as a column. Only the four ASCII letters of `sep=` are case-insensitive. An
+optional *matching pair of double quotes* must wrap the whole declaration;
+it still needs exactly one supported separator character and no extra text. This works with
 UTF-8 BOM, CRLF, legacy CR-only line endings, gzip exports and stdin. CR-only records are also supported when an **explicit** delimiter is selected for stdin; `sep=` directives are still recognized **only** with `--delimiter auto`:
 
 A **synthetic, checked-in Excel export** is available at

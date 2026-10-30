@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Accept exact fully double-quoted Excel separator lines (`"sep=;"`, `"SEP=|"`) in auto-delimited CSV input, matching the companion `csv-quality-report` reader. Preserve ASCII case-insensitive unquoted hints, UTF-8 BOM, gzip and stdin parsing, physical line-number diagnostics, and explicit-delimiter behavior; reject malformed or partially quoted lookalikes. Add source-level and real CLI regression tests.
+
 - Recognize ASCII case-insensitive Excel `sep=` directives (`SEP=;`, `Sep=|`, `sEp=,`) in auto-delimited CSV input, including UTF-8 BOM, gzip, stdin and legacy line endings. Previously such exports could treat the directive as a header, silently corrupting operational checks. Preserve exact single-character delimiter requirements, source-line numbers, malformed lookalike rejection and explicit-delimiter behavior; add reader and CLI regression tests.
 
 - Validate that the public `build_brief(top_n=...)` group-ranking limit is an integer and not a boolean. Reject float, string, `None` and non-finite inputs explicitly rather than silently interpreting `True` as one group or raising a slicing `TypeError`. Preserve the existing negative-integer message, `top_n=0` and all operational metrics. Add API regression tests; keep CLI parsing and package version unchanged.
