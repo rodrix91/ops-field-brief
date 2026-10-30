@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Recognize ASCII case-insensitive Excel `sep=` directives (`SEP=;`, `Sep=|`, `sEp=,`) in auto-delimited CSV input, including UTF-8 BOM, gzip, stdin and legacy line endings. Previously such exports could treat the directive as a header, silently corrupting operational checks. Preserve exact single-character delimiter requirements, source-line numbers, malformed lookalike rejection and explicit-delimiter behavior; add reader and CLI regression tests.
+
 - Validate that the public `build_brief(top_n=...)` group-ranking limit is an integer and not a boolean. Reject float, string, `None` and non-finite inputs explicitly rather than silently interpreting `True` as one group or raising a slicing `TypeError`. Preserve the existing negative-integer message, `top_n=0` and all operational metrics. Add API regression tests; keep CLI parsing and package version unchanged.
 
 - Bound auto-delimiter detection for strict CSV file inputs when an 8 KiB sniff window stops inside a long unquoted record. Detect from completed records instead of reading the entire remaining file into one string; preserve fallback on incomplete quoted samples, ambiguous delimiter rejection, permissive defaults, Excel `sep=` directives and strict row-shape/quoting validation. Cover comma, semicolon, pipe, tab, LF, CRLF, CR, stdin, file, source lines and real CLI behavior.
