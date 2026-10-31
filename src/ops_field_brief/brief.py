@@ -15,6 +15,7 @@ from collections import Counter
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 from unicodedata import normalize
 
 MISSING = {"", "na", "n/a", "null", "none", "s/d", "s.d.", "n/d", "n.d.", "-"}
@@ -305,7 +306,7 @@ def _is_missing(value: str) -> bool:
     return _clean(value).lower() in MISSING
 
 
-def _valid_share(value: object) -> bool:
+def _valid_share(value: Any) -> bool:
     """Accept comparable shares in [0, 1], but never booleans or invalid values.
 
     Public Python callers bypass argparse's float conversion. Preserve existing
