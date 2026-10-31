@@ -52,17 +52,32 @@ class SingleColumnAutoDelimiterTests(unittest.TestCase):
             source = Path(directory) / "buyers.csv"
             source.write_text("buyer\nAndes\n\nPaz\n", encoding="utf-8")
             command = [
-                sys.executable, "-m", "ops_field_brief",
-                str(source), "--required", "buyer", "--delimiter", "auto", "--json",
+                sys.executable,
+                "-m",
+                "ops_field_brief",
+                str(source),
+                "--required",
+                "buyer",
+                "--delimiter",
+                "auto",
+                "--json",
             ]
             env = {**os.environ, "PYTHONPATH": str(ROOT / "src")}
             strict = subprocess.run(
-                [*command, "--strict-csv"], cwd=ROOT, env=env,
-                capture_output=True, text=True, check=False,
+                [*command, "--strict-csv"],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
             )
             permissive = subprocess.run(
-                command, cwd=ROOT, env=env,
-                capture_output=True, text=True, check=False,
+                command,
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
             )
         self.assertEqual(strict.returncode, 2)
         self.assertIn("blank CSV data row at source line 3", strict.stderr)
