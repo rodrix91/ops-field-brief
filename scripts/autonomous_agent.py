@@ -180,7 +180,12 @@ def main(argv: list[str] | None = None) -> int:
         )
         feedback = query_gemini_api(prompt, api_key)
         if feedback:
-            print(f"Gemini Assessment:\n{feedback.strip()}\n")
+            # Treat model output as untrusted data, never as terminal instructions.
+            # JSON-escaping keeps newlines, ANSI escapes and GitHub Actions
+            # workflow commands inert in a single log line. Never echo a key
+            # that the remote service might include in its response.
+            safe_feedback = feedback.strip().replace(api_key, "[REDACTED]")[:4000]
+            print(f"Gemini Assessment (escaped, max 4000 characters): {json.dumps(safe_feedback)}")
         else:
             print("Gemini API call completed without text candidate.")
     elif api_key:
