@@ -15,6 +15,7 @@ from collections import Counter
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 from unicodedata import normalize
 
 MISSING = {"", "na", "n/a", "null", "none", "s/d", "s.d.", "n/d", "n.d.", "-"}
@@ -305,6 +306,20 @@ def _is_missing(value: str) -> bool:
     return _clean(value).lower() in MISSING
 
 
+def _valid_share(value: Any) -> bool:
+    """Accept comparable shares in [0, 1], but never booleans or invalid values.
+
+    Public Python callers bypass argparse's float conversion. Preserve existing
+    numeric comparisons while reporting invalid types as configuration errors.
+    """
+    if isinstance(value, bool):
+        return False
+    try:
+        return 0 <= value <= 1
+    except (TypeError, ValueError, ArithmeticError):
+        return False
+
+
 def build_brief(
     rows: list[dict[str, str]],
     required: list[str],
@@ -331,7 +346,7 @@ def build_brief(
     min_distinct_keys: int | None = None,
     max_distinct_keys: int | None = None,
 ) -> Brief:
-    if not 0 <= max_missing <= 1:
+    if not _valid_share(max_missing):
         raise ValueError("max_missing must be between 0 and 1")
     if isinstance(top_n, bool) or not isinstance(top_n, int):
         raise ValueError("top must be a non-negative integer")
@@ -368,11 +383,11 @@ def build_brief(
         and min_distinct_keys > max_distinct_keys
     ):
         raise ValueError("min_distinct_keys cannot exceed max_distinct_keys")
-    if max_duplicate_share is not None and not 0 <= max_duplicate_share <= 1:
+    if max_duplicate_share is not None and not _valid_share(max_duplicate_share):
         raise ValueError("max_duplicate_share must be between 0 and 1")
     if max_incomplete_keys is not None and max_incomplete_keys < 0:
         raise ValueError("max_incomplete_keys must be 0 or greater")
-    if max_incomplete_key_share is not None and not 0 <= max_incomplete_key_share <= 1:
+    if max_incomplete_key_share is not None and not _valid_share(max_incomplete_key_share):
         raise ValueError("max_incomplete_key_share must be between 0 and 1")
     if min_rows is not None and min_rows < 0:
         raise ValueError("min_rows must be 0 or greater")
@@ -380,11 +395,11 @@ def build_brief(
         raise ValueError("max_rows must be 0 or greater")
     if min_rows is not None and max_rows is not None and min_rows > max_rows:
         raise ValueError("min_rows cannot exceed max_rows")
-    if max_group_share is not None and not 0 <= max_group_share <= 1:
+    if max_group_share is not None and not _valid_share(max_group_share):
         raise ValueError("max_group_share must be between 0 and 1")
     if max_group_share is not None and not group:
         raise ValueError("max_group_share requires --group")
-    if max_assigned_group_share is not None and not 0 <= max_assigned_group_share <= 1:
+    if max_assigned_group_share is not None and not _valid_share(max_assigned_group_share):
         raise ValueError("max_assigned_group_share must be between 0 and 1")
     if max_assigned_group_share is not None and not group:
         raise ValueError("max_assigned_group_share requires --group")
@@ -402,12 +417,12 @@ def build_brief(
         and min_distinct_groups > max_distinct_groups
     ):
         raise ValueError("min_distinct_groups cannot exceed max_distinct_groups")
-    if max_missing_group_share is not None and not 0 <= max_missing_group_share <= 1:
+    if max_missing_group_share is not None and not _valid_share(max_missing_group_share):
         raise ValueError("max_missing_group_share must be between 0 and 1")
     if max_missing_group_share is not None and not group:
         raise ValueError("max_missing_group_share requires --group")
     overrides = dict(max_missing_columns or {})
-    if any(not 0 <= limit <= 1 for limit in overrides.values()):
+    if any(not _valid_share(limit) for limit in overrides.values()):
         raise ValueError("max_missing_columns shares must be between 0 and 1")
     unknown_overrides = [name for name in overrides if name not in required]
     if unknown_overrides:
