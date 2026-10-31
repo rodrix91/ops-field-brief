@@ -432,6 +432,11 @@ def build_brief(
     if max_missing_group_share is not None and not group:
         raise ValueError("max_missing_group_share requires --group")
     overrides = dict(max_missing_columns or {})
+    # Public Python callers can pass non-string mapping keys. Reject them
+    # before unknown-name diagnostics, which otherwise crash when joining
+    # None, integers or tuples into the list of unknown column names.
+    if any(not isinstance(name, str) for name in overrides):
+        raise ValueError("max_missing_columns field names must be strings")
     if any(not _valid_share(limit) for limit in overrides.values()):
         raise ValueError("max_missing_columns shares must be between 0 and 1")
     unknown_overrides = [name for name in overrides if name not in required]
