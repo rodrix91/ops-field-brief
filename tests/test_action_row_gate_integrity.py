@@ -71,7 +71,9 @@ class ActionOptionalRowGatesTests(unittest.TestCase):
             ("max_rows", "failed_max_rows", 1),
         ):
             valid = self._report(**{name: limit})
-            self.assertTrue(run_action._has_valid_report(json.dumps(valid), is_json=True, exit_code=1))
+            self.assertTrue(
+                run_action._has_valid_report(json.dumps(valid), is_json=True, exit_code=1)
+            )
             for wrong_limit in (None, -1, True, False, 1.0, "2", [], {}):
                 with self.subTest(name=name, limit=wrong_limit):
                     corrupt = dict(valid, **{name: wrong_limit})
@@ -83,7 +85,9 @@ class ActionOptionalRowGatesTests(unittest.TestCase):
 
             passing = self._report(**{name: 2})
             passing[flag] = True
-            self.assertFalse(run_action._has_valid_report(json.dumps(passing), is_json=True, exit_code=1))
+            self.assertFalse(
+                run_action._has_valid_report(json.dumps(passing), is_json=True, exit_code=1)
+            )
 
     def test_impossible_joint_limits_cannot_claim_any_exit_code(self) -> None:
         valid = self._report(min_rows=2, max_rows=2)
