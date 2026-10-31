@@ -89,9 +89,7 @@ class PublicIntegerCountGateTests(unittest.TestCase):
     def test_invalid_counts_have_priority_over_missing_key_or_group(self) -> None:
         for name in COUNT_LIMITS:
             with self.subTest(gate=name):
-                with self.assertRaisesRegex(
-                    ValueError, f"{name} must be a non-negative integer"
-                ):
+                with self.assertRaisesRegex(ValueError, f"{name} must be a non-negative integer"):
                     build_brief([], ["id"], **{name: True})
 
     def test_ordinary_reports_without_limits_keep_original_schema(self) -> None:
