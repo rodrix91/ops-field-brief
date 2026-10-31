@@ -87,7 +87,8 @@ class MissingColumnLimitTests(unittest.TestCase):
         # with '=', spaces, or other punctuation from ordinary CSV headers.
         with self.assertRaisesRegex(ValueError, "required fields: does-not-exist"):
             build_brief(
-                self.rows, ["shipment", "eta"],
+                self.rows,
+                ["shipment", "eta"],
                 max_missing_columns={"does-not-exist": 0.5},
             )
         rows = [{"shipment": "S1", "SLA=met": ""}]
