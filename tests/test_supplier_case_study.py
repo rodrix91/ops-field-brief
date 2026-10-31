@@ -70,7 +70,8 @@ class SyntheticSupplierCaseStudyTests(unittest.TestCase):
         self.assertEqual(report["distinct_groups"], 2)
         self.assertTrue(report["failed_distinct_groups"])
         self.assertFalse(report["failed_rows"])
-        self.assertEqual(dict((item["value"], item["rows"]) for item in report["top"])["andes freight"], 4)
+        groups = {item["value"]: item["rows"] for item in report["top"]}
+        self.assertEqual(groups["andes freight"], 4)
 
     def test_corrected_extract_passes_the_exact_same_policy(self) -> None:
         code, report = run_case("supplier-clean-synthetic.csv")
