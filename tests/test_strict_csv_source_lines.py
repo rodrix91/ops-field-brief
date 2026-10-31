@@ -126,12 +126,22 @@ class StrictCsvSourceLineTests(unittest.TestCase):
         env["PYTHONPATH"] = str(ROOT / "src")
         base = [sys.executable, "-m", "ops_field_brief", "-", "--required", "id,buyer"]
         strict = subprocess.run(
-            [*base, "--strict-csv"], cwd=ROOT, env=env, input=source,
-            capture_output=True, text=True, check=False,
+            [*base, "--strict-csv"],
+            cwd=ROOT,
+            env=env,
+            input=source,
+            capture_output=True,
+            text=True,
+            check=False,
         )
         default = subprocess.run(
-            base, cwd=ROOT, env=env, input=source,
-            capture_output=True, text=True, check=False,
+            base,
+            cwd=ROOT,
+            env=env,
+            input=source,
+            capture_output=True,
+            text=True,
+            check=False,
         )
         self.assertEqual(strict.returncode, 2)
         self.assertIn("blank CSV data row at source line 3", strict.stderr)
