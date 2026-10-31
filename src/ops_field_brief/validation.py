@@ -43,3 +43,9 @@ def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool
             raise ValueError(f"CSV data row {row_number} has more fields than the header{suffix}")
         if any(row.get(name) is None for name in header):
             raise ValueError(f"CSV data row {row_number} has fewer fields than the header{suffix}")
+
+    # Defer this check until after ragged-row validation to preserve the
+    # existing, more specific diagnostics for malformed records.
+    skipped = getattr(rows, "blank_source_lines", ())
+    if skipped:
+        raise ValueError(f"blank CSV data row at source line {skipped[0]}")

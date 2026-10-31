@@ -47,31 +47,43 @@ class SingleColumnAutoDelimiterTests(unittest.TestCase):
         self.assertEqual(rows.fieldnames, ("buyer",))
         self.assertEqual(rows, [{"buyer": "Andes, Norte"}, {"buyer": "Paz|Sur"}])
 
-    def test_cli_file_blank_physical_lines_still_count_actual_rows(self):
+    def test_cli_file_blank_lines_are_strict_errors_but_keep_default_counts(self):
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "buyers.csv"
             source.write_text("buyer\nAndes\n\nPaz\n", encoding="utf-8")
-            completed = subprocess.run(
-                [
-                    sys.executable,
-                    "-m",
-                    "ops_field_brief",
-                    str(source),
-                    "--required",
-                    "buyer",
-                    "--delimiter",
-                    "auto",
-                    "--strict-csv",
-                    "--json",
-                ],
+            command = [
+                sys.executable,
+                "-m",
+                "ops_field_brief",
+                str(source),
+                "--required",
+                "buyer",
+                "--delimiter",
+                "auto",
+                "--json",
+            ]
+            env = {**os.environ, "PYTHONPATH": str(ROOT / "src")}
+            strict = subprocess.run(
+                [*command, "--strict-csv"],
                 cwd=ROOT,
-                env={**os.environ, "PYTHONPATH": str(ROOT / "src")},
+                env=env,
                 capture_output=True,
                 text=True,
                 check=False,
             )
-        self.assertEqual(completed.returncode, 0, completed.stderr)
-        report = json.loads(completed.stdout)
+            permissive = subprocess.run(
+                command,
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(strict.returncode, 2)
+        self.assertIn("blank CSV data row at source line 3", strict.stderr)
+        self.assertEqual(strict.stdout, "")
+        self.assertEqual(permissive.returncode, 0, permissive.stderr)
+        report = json.loads(permissive.stdout)
         self.assertEqual(report["rows"], 2)
         self.assertEqual(report["fields"][0]["filled"], 2)
 

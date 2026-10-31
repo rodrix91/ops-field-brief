@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Make opt-in strict CSV structure validation reject blank physical CSV records that Python's `DictReader` silently skips, with the exact source line for LF, CRLF, CR, gzip and Excel `sep=` exports. Preserve quoted multiline field content, more-specific ragged-row diagnostics and permissive default parsing. Add direct API and CLI regression coverage.
+
 - Validate share-based quality thresholds in the public Python API before processing CSV rows. Reject boolean, nonnumeric, malformed and non-finite values with the existing clear configuration errors instead of silently accepting booleans or raising type exceptions. Preserve valid numeric limits, optional disabled gates, CLI parsing, report formats and existing functionality; add focused regression tests.
 
 - Verify the optional minimum and maximum row-count quality gates in reusable GitHub Action JSON reports. Require each configured nonnegative integer limit and its boolean failure flag to appear together, match the observed row count, and form a satisfiable interval. Reject forged, missing or contradictory indicators while keeping genuine CLI reports and header-only exports valid; add isolated regressions.
