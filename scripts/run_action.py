@@ -286,6 +286,29 @@ def _has_valid_report(text: str, *, is_json: bool, exit_code: int = 0) -> bool:
         ):
             return False
 
+        # Row thresholds are emitted only when configured. Require each
+        # optional limit/flag pair together and check the decision against
+        # the measured row count, including valid zero-row reports.
+        for name, flag, comparison in (
+            ("min_rows", "failed_rows", lambda limit: rows < limit),
+            ("max_rows", "failed_max_rows", lambda limit: rows > limit),
+        ):
+            has_limit = name in report
+            if has_limit != (flag in report):
+                return False
+            if has_limit:
+                limit = report[name]
+                if type(limit) is not int or limit < 0:
+                    return False
+                if failure_flags[flag] != comparison(limit):
+                    return False
+        if (
+            "min_rows" in report
+            and "max_rows" in report
+            and report["min_rows"] > report["max_rows"]
+        ):
+            return False
+
         has_failures = bool(failed_fields) or any(failure_flags.values())
         return has_failures == (exit_code == 1)
     return _has_valid_markdown_report(text, exit_code)
