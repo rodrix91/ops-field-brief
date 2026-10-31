@@ -362,6 +362,23 @@ def build_brief(
         raise ValueError("top must be a non-negative integer")
     if top_n < 0:
         raise ValueError("top must be 0 or greater")
+
+    # Direct Python callers bypass the CLI's column-name parsing. A string
+    # supplied as key_fields otherwise becomes a tuple of characters, while
+    # non-string selections may crash Counter() or unknown-column diagnostics.
+    if not isinstance(required, (list, tuple)) or any(
+        not isinstance(name, str) for name in required
+    ):
+        raise ValueError("required must contain string column names")
+    if key is not None and not isinstance(key, str):
+        raise ValueError("key must be a string column name")
+    if key_fields is not None and (
+        not isinstance(key_fields, (list, tuple))
+        or any(not isinstance(name, str) for name in key_fields)
+    ):
+        raise ValueError("key_fields must contain string column names")
+    if group is not None and not isinstance(group, str):
+        raise ValueError("group must be a string column name")
     # Public Python callers bypass argparse's integer conversion. A boolean
     # silently acts like 0/1, a fraction may change a count threshold, and
     # strings/None-like objects can otherwise raise an opaque TypeError.
