@@ -17,7 +17,9 @@ class PublicColumnNameTypesTests(unittest.TestCase):
         invalid = (None, "id", {"id"}, ["id", None], ["id", []], (42,))
         for value in invalid:
             with self.subTest(required=repr(value)):
-                with self.assertRaisesRegex(ValueError, "required must contain string column names"):
+                with self.assertRaisesRegex(
+                    ValueError, "required must contain string column names"
+                ):
                     build_brief(ROWS, value)
 
     def test_single_key_rejects_non_string_selections(self) -> None:
@@ -30,7 +32,9 @@ class PublicColumnNameTypesTests(unittest.TestCase):
         invalid = ("id", 1, True, {"id"}, ["id", None], ["id", []], (42,))
         for value in invalid:
             with self.subTest(key_fields=repr(value)):
-                with self.assertRaisesRegex(ValueError, "key_fields must contain string column names"):
+                with self.assertRaisesRegex(
+                    ValueError, "key_fields must contain string column names"
+                ):
                     build_brief(ROWS, ["id"], key_fields=value)
 
     def test_group_rejects_non_string_selections(self) -> None:
