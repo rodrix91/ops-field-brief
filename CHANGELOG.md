@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Verify the optional minimum and maximum row-count quality gates in reusable GitHub Action JSON reports. Require each configured nonnegative integer limit and its boolean failure flag to appear together, match the observed row count, and form a satisfiable interval. Reject forged, missing or contradictory indicators while keeping genuine CLI reports and header-only exports valid; add isolated regressions.
+
 - Enforce genuine integer types for the public Python API's nine optional row-count, business-key and distinct-group quality thresholds. Reject booleans, fractional values, strings and non-finite numbers before processing data, while preserving optional `None`, valid nonnegative integers, existing negative-value diagnostics, CLI parsing and report schemas. Add comprehensive API regression tests.
 
 - Reject contradictory duplicate/incomplete business-key counts and inconsistent configured key failure flags in reusable GitHub Action JSON reports, preventing false-positive checks for internally impossible measurements. Validate non-negative integer limits, preserve valid reports and CLI behavior, and add synthetic regression coverage.
