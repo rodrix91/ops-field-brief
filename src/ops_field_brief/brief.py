@@ -337,6 +337,23 @@ def build_brief(
         raise ValueError("top must be a non-negative integer")
     if top_n < 0:
         raise ValueError("top must be 0 or greater")
+    # Public Python callers bypass argparse's integer conversion. A boolean
+    # silently acts like 0/1, a fraction may change a count threshold, and
+    # strings/None-like objects can otherwise raise an opaque TypeError.
+    # Keep existing negative-integer diagnostics after checking the types.
+    for name, value in (
+        ("max_duplicates", max_duplicates),
+        ("min_complete_keys", min_complete_keys),
+        ("min_distinct_keys", min_distinct_keys),
+        ("max_distinct_keys", max_distinct_keys),
+        ("max_incomplete_keys", max_incomplete_keys),
+        ("min_rows", min_rows),
+        ("max_rows", max_rows),
+        ("min_distinct_groups", min_distinct_groups),
+        ("max_distinct_groups", max_distinct_groups),
+    ):
+        if value is not None and type(value) is not int:
+            raise ValueError(f"{name} must be a non-negative integer")
     if max_duplicates is not None and max_duplicates < 0:
         raise ValueError("max_duplicates must be 0 or greater")
     if min_complete_keys is not None and min_complete_keys < 0:
