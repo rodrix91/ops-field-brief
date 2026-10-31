@@ -259,6 +259,33 @@ def _has_valid_report(text: str, *, is_json: bool, exit_code: int = 0) -> bool:
             or (not key_fields and (duplicates != 0 or incomplete != 0))
         ):
             return False
+        # Duplicate rows have complete keys; an incomplete key cannot also
+        # be a duplicate. Every repeated key requires an initial occurrence.
+        complete_key_rows = rows - incomplete
+        if duplicates > max(0, complete_key_rows - 1):
+            return False
+
+        # The two always-emitted key gates must agree with the measured
+        # counters. Otherwise a forged or truncated CLI result could supply
+        # a plausible exit code but claim the wrong quality-gate outcome.
+        if "max_duplicates" not in report or "max_incomplete_keys" not in report:
+            return False
+        max_duplicates = report["max_duplicates"]
+        max_incomplete_keys = report["max_incomplete_keys"]
+        for limit in (max_duplicates, max_incomplete_keys):
+            if limit is not None and (type(limit) is not int or limit < 0):
+                return False
+        if (max_duplicates is not None or max_incomplete_keys is not None) and not key_fields:
+            return False
+        if failure_flags["failed_duplicates"] != (
+            max_duplicates is not None and duplicates > max_duplicates
+        ):
+            return False
+        if failure_flags["failed_incomplete_keys"] != (
+            max_incomplete_keys is not None and incomplete > max_incomplete_keys
+        ):
+            return False
+
         has_failures = bool(failed_fields) or any(failure_flags.values())
         return has_failures == (exit_code == 1)
     return _has_valid_markdown_report(text, exit_code)

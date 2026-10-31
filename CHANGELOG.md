@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reject contradictory duplicate/incomplete business-key counts and inconsistent configured key failure flags in reusable GitHub Action JSON reports, preventing false-positive checks for internally impossible measurements. Validate non-negative integer limits, preserve valid reports and CLI behavior, and add synthetic regression coverage.
+
 - Safely serialize optional external model assessment text in engineering audit logs as a bounded, JSON-escaped single-line value. Redact any echoed API key and prevent untrusted newlines, ANSI escapes, or GitHub Actions workflow commands from being emitted as executable log syntax; keep the no-network default unchanged. Add mock-based CLI regression coverage.
 
 - Accept exact fully double-quoted Excel separator lines (`"sep=;"`, `"SEP=|"`) in auto-delimited CSV input, matching the companion `csv-quality-report` reader. Preserve ASCII case-insensitive unquoted hints, UTF-8 BOM, gzip and stdin parsing, physical line-number diagnostics, and explicit-delimiter behavior; reject malformed or partially quoted lookalikes. Add source-level and real CLI regression tests.
