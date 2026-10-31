@@ -200,10 +200,10 @@ class AutonomousAgentTests(unittest.TestCase):
     def test_external_feedback_is_escaped_redacted_and_bounded_in_ci_logs(self):
         secret = "never-echo-this-api-key"
         feedback = (
-            "Useful feedback\\n::add-mask::unexpected\\n"
+            "Useful feedback\n::add-mask::unexpected\n"
             "::warning file=readme.md::untrusted"
-            "\\r\\x1b[31m"
-            " \\u202e hidden "
+            "\r\x1b[31m"
+            " \u202e hidden "
             + secret
         )
         output = io.StringIO()
@@ -223,20 +223,21 @@ class AutonomousAgentTests(unittest.TestCase):
         encoded = log.split(marker, 1)[1].splitlines()[0]
         self.assertEqual(json.loads(encoded), feedback.strip().replace(secret, "[REDACTED]"))
         self.assertNotIn(secret, log)
-        self.assertNotIn("\\x1b", log)
-        self.assertNotIn("\\n::add-mask::", log)
-        self.assertNotIn("\\n::warning", log)
+        self.assertNotIn("\x1b", log)
+        self.assertNotIn("\n::add-mask::", log)
+        self.assertNotIn("\n::warning", log)
         self.assertEqual(encoded.count('"'), 2)
 
+        long_output = io.StringIO()
         with (
             patch.object(agent, "run_tests", return_value=(True, "OK")),
             patch.object(agent, "audit_repository", return_value=self.healthy_audit()),
             patch.object(agent, "query_gemini_api", return_value="x" * 5000),
             patch.dict(os.environ, {"GEMINI_API_KEY": secret}, clear=True),
-            redirect_stdout(output := io.StringIO()),
+            redirect_stdout(long_output),
         ):
             self.assertEqual(agent.main(["--allow-external-api"]), 0)
-        long_payload = output.getvalue().split(marker, 1)[1].splitlines()[0]
+        long_payload = long_output.getvalue().split(marker, 1)[1].splitlines()[0]
         self.assertEqual(json.loads(long_payload), "x" * 4000)
 
     def test_incomplete_repository_fails_audit_before_external_api(self):
