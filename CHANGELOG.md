@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reject non-string column names in `build_brief(max_missing_columns=...)` with a clear `ValueError` before constructing unknown-column diagnostics. Preserve field-specific share validation, valid special-character column names, CLI behavior and report output; add public Python API regressions.
+
 - Make opt-in strict CSV structure validation reject blank physical CSV records that Python's `DictReader` silently skips, with the exact source line for LF, CRLF, CR, gzip and Excel `sep=` exports. Preserve quoted multiline field content, more-specific ragged-row diagnostics and permissive default parsing. Add direct API and CLI regression coverage.
 
 - Validate share-based quality thresholds in the public Python API before processing CSV rows. Reject boolean, nonnumeric, malformed and non-finite values with the existing clear configuration errors instead of silently accepting booleans or raising type exceptions. Preserve valid numeric limits, optional disabled gates, CLI parsing, report formats and existing functionality; add focused regression tests.
