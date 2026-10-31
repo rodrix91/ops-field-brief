@@ -75,8 +75,10 @@ class CsvRows(list[dict[str, str]]):
         # DictReader.line_num counts physical input lines, including newlines
         # inside quoted fields. A CSV record may therefore span several lines.
         source_lines: list[int] = []
+        blank_source_lines: list[int] = []
         if isinstance(rows, csv.DictReader):
             parsed: list[dict[str, str]] = []
+            previous_end = rows.line_num  # header's last physical line
             for row in rows:
                 parsed.append(row)
                 internal_newlines = 0
@@ -87,12 +89,20 @@ class CsvRows(list[dict[str, str]]):
                             internal_newlines += (
                                 cell.count("\n") + cell.count("\r") - cell.count("\r\n")
                             )
-                source_lines.append(source_line_offset + rows.line_num - internal_newlines)
+                start = rows.line_num - internal_newlines
+                # DictReader silently skips blank physical CSV records. Track
+                # gaps outside quoted multiline fields for opt-in validation.
+                blank_source_lines.extend(range(previous_end + 1, start))
+                source_lines.append(source_line_offset + start)
+                previous_end = rows.line_num
+            # The final attempt to read a record also consumes trailing blank lines.
+            blank_source_lines.extend(range(previous_end + 1, rows.line_num + 1))
             super().__init__(parsed)
         else:
             super().__init__(rows)
         self.fieldnames = tuple(name for name in (fieldnames or ()) if name is not None)
         self.source_lines = tuple(source_lines)
+        self.blank_source_lines = tuple(source_line_offset + line for line in blank_source_lines)
 
 
 @dataclass(frozen=True)
