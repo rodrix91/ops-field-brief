@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Enforce genuine integer types for the public Python API's nine optional row-count, business-key and distinct-group quality thresholds. Reject booleans, fractional values, strings and non-finite numbers before processing data, while preserving optional `None`, valid nonnegative integers, existing negative-value diagnostics, CLI parsing and report schemas. Add comprehensive API regression tests.
+
 - Reject contradictory duplicate/incomplete business-key counts and inconsistent configured key failure flags in reusable GitHub Action JSON reports, preventing false-positive checks for internally impossible measurements. Validate non-negative integer limits, preserve valid reports and CLI behavior, and add synthetic regression coverage.
 
 - Safely serialize optional external model assessment text in engineering audit logs as a bounded, JSON-escaped single-line value. Redact any echoed API key and prevent untrusted newlines, ANSI escapes, or GitHub Actions workflow commands from being emitted as executable log syntax; keep the no-network default unchanged. Add mock-based CLI regression coverage.
