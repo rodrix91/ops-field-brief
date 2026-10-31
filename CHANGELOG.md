@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Validate share-based quality thresholds in the public Python API before processing CSV rows. Reject boolean, nonnumeric, malformed and non-finite values with the existing clear configuration errors instead of silently accepting booleans or raising type exceptions. Preserve valid numeric limits, optional disabled gates, CLI parsing, report formats and existing functionality; add focused regression tests.
+
 - Verify the optional minimum and maximum row-count quality gates in reusable GitHub Action JSON reports. Require each configured nonnegative integer limit and its boolean failure flag to appear together, match the observed row count, and form a satisfiable interval. Reject forged, missing or contradictory indicators while keeping genuine CLI reports and header-only exports valid; add isolated regressions.
 
 - Enforce genuine integer types for the public Python API's nine optional row-count, business-key and distinct-group quality thresholds. Reject booleans, fractional values, strings and non-finite numbers before processing data, while preserving optional `None`, valid nonnegative integers, existing negative-value diagnostics, CLI parsing and report schemas. Add comprehensive API regression tests.
