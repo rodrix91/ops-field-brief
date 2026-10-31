@@ -27,7 +27,7 @@ PYTHONPATH=src python -m ops_field_brief examples/supplier-risk-synthetic.csv \
 To run the passing version, change **only** the input path to `examples/supplier-clean-synthetic.csv`. The quality gates and thresholds remain identical. Alternatively, run the automated regression:
 
 ```bash
-PYTHONPATH=src python -m unittest tests.test_supplier_case_study -v
+PYTHONPATH=src python -m unittest discover -s tests -p 'test_supplier_case_study.py' -v
 ```
 
 ## Expected results
