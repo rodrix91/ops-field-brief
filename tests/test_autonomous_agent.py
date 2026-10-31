@@ -203,8 +203,7 @@ class AutonomousAgentTests(unittest.TestCase):
             "Useful feedback\n::add-mask::unexpected\n"
             "::warning file=readme.md::untrusted"
             "\r\x1b[31m"
-            " \u202e hidden "
-            + secret
+            " \u202e hidden " + secret
         )
         output = io.StringIO()
         with (
