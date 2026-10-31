@@ -1,0 +1,10 @@
+sep=;
+shipment_id;supplier;eta
+S-001;Andes Freight;2026-11-02
+S-002;andes freight;2026-11-03
+S-003;ANDES FREIGHT;2026-11-04
+S-004;Río Logística;2026-11-05
+S-005;Río Logística;2026-11-06
+S-006;;2026-11-07
+S-007;s/d;2026-11-08
+S-003;Andes Freight;

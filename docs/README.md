@@ -4,6 +4,8 @@ Practical, reproducible checks for CSV extracts used in shipping, order processi
 
 **Start here:** [Project README](../README.md) · [Changelog](../CHANGELOG.md) · [Security policy](../SECURITY.md) · [Contributing](../CONTRIBUTING.md)
 
+**Reproducible business example:** [Synthetic supplier risk and remediation case study](supplier-case-study.md). Compare a rejected and accepted shipment export under identical thresholds, with automated CLI regression tests.
+
 ## 1. Choose the quality gate
 
 | Operational question | CLI option | Interpretation |
