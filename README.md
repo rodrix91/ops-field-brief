@@ -22,6 +22,8 @@ Topics (set on the repository): `csv`, `data-quality`, `operations`, `cli`, `pyt
 
 For a concise checklist of operational gates, example commands, and safe CI integration, see the [operations playbook](docs/README.md).
 
+**Business-ready demo:** [Supplier assignment and shipment integrity case study](docs/supplier-case-study.md) includes two small synthetic Excel-style exports, a rejected scenario, a corrected scenario and reproducible JSON/exit-code tests. This is illustrative, not evidence of customer adoption or measured results.
+
 ## Why this exists
 
 Operational extracts (shipments, orders, inventory movements) often need a fast check before they enter a process: are the required fields present, does the business key repeat, which counterparties dominate the file, and did the extract contain enough rows to be plausible? This tool answers those questions with one command and a clear exit code.
