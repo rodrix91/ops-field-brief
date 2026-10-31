@@ -68,6 +68,37 @@ class MissingColumnLimitTests(unittest.TestCase):
                         max_missing_columns={"eta": limit},
                     )
 
+    def test_public_api_rejects_nonstring_override_names_with_clear_error(self) -> None:
+        # Without an explicit name check, joining unknown field names raises
+        # TypeError and hides the actual invalid Python configuration.
+        for name in (None, 1, True, ("eta",), object()):
+            with self.subTest(name=repr(name)):
+                with self.assertRaisesRegex(
+                    ValueError, "max_missing_columns field names must be strings"
+                ):
+                    build_brief(
+                        self.rows,
+                        ["shipment", "eta"],
+                        max_missing_columns={name: 0.5},
+                    )
+
+    def test_valid_unknown_and_special_column_names_keep_existing_behavior(self) -> None:
+        # Preserve actionable unknown-field diagnostics and permitted names
+        # with '=', spaces, or other punctuation from ordinary CSV headers.
+        with self.assertRaisesRegex(ValueError, "required fields: does-not-exist"):
+            build_brief(
+                self.rows, ["shipment", "eta"],
+                max_missing_columns={"does-not-exist": 0.5},
+            )
+        rows = [{"shipment": "S1", "SLA=met": ""}]
+        report = build_brief(
+            rows,
+            ["shipment", "SLA=met"],
+            max_missing_columns={"SLA=met": 1.0},
+        )
+        self.assertEqual(report.failed_fields, ())
+        self.assertEqual(report.to_dict()["max_missing_columns"], {"SLA=met": 1.0})
+
     def test_cli_gate_json_and_legacy_output(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "orders.csv"
