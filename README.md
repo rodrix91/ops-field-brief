@@ -76,7 +76,8 @@ the resulting report: the analyzer still materializes the parsed CSV rows.
 
 Operational CSV labels occasionally contain invisible format characters from
 copy/paste or spreadsheet exports. Markdown reports and Action job summaries
-show soft hyphens (U+00AD), zero-width spaces (U+200B), word joiners (U+2060),
+show soft hyphens (U+00AD), combining grapheme joiners (U+034F), Mongolian
+vowel separators (U+180E), zero-width spaces (U+200B), word joiners (U+2060),
 and embedded byte-order marks (U+FEFF) as literal `[U+XXXX]` markers. This
 helps distinguish, for example, `Andes` from `An[U+200B]des` in a customer
 breakdown. JSON retains every original code point, and the checks still use
