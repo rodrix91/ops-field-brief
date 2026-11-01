@@ -113,7 +113,10 @@ Without `--group`, the option returns configuration exit `2`. JSON
 includes `"casefold_group": true` and Markdown notes the comparison mode
 **only when enabled**. The default output and existing exit codes remain
 unchanged. `--casefold-key` and `--casefold-group` may be selected
-independently.
+independently. Direct Python callers of `build_brief()` must pass actual
+`True`/`False` values for `casefold_key` and `casefold_group`: strings such
+as `"false"` are rejected rather than silently enabling case-insensitive
+comparison and changing operational quality gates.
 
 ## Case-insensitive business-key matching (opt-in)
 
