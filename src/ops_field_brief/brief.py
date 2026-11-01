@@ -43,7 +43,10 @@ _MARKDOWN_ESCAPES.update({codepoint: f"[U+{codepoint:04X}]" for codepoint in (0x
 # These format characters are visually invisible or discretionary in Markdown.
 # Render explicit ASCII markers to reveal potentially different CSV identifiers.
 # Preserve the source text and the JSON representation unchanged.
-_INVISIBLE_FORMAT_CONTROLS = (0x00AD, 0x200B, 0x2060, 0xFEFF)
+# U+2061..U+2064 are invisible function application, times, separator,
+# and plus operators. They can make different business IDs look identical.
+# Preserve language-significant ZWNJ/ZWJ (U+200C/U+200D).
+_INVISIBLE_FORMAT_CONTROLS = (0x00AD, 0x200B, *range(0x2060, 0x2065), 0xFEFF)
 _MARKDOWN_ESCAPES.update(
     {codepoint: f"[U+{codepoint:04X}]" for codepoint in _INVISIBLE_FORMAT_CONTROLS}
 )
