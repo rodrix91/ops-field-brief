@@ -45,8 +45,10 @@ _MARKDOWN_ESCAPES.update({codepoint: f"[U+{codepoint:04X}]" for codepoint in (0x
 # Preserve the source text and the JSON representation unchanged.
 # U+2061..U+2064 are invisible function application, times, separator,
 # and plus operators. They can make different business IDs look identical.
+# Also reveal the combining grapheme joiner (U+034F) and Mongolian vowel
+# separator (U+180E): both may be visually undetectable in supplier IDs.
 # Preserve language-significant ZWNJ/ZWJ (U+200C/U+200D).
-_INVISIBLE_FORMAT_CONTROLS = (0x00AD, 0x200B, *range(0x2060, 0x2065), 0xFEFF)
+_INVISIBLE_FORMAT_CONTROLS = (0x00AD, 0x034F, 0x180E, 0x200B, *range(0x2060, 0x2065), 0xFEFF)
 _MARKDOWN_ESCAPES.update(
     {codepoint: f"[U+{codepoint:04X}]" for codepoint in _INVISIBLE_FORMAT_CONTROLS}
 )
