@@ -14,7 +14,7 @@ from pathlib import Path
 from ops_field_brief.brief import build_brief, render
 
 ROOT = Path(__file__).resolve().parents[1]
-INVISIBLE = (0x00AD, 0x200B, 0x2060, 0xFEFF)
+INVISIBLE = (0x00AD, 0x200B, *range(0x2060, 0x2065), 0xFEFF)
 
 
 class MarkdownInvisibleFormatTests(unittest.TestCase):
@@ -52,7 +52,7 @@ class MarkdownInvisibleFormatTests(unittest.TestCase):
         self.assertEqual(json.loads(render(brief, as_json=True))["top"][0]["value"], original)
 
     def test_cli_escapes_labels_in_markdown_but_preserves_json(self) -> None:
-        buyer = "An\u200bdes\u00adNorte\u2060S.A.\ufeff"
+        buyer = "An\u200bdes\u00adNorte\u2060\u2063S.A.\ufeff"
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "shipments.csv"
             with path.open("w", newline="", encoding="utf-8") as handle:
@@ -78,7 +78,7 @@ class MarkdownInvisibleFormatTests(unittest.TestCase):
             )
         self.assertEqual(markdown.returncode, 0, markdown.stderr)
         self.assertEqual(data.returncode, 0, data.stderr)
-        self.assertIn("An[U+200B]des[U+00AD]Norte[U+2060]S\\.A\\.[U+FEFF]", markdown.stdout)
+        self.assertIn("An[U+200B]des[U+00AD]Norte[U+2060][U+2063]S\\.A\\.[U+FEFF]", markdown.stdout)
         for codepoint in INVISIBLE:
             self.assertNotIn(chr(codepoint), markdown.stdout)
         self.assertEqual(json.loads(data.stdout)["top"][0]["value"], buyer)
