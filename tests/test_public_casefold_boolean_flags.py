@@ -35,8 +35,12 @@ class PublicCasefoldBooleanTests(unittest.TestCase):
 
     def test_actual_false_and_true_preserve_documented_comparison_behavior(self) -> None:
         normal = build_brief(
-            ROWS, ["order_id"], key="order_id", group="buyer",
-            casefold_key=False, casefold_group=False,
+            ROWS,
+            ["order_id"],
+            key="order_id",
+            group="buyer",
+            casefold_key=False,
+            casefold_group=False,
         )
         self.assertEqual(normal.duplicate_keys, 0)
         self.assertEqual(normal.distinct_groups, 2)
@@ -44,8 +48,12 @@ class PublicCasefoldBooleanTests(unittest.TestCase):
         self.assertNotIn("casefold_group", normal.to_dict())
 
         folded = build_brief(
-            ROWS, ["order_id"], key="order_id", group="buyer",
-            casefold_key=True, casefold_group=True,
+            ROWS,
+            ["order_id"],
+            key="order_id",
+            group="buyer",
+            casefold_key=True,
+            casefold_group=True,
         )
         self.assertEqual(folded.duplicate_keys, 1)
         self.assertEqual(folded.distinct_groups, 1)
