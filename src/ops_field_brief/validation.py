@@ -26,6 +26,11 @@ def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool
         raise ValueError("CSV has no header row")
 
     for position, name in enumerate(header, 1):
+        # The public validator also accepts caller-constructed CsvRows. Fail
+        # with a configuration error instead of an AttributeError when their
+        # header metadata contains a non-string value.
+        if not isinstance(name, str):
+            raise ValueError(f"CSV header at column {position} must be a string")
         if not name or not name.strip():
             raise ValueError(f"blank CSV header at column {position}")
 
