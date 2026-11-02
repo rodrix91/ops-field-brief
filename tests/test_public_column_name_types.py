@@ -47,7 +47,7 @@ class PublicColumnNameTypesTests(unittest.TestCase):
         # Both selectors are optional (None), but an explicitly empty string
         # previously behaved as if it were omitted. That hid duplicate-key
         # and group-count metrics from direct Python callers.
-        for blank in ("", " ", "  \\t  "):
+        for blank in ("", " ", "  \t  "):
             with self.subTest(key=repr(blank)):
                 with self.assertRaisesRegex(ValueError, "key must not be blank"):
                     build_brief(ROWS, ["id"], key=blank)
