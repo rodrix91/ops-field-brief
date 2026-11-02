@@ -43,6 +43,23 @@ class PublicColumnNameTypesTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "group must be a string column name"):
                     build_brief(ROWS, ["id"], group=value)
 
+    def test_explicitly_blank_key_and_group_cannot_disable_quality_checks(self) -> None:
+        # Both selectors are optional (None), but an explicitly empty string
+        # previously behaved as if it were omitted. That hid duplicate-key
+        # and group-count metrics from direct Python callers.
+        for blank in ("", " ", "  \t  "):
+            with self.subTest(key=repr(blank)):
+                with self.assertRaisesRegex(ValueError, "key must not be blank"):
+                    build_brief(ROWS, ["id"], key=blank)
+            with self.subTest(group=repr(blank)):
+                with self.assertRaisesRegex(ValueError, "group must not be blank"):
+                    build_brief(ROWS, ["id"], group=blank)
+        # None remains the deliberate way to disable optional analyses.
+        no_selectors = build_brief(ROWS, ["id"], key=None, group=None)
+        self.assertIsNone(no_selectors.key)
+        self.assertEqual(no_selectors.top, ())
+        self.assertEqual(no_selectors.duplicate_keys, 0)
+
     def test_valid_single_and_composite_selectors_remain_compatible(self) -> None:
         original = build_brief(ROWS, ["id"], key="id", group="region")
         self.assertEqual(original.rows, 2)

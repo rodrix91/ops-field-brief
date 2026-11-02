@@ -377,6 +377,8 @@ def build_brief(
         raise ValueError("required must contain string column names")
     if key is not None and not isinstance(key, str):
         raise ValueError("key must be a string column name")
+    if key is not None and not key.strip():
+        raise ValueError("key must not be blank")
     if key_fields is not None and (
         not isinstance(key_fields, (list, tuple))
         or any(not isinstance(name, str) for name in key_fields)
@@ -384,6 +386,8 @@ def build_brief(
         raise ValueError("key_fields must contain string column names")
     if group is not None and not isinstance(group, str):
         raise ValueError("group must be a string column name")
+    if group is not None and not group.strip():
+        raise ValueError("group must not be blank")
     # argparse supplies real booleans, but public Python callers can pass
     # strings such as "false" (truthy) or integers 0/1. A false-looking
     # string must not silently change duplicate or group concentration gates.
