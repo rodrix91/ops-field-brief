@@ -7,6 +7,7 @@ repeat, and which counterparties account for the rows.
 
 from __future__ import annotations
 
+import codecs
 import csv
 import gzip
 import io
@@ -789,6 +790,12 @@ def read_csv(
         raise ValueError("delimiter must be a string or None for auto detection")
     if not isinstance(strict, bool):
         raise ValueError("strict must be a boolean")
+    if delimiter is not None and len(delimiter) != 1:
+        raise ValueError("delimiter must be exactly one character")
+    try:
+        codecs.lookup(encoding)
+    except LookupError as exc:
+        raise ValueError(f"unknown CSV encoding: {encoding}") from exc
     # Excel UTF-8 exports often start with a BOM. utf-8-sig strips it and still reads plain utf-8.
     is_utf8 = encoding.lower().replace("_", "-") in ("utf-8", "utf8", "utf-8-sig")
     codec = "utf-8-sig" if is_utf8 else encoding
