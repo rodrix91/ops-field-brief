@@ -67,7 +67,7 @@ class StrictCsvTests(unittest.TestCase):
                     validate_csv_structure(rows, casefold_headers=True)
 
     def test_casefold_headers_requires_an_actual_boolean(self):
-        rows = self._rows("id,ID,buyer\\nA,B,Andes\\n")
+        rows = self._rows("id,ID,buyer\nA,B,Andes\n")
         invalid = ("false", "true", "", 0, 1, 0.0, None, [], {}, object())
         for flag in invalid:
             with self.subTest(flag=repr(flag)):
