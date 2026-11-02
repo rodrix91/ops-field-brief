@@ -72,31 +72,30 @@ class MissingColumnLimitTests(unittest.TestCase):
         # dict() previously accepted sequences of pairs as configuration,
         # while empty lists, strings, zero and False were silently ignored.
         for invalid in (
-            [("eta", 0.5)], (("eta", 0.5),), [], (), "", "eta",
-            0, False, object(),
+            [("eta", 0.5)],
+            (("eta", 0.5),),
+            [],
+            (),
+            "",
+            "eta",
+            0,
+            False,
+            object(),
         ):
             with self.subTest(value=repr(invalid)):
-                with self.assertRaisesRegex(
-                    ValueError, "max_missing_columns must be a mapping"
-                ):
-                    build_brief(
-                        self.rows, ["shipment", "eta"], max_missing_columns=invalid
-                    )
+                with self.assertRaisesRegex(ValueError, "max_missing_columns must be a mapping"):
+                    build_brief(self.rows, ["shipment", "eta"], max_missing_columns=invalid)
 
     def test_public_api_accepts_read_only_and_empty_mappings(self) -> None:
         from types import MappingProxyType
 
         allowed = MappingProxyType({"eta": 0.5})
-        result = build_brief(
-            self.rows, ["shipment", "eta"], max_missing_columns=allowed
-        )
+        result = build_brief(self.rows, ["shipment", "eta"], max_missing_columns=allowed)
         self.assertEqual(result.failed_fields, ())
         self.assertEqual(result.to_dict()["max_missing_columns"], {"eta": 0.5})
         for options in ({}, None):
             with self.subTest(options=options):
-                original = build_brief(
-                    self.rows, ["shipment", "eta"], max_missing_columns=options
-                )
+                original = build_brief(self.rows, ["shipment", "eta"], max_missing_columns=options)
                 self.assertEqual(original.failed_fields, ("eta",))
                 self.assertNotIn("max_missing_columns", original.to_dict())
 
