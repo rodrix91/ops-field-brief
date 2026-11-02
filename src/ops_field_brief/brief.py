@@ -106,7 +106,10 @@ class CsvRows(list[dict[str, str]]):
             super().__init__(parsed)
         else:
             super().__init__(rows)
-        self.fieldnames = tuple(name for name in (fieldnames or ()) if name is not None)
+        # Preserve malformed caller-supplied headers so strict validation can
+        # reject them with a precise column diagnostic instead of hiding them.
+        # The standard CSV reader supplies string names, so its behavior is unchanged.
+        self.fieldnames = tuple(fieldnames or ())
         self.source_lines = tuple(source_lines)
         self.blank_source_lines = tuple(source_line_offset + line for line in blank_source_lines)
 
