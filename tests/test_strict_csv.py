@@ -66,6 +66,22 @@ class StrictCsvTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, message):
                     validate_csv_structure(rows, casefold_headers=True)
 
+    def test_casefold_headers_requires_an_actual_boolean(self):
+        rows = self._rows("id,ID,buyer\nA,B,Andes\n")
+        invalid = ("false", "true", "", 0, 1, 0.0, None, [], {}, object())
+        for flag in invalid:
+            with self.subTest(flag=repr(flag)):
+                with self.assertRaisesRegex(ValueError, "casefold_headers must be a boolean"):
+                    validate_csv_structure(rows, casefold_headers=flag)
+
+        # Reject malformed public options even if the file is empty.
+        with self.assertRaisesRegex(ValueError, "casefold_headers must be a boolean"):
+            validate_csv_structure(self._rows(""), casefold_headers="false")
+
+        validate_csv_structure(rows, casefold_headers=False)
+        with self.assertRaisesRegex(ValueError, "duplicate CSV header columns: id"):
+            validate_csv_structure(rows, casefold_headers=True)
+
     def test_casefold_headers_preserves_exact_header_names_and_values(self):
         rows = self._rows("id,buyer,STRASSE\n1,Andes,ok\n")
         validate_csv_structure(rows, casefold_headers=True)
