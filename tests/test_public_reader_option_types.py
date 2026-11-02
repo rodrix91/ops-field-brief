@@ -58,10 +58,13 @@ class ReaderOptionTypeTests(unittest.TestCase):
                         strict=strict,
                     )
                     self.assertEqual(rows.fieldnames, ("id", "buyer"))
-                    self.assertEqual(rows, [
-                        {"id": "A1", "buyer": "Andes"},
-                        {"id": "A2", "buyer": "Tarija"},
-                    ])
+                    self.assertEqual(
+                        rows,
+                        [
+                            {"id": "A1", "buyer": "Andes"},
+                            {"id": "A2", "buyer": "Tarija"},
+                        ],
+                    )
 
 
 if __name__ == "__main__":
