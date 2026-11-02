@@ -73,6 +73,11 @@ def _validated_csv_path(raw: str, workspace: str | None) -> Path:
         resolved.relative_to(root)
     except ValueError as exc:
         raise ValueError("Action input path must stay within GITHUB_WORKSPACE.") from exc
+    # A directory, FIFO or device can live inside the workspace, but it is
+    # not a CSV file. In particular, opening an unread FIFO may block the
+    # subprocess indefinitely. Reject nonregular paths before execution.
+    if not resolved.is_file():
+        raise ValueError("Action input path must name an existing regular CSV file.")
     return resolved
 
 

@@ -56,6 +56,47 @@ class ActionPathTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "stay within GITHUB_WORKSPACE"):
                 run_action._validated_csv_path("linked.csv", str(workspace))
 
+    def test_rejects_missing_files_and_directories_as_csv_inputs(self):
+        with tempfile.TemporaryDirectory() as temp:
+            workspace = Path(temp) / "workspace"
+            workspace.mkdir()
+            (workspace / "folder.csv").mkdir()
+            for candidate in ("not-present.csv", "folder.csv"):
+                with self.subTest(candidate=candidate):
+                    with self.assertRaisesRegex(ValueError, "existing regular CSV file"):
+                        run_action._validated_csv_path(candidate, str(workspace))
+
+    def test_rejects_fifo_before_spawning_cli(self):
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("FIFOs are not available on this platform")
+        with tempfile.TemporaryDirectory() as temp:
+            workspace = Path(temp) / "workspace"
+            workspace.mkdir()
+            fifo = workspace / "blocked.csv"
+            try:
+                os.mkfifo(fifo)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"FIFO creation is unavailable: {exc}")
+            with self.assertRaisesRegex(ValueError, "existing regular CSV file"):
+                run_action._validated_csv_path("blocked.csv", str(workspace))
+            output = Path(temp) / "action-output.txt"
+            env = {
+                "OPS_FIELD_BRIEF_INPUT_PATH": "blocked.csv",
+                "OPS_FIELD_BRIEF_INPUT_ARGS": "--required shipment",
+                "OPS_FIELD_BRIEF_ACTION_PATH": str(Path(__file__).resolve().parents[1]),
+                "GITHUB_WORKSPACE": str(workspace),
+                "GITHUB_OUTPUT": str(output),
+                "OPS_FIELD_BRIEF_INPUT_SUMMARY": "false",
+            }
+            with patch.dict(os.environ, env, clear=True):
+                with patch.object(run_action.subprocess, "run") as mocked:
+                    self.assertEqual(run_action.main(), 2)
+                    mocked.assert_not_called()
+            self.assertEqual(
+                output.read_text(encoding="utf-8"),
+                "exit-code=2\npassed=false\n",
+            )
+
     def test_rejects_stdin_and_missing_workspace(self):
         with self.assertRaisesRegex(ValueError, "must name a CSV file"):
             run_action._validated_csv_path("-", "/tmp/workspace")
