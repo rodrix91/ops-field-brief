@@ -15,6 +15,10 @@ def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool
     DictReader maps surplus fields under a None key and missing fields
     to None values, so both cases can be detected without re-reading the CSV.
     """
+    # Direct library calls must not treat "false", 1 or other truthy values
+    # as an opt-in for case-insensitive header checks.
+    if not isinstance(casefold_headers, bool):
+        raise ValueError("casefold_headers must be a boolean")
     header = getattr(rows, "fieldnames", None)
     if header is None:
         raise ValueError("strict CSV validation requires a parsed header")
