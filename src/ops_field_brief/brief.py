@@ -780,6 +780,15 @@ def read_csv(
     stdin=None,
     strict: bool = False,
 ) -> list[dict[str, str]]:
+    # Validate direct Python API options before touching stdin or a CSV file.
+    # Invalid types must not escape as AttributeError/TypeError or silently
+    # switch the CSV reader into strict mode through Python truthiness.
+    if not isinstance(encoding, str):
+        raise ValueError("encoding must be a string")
+    if delimiter is not None and not isinstance(delimiter, str):
+        raise ValueError("delimiter must be a string or None for auto detection")
+    if not isinstance(strict, bool):
+        raise ValueError("strict must be a boolean")
     # Excel UTF-8 exports often start with a BOM. utf-8-sig strips it and still reads plain utf-8.
     is_utf8 = encoding.lower().replace("_", "-") in ("utf-8", "utf8", "utf-8-sig")
     codec = "utf-8-sig" if is_utf8 else encoding
