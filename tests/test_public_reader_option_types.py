@@ -56,12 +56,8 @@ class ReaderOptionTypeTests(unittest.TestCase):
     def test_valid_custom_one_character_delimiters_still_work(self) -> None:
         for delimiter in (";", "|", "~", "\t"):
             with self.subTest(delimiter=repr(delimiter)):
-                stream = io.StringIO(
-                    f"id{delimiter}buyer\nA1{delimiter}Andes\n"
-                )
-                rows = read_csv(
-                    Path("-"), stdin=stream, delimiter=delimiter, encoding="latin-1"
-                )
+                stream = io.StringIO(f"id{delimiter}buyer\nA1{delimiter}Andes\n")
+                rows = read_csv(Path("-"), stdin=stream, delimiter=delimiter, encoding="latin-1")
                 self.assertEqual(rows.fieldnames, ("id", "buyer"))
                 self.assertEqual(rows, [{"id": "A1", "buyer": "Andes"}])
 
