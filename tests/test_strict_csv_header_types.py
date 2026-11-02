@@ -12,12 +12,13 @@ class StrictCsvHeaderTypeTests(unittest.TestCase):
     def test_non_string_header_labels_raise_value_error(self) -> None:
         # Caller-constructed CsvRows can contain invalid header metadata,
         # unlike ordinary csv.DictReader headers, which are always strings.
-        invalid = (0, 1, True, False, b"buyer", [], {}, object())
+        invalid = (None, 0, 1, True, False, b"buyer", [], {}, object())
         for label in invalid:
             for casefold in (False, True):
                 with self.subTest(label=repr(label), casefold=casefold):
                     record = {"id": "A1", "buyer": "Andes"}
                     rows = CsvRows([record.copy()], ("id", label, "buyer"))
+                    self.assertEqual(rows.fieldnames, ("id", label, "buyer"))
                     with self.assertRaisesRegex(
                         ValueError, "CSV header at column 2 must be a string"
                     ):
