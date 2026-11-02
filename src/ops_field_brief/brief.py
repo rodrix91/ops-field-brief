@@ -12,7 +12,7 @@ import gzip
 import io
 import json
 from collections import Counter
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -459,7 +459,12 @@ def build_brief(
         raise ValueError("max_missing_group_share must be between 0 and 1")
     if max_missing_group_share is not None and not group:
         raise ValueError("max_missing_group_share requires --group")
-    overrides = dict(max_missing_columns or {})
+    # Requiring a mapping avoids silently accepting a list of pairs or
+    # treating falsey invalid types (0, [], "") as no override at all.
+    # None remains the documented way to omit per-column limits.
+    if max_missing_columns is not None and not isinstance(max_missing_columns, Mapping):
+        raise ValueError("max_missing_columns must be a mapping of column names to shares")
+    overrides = dict(max_missing_columns) if max_missing_columns is not None else {}
     # Public Python callers can pass non-string mapping keys. Reject them
     # before unknown-name diagnostics, which otherwise crash when joining
     # None, integers or tuples into the list of unknown column names.
