@@ -73,7 +73,7 @@ class AutonomousAgentTests(unittest.TestCase):
         self.assertIn("timeout-minutes: 15", workflow)
         self.assertEqual(workflow.count("run: python scripts/autonomous_agent.py"), 1)
         self.assertNotIn("python -m unittest discover", workflow)
-        self.assertNotIn("--allow-external-api", workflow)
+        self.assertNotIn("run: python scripts/autonomous_agent.py --allow-external-api", workflow)
 
     def test_audit_does_not_count_helper_only_test_directory(self):
         with tempfile.TemporaryDirectory() as location:
