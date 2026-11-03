@@ -129,10 +129,21 @@ class AutonomousAgentTests(unittest.TestCase):
         self.assertEqual(maximum, 1024 * 1024)
 
     def test_gemini_deeply_nested_json_is_an_optional_response_failure(self):
-        # Under the byte cap but too deeply nested for json.loads to decode.
+        # Some Python JSON decoders reject deep nesting while others accept it.
+        # Neither behavior should disrupt the independently verified local audit.
         response = b"[" * 1200 + b"0" + b"]" * 1200
         with (
             patch.object(agent.urllib.request, "urlopen") as urlopen,
+            redirect_stderr(io.StringIO()),
+        ):
+            urlopen.return_value.__enter__.return_value.read.return_value = response
+            self.assertIsNone(agent.query_gemini_api("Review", "test-key"))
+
+        # Force the decoder failure to verify that the exception handler works
+        # independently of the host interpreter's recursion threshold.
+        with (
+            patch.object(agent.urllib.request, "urlopen") as urlopen,
+            patch.object(agent.json, "loads", side_effect=RecursionError("nested data")),
             redirect_stderr(io.StringIO()) as errors,
         ):
             urlopen.return_value.__enter__.return_value.read.return_value = response
