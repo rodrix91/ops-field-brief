@@ -18,6 +18,9 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+# The external assessment is optional. Do not allow an unbounded API payload
+# to exhaust memory in an otherwise healthy local engineering audit.
+MAX_GEMINI_RESPONSE_BYTES = 1024 * 1024
 
 
 def run_tests() -> tuple[bool, str]:
@@ -93,7 +96,10 @@ def query_gemini_api(prompt: str, api_key: str) -> str | None:
 
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
-            body = json.loads(resp.read().decode("utf-8"))
+            response_bytes = resp.read(MAX_GEMINI_RESPONSE_BYTES + 1)
+            if len(response_bytes) > MAX_GEMINI_RESPONSE_BYTES:
+                return None
+            body = json.loads(response_bytes.decode("utf-8"))
             # API responses are untrusted: blocked, partial, and non-text
             # responses should not interrupt an otherwise successful audit.
             if not isinstance(body, dict):
@@ -121,6 +127,7 @@ def query_gemini_api(prompt: str, api_key: str) -> str | None:
         KeyError,
         json.JSONDecodeError,
         UnicodeError,
+        RecursionError,
     ) as err:
         # Do not disclose credentials if a transport exception includes them.
         detail = str(err).replace(api_key, "[REDACTED]") if api_key else str(err)
