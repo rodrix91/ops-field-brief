@@ -111,6 +111,34 @@ class AutonomousAgentTests(unittest.TestCase):
         )
         self.assertEqual(urlopen.call_args.kwargs["timeout"], 30)
 
+    def test_gemini_reads_at_most_one_megabyte_and_rejects_larger_responses(self):
+        valid = b'{"candidates":[{"content":{"parts":[{"text":"assessment"}]}}]}'
+        maximum = agent.MAX_GEMINI_RESPONSE_BYTES
+        responses = (
+            (valid + b" " * (maximum - len(valid)), "assessment"),
+            (valid + b" " * (maximum + 1 - len(valid)), None),
+        )
+        with patch.object(agent.urllib.request, "urlopen") as urlopen:
+            reader = urlopen.return_value.__enter__.return_value.read
+            for response, expected in responses:
+                with self.subTest(size=len(response)):
+                    reader.return_value = response
+                    self.assertEqual(agent.query_gemini_api("Review", "test-key"), expected)
+                    reader.assert_called_with(maximum + 1)
+                    reader.reset_mock()
+        self.assertEqual(maximum, 1024 * 1024)
+
+    def test_gemini_deeply_nested_json_is_an_optional_response_failure(self):
+        # Under the byte cap but too deeply nested for json.loads to decode.
+        response = b"[" * 1200 + b"0" + b"]" * 1200
+        with (
+            patch.object(agent.urllib.request, "urlopen") as urlopen,
+            redirect_stderr(io.StringIO()) as errors,
+        ):
+            urlopen.return_value.__enter__.return_value.read.return_value = response
+            self.assertIsNone(agent.query_gemini_api("Review", "test-key"))
+        self.assertIn("Gemini API request note", errors.getvalue())
+
     def test_gemini_malformed_response_shapes_are_ignored(self):
         malformed = (
             None,
