@@ -24,14 +24,21 @@ def run_tests() -> tuple[bool, str]:
     """Runs the full unit test suite using standard library unittest."""
     env = dict(os.environ)
     env["PYTHONPATH"] = str(ROOT / "src")
-    result = subprocess.run(
-        [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"],
-        cwd=ROOT,
-        env=env,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    # A stalled test must not hold the scheduled runner indefinitely.
+    # Keep this below the workflow's 15-minute job timeout.
+    timeout_seconds = 300
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=timeout_seconds,
+        )
+    except subprocess.TimeoutExpired:
+        return False, f"Unit test suite exceeded {timeout_seconds} seconds."
     output = result.stdout + "\n" + result.stderr
     # unittest exits with code zero even when discovery finds no tests.
     # Parse only its stderr summary, not arbitrary output from the tests.
