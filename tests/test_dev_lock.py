@@ -62,7 +62,6 @@ class DevelopmentLockTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "no pinned requirements"):
                 read_versions(req)
 
-
     def test_matching_versions_without_hashes_are_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -78,10 +77,14 @@ class DevelopmentLockTests(unittest.TestCase):
         bad_cases = (
             ("ruff==0.17.2\n    --hash=sha256:abc\n", "invalid SHA-256 hash option"),
             ("--hash=sha256:" + digest + "\nruff==0.17.2\n", "hash without a package"),
-            ("ruff==0.17.2\n    --index-url=https://invalid.example\n",
-             "invalid SHA-256 hash option"),
-            ("ruff==0.17.2\n    --hash=sha256:" + digest + "\nmypy==2.4.0\n",
-             "mypy lacks a SHA-256 hash"),
+            (
+                "ruff==0.17.2\n    --index-url=https://invalid.example\n",
+                "invalid SHA-256 hash option",
+            ),
+            (
+                "ruff==0.17.2\n    --hash=sha256:" + digest + "\nmypy==2.4.0\n",
+                "mypy lacks a SHA-256 hash",
+            ),
         )
         with tempfile.TemporaryDirectory() as directory:
             lock = Path(directory) / "requirements-dev.lock"
@@ -107,7 +110,6 @@ class DevelopmentLockTests(unittest.TestCase):
                 encoding="utf-8",
             )
             self.assertEqual(check_versions(requirements, lock), [])
-
 
 
 if __name__ == "__main__":
