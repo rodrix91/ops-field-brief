@@ -265,6 +265,9 @@ class ActionVerifiedReportTests(unittest.TestCase):
             (0, failed, "--json", 3, False),
             (1, good, "--json", 3, False),
             (2, "", "--required id", 2, False),
+            (2, good_md, "", 2, False),
+            (2, "synthetic diagnostic in stdout\n", "", 2, False),
+            (3, good, "--json", 3, False),
         )
         for code, payload, flags, expected, has_summary in scenarios:
             with self.subTest(code=code, payload=payload, flags=flags):
