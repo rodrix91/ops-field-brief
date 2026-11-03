@@ -15,13 +15,17 @@ class DevelopmentLockTests(unittest.TestCase):
             root = Path(directory)
             req, lock = root / "requirements-dev.txt", root / "requirements-dev.lock"
             req.write_text("coverage==7.16.2\nruff==0.17.2\n", encoding="utf-8")
-            lock.write_text(
-                "coverage==7.16.2 \\\n    --hash=sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n"
-                "ruff==0.17.2 \\\n    --hash=sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\n"
-                "typing-extensions==4.15.0 ; python_version < '3.13' \\\n"
-                "    --hash=sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\n",
-                encoding="utf-8",
+            slash = chr(92)
+            digest_a, digest_b, digest_c = "a" * 64, "b" * 64, "c" * 64
+            hashed = (
+                f"coverage==7.16.2 {slash}\n"
+                f"    --hash=sha256:{digest_a}\n"
+                f"ruff==0.17.2 {slash}\n"
+                f"    --hash=sha256:{digest_b}\n"
+                f"typing-extensions==4.15.0 ; python_version < '3.13' {slash}\n"
+                f"    --hash=sha256:{digest_c}\n"
             )
+            lock.write_text(hashed, encoding="utf-8")
             self.assertEqual(check_versions(req, lock), [])
 
     def test_stale_or_missing_pin_is_rejected(self) -> None:
@@ -29,7 +33,10 @@ class DevelopmentLockTests(unittest.TestCase):
             root = Path(directory)
             req, lock = root / "requirements-dev.txt", root / "requirements-dev.lock"
             req.write_text("mypy==2.4.0\nruff==0.17.2\n", encoding="utf-8")
-            lock.write_text("mypy==2.3.0 \\\n    --hash=sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n", encoding="utf-8")
+            slash = chr(92)
+            digest = "a" * 64
+            hashed = f"mypy==2.3.0 {slash}\n    --hash=sha256:{digest}\n"
+            lock.write_text(hashed, encoding="utf-8")
             self.assertEqual(
                 check_versions(req, lock),
                 [
