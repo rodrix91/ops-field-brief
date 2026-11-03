@@ -82,7 +82,7 @@ class DevelopmentLockTests(unittest.TestCase):
                 "invalid SHA-256 hash option",
             ),
             (
-                "ruff==0.17.2\n    --hash=sha256:" + digest + "\nmypy==2.4.0\n",
+                "ruff==0.17.2 " + chr(92) + "\n    --hash=sha256:" + digest + "\nmypy==2.4.0\n",
                 "mypy lacks a SHA-256 hash",
             ),
         )
@@ -93,6 +93,40 @@ class DevelopmentLockTests(unittest.TestCase):
                     lock.write_text(body, encoding="utf-8")
                     with self.assertRaisesRegex(ValueError, error):
                         read_hashed_versions(lock)
+
+    def test_hash_options_must_have_explicit_line_continuations(self) -> None:
+        digest_a, digest_b = "a" * 64, "b" * 64
+        slash = chr(92)
+        invalid = (
+            # A valid hash line without the preceding slash is ignored by pip.
+            (f"ruff==0.17.2\n    --hash=sha256:{digest_a}\n", "hash has no line continuation"),
+            (
+                f"ruff==0.17.2 {slash}\n    --hash=sha256:{digest_a}\n"
+                f"    --hash=sha256:{digest_b}\n",
+                "hash has no line continuation",
+            ),
+            (
+                f"ruff==0.17.2 {slash}\nmypy==2.4.0 {slash}\n"
+                f"    --hash=sha256:{digest_a}\n",
+                "expected continued hash option",
+            ),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            lock = Path(directory) / "requirements-dev.lock"
+            for body, error in invalid:
+                with self.subTest(error=error):
+                    lock.write_text(body, encoding="utf-8")
+                    with self.assertRaisesRegex(ValueError, error):
+                        read_hashed_versions(lock)
+
+            # Both hashes are genuinely associated with the same package.
+            lock.write_text(
+                f"ruff==0.17.2 {slash}\n"
+                f"    --hash=sha256:{digest_a} {slash}\n"
+                f"    --hash=sha256:{digest_b}\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(read_hashed_versions(lock), {"ruff": "0.17.2"})
 
     def test_valid_marker_bearing_transitive_dependency(self) -> None:
         digest = "b" * 64
