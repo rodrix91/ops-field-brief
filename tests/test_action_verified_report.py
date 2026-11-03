@@ -66,7 +66,7 @@ class ActionVerifiedReportTests(unittest.TestCase):
                 workspace = Path(temp) / "workspace"
                 workspace.mkdir()
                 (workspace / "shipments.csv").write_text(
-                    "shipment,buyer\\nA1,B1\\n", encoding="utf-8"
+                    "shipment,buyer\nA1,B1\n", encoding="utf-8"
                 )
                 output = Path(temp) / "github-output.txt"
                 summary = Path(temp) / "summary.md"
@@ -89,7 +89,7 @@ class ActionVerifiedReportTests(unittest.TestCase):
                     self.assertEqual(run_action.main(), 3)
                 self.assertEqual(
                     output.read_text(encoding="utf-8"),
-                    "exit-code=3\\npassed=false\\n",
+                    "exit-code=3\npassed=false\n",
                 )
                 self.assertFalse(summary.exists())
 
