@@ -382,7 +382,10 @@ def main() -> int:
 
     _append_output("exit-code", str(exit_code))
     _append_output("passed", "true" if exit_code == 0 else "false")
-    if not invalid_report:
+    # Only actual verified analyses (success or measured quality-gate failure)
+    # belong in the GitHub job summary. A usage/runtime error can write text
+    # to stdout without producing any valid report.
+    if not invalid_report and exit_code in (0, 1):
         _write_summary(completed.stdout, is_json=is_json)
     return exit_code
 
