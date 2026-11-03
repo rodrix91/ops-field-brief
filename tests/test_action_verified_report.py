@@ -50,6 +50,49 @@ class ActionVerifiedReportTests(unittest.TestCase):
                     accepted,
                 )
 
+    def test_excessive_json_nesting_fails_closed_without_decoder_crash(self) -> None:
+        good = self._report()
+        with patch.object(run_action.json, "loads", side_effect=RecursionError("nesting")):
+            self.assertFalse(run_action._has_valid_report(good, is_json=True))
+        # Also exercise the actual interpreter parser, whose recursion limit
+        # can vary by platform and Python version.
+        nested = "[" * 1500 + "0" + "]" * 1500
+        self.assertFalse(run_action._has_valid_report(nested, is_json=True))
+
+    def test_excessively_nested_cli_json_cannot_publish_success_or_summary(self) -> None:
+        nested = "[" * 1500 + "0" + "]" * 1500
+        for cli_code in (0, 1):
+            with self.subTest(cli_code=cli_code), tempfile.TemporaryDirectory() as temp:
+                workspace = Path(temp) / "workspace"
+                workspace.mkdir()
+                (workspace / "shipments.csv").write_text(
+                    "shipment,buyer\\nA1,B1\\n", encoding="utf-8"
+                )
+                output = Path(temp) / "github-output.txt"
+                summary = Path(temp) / "summary.md"
+                env = {
+                    "OPS_FIELD_BRIEF_INPUT_PATH": "shipments.csv",
+                    "OPS_FIELD_BRIEF_INPUT_ARGS": "--required shipment --json",
+                    "OPS_FIELD_BRIEF_ACTION_PATH": str(Path(__file__).resolve().parents[1]),
+                    "OPS_FIELD_BRIEF_INPUT_SUMMARY": "true",
+                    "GITHUB_WORKSPACE": str(workspace),
+                    "GITHUB_OUTPUT": str(output),
+                    "GITHUB_STEP_SUMMARY": str(summary),
+                }
+                completed = subprocess.CompletedProcess(
+                    args=[], returncode=cli_code, stdout=nested, stderr=""
+                )
+                with (
+                    patch.dict(os.environ, env, clear=True),
+                    patch.object(run_action.subprocess, "run", return_value=completed),
+                ):
+                    self.assertEqual(run_action.main(), 3)
+                self.assertEqual(
+                    output.read_text(encoding="utf-8"),
+                    "exit-code=3\\npassed=false\\n",
+                )
+                self.assertFalse(summary.exists())
+
     def test_json_report_rejects_duplicate_keys_at_every_depth(self) -> None:
         clean = self._report()
         for marker in (
