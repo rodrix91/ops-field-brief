@@ -106,8 +106,7 @@ class DevelopmentLockTests(unittest.TestCase):
                 "hash has no line continuation",
             ),
             (
-                f"ruff==0.17.2 {slash}\nmypy==2.4.0 {slash}\n"
-                f"    --hash=sha256:{digest_a}\n",
+                f"ruff==0.17.2 {slash}\nmypy==2.4.0 {slash}\n    --hash=sha256:{digest_a}\n",
                 "expected continued hash option",
             ),
         )
