@@ -12,6 +12,7 @@ permissions:
 jobs:
   scheduled-audit:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -24,14 +25,9 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Run unit test suite
-        run: PYTHONPATH=src python -m unittest discover -s tests -v
-
-      - name: Run zero-cost local audit
+      - name: Run bounded local audit and tests once
         # Keep the scheduled cycle local-only: no external AI/API calls and no
         # billable service usage. The script additionally requires an explicit
         # --allow-external-api flag before it can use any API key in its environment.
         run: python scripts/autonomous_agent.py
 
-      - name: Verify test suite post-audit
-        run: PYTHONPATH=src python -m unittest discover -s tests -v
