@@ -180,7 +180,10 @@ def _has_valid_report(text: str, *, is_json: bool, exit_code: int = 0) -> bool:
                 parse_constant=_reject_nonfinite_json,
                 parse_float=_finite_json_float,
             )
-        except ValueError:
+        except (ValueError, RecursionError):
+            # JSON decoder recursion depth differs between Python versions.
+            # An overly nested or malformed CLI report is invalid evidence,
+            # not an exception that should crash the reusable Action.
             return False
         if not isinstance(report, dict):
             return False
