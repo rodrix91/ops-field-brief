@@ -58,6 +58,23 @@ class AutonomousAgentTests(unittest.TestCase):
                 self.assertIn("Ran 1 test", log)
                 self.assertEqual(execute.call_args.kwargs["check"], False)
 
+    def test_hung_unittest_subprocess_fails_without_running_an_unbounded_audit(self):
+        failure = subprocess.TimeoutExpired(cmd=["python", "-m", "unittest"], timeout=300)
+        with patch.object(agent.subprocess, "run", side_effect=failure) as execute:
+            passed, log = agent.run_tests()
+        self.assertFalse(passed)
+        self.assertIn("exceeded 300 seconds", log)
+        self.assertEqual(execute.call_args.kwargs["timeout"], 300)
+
+    def test_scheduled_workflow_has_one_bounded_local_audit(self):
+        workflow = (agent.ROOT / ".github" / "workflows" / "autonomous-daily.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("timeout-minutes: 15", workflow)
+        self.assertEqual(workflow.count("run: python scripts/autonomous_agent.py"), 1)
+        self.assertNotIn("python -m unittest discover", workflow)
+        self.assertNotIn("--allow-external-api", workflow)
+
     def test_audit_does_not_count_helper_only_test_directory(self):
         with tempfile.TemporaryDirectory() as location:
             root = Path(location)
