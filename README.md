@@ -542,6 +542,8 @@ Duplicate columns in a composite `--key` (for example `order_id,order_id`) are r
 
 `--encoding` defaults to `utf-8`. A UTF-8 BOM, common in Excel exports, is stripped so the first column name stays usable, including on stdin. For a Windows Excel export in Spanish, pass `--encoding cp1252` or `--encoding latin-1`.
 
+**Input files:** The standalone CLI and Python `read_csv()` accept regular CSV files, `.gz` files, and symlinks to regular files. Directories, named pipes (FIFOs) and other nonregular file types fail with input exit code `2` rather than risking a blocked read. The Action applies its own workspace-contained regular-file checks; use `-` for intentional standard input.
+
 **Compressed operational exports:** Supply a file ending in `.gz` (for example `shipments.csv.gz`) directly, without manually decompressing it. Gzip is detected by the file suffix (case-insensitive), so mislabeled or truncated gzip files fail with input exit code `2` and no successful report. Delimiters (`comma`, `semicolon`, `tab`, `pipe`, `auto`), UTF-8 BOM handling, alternative encodings, strict CSV checks, missingness/duplicate gates and JSON/Markdown outputs behave identically after decompression. The file is read in text mode with the Python standard library; it is not extracted to disk. The stdin `-` input continues to expect uncompressed text. Example:
 
 ```bash
