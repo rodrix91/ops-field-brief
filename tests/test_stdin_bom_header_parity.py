@@ -18,7 +18,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class StdinBomHeaderParityTests(unittest.TestCase):
-    def _cli(self, path: str, payload: bytes | None, delimiter: str) -> subprocess.CompletedProcess[bytes]:
+    def _cli(
+        self, path: str, payload: bytes | None, delimiter: str
+    ) -> subprocess.CompletedProcess[bytes]:
         command = [
             sys.executable,
             "-m",
@@ -44,7 +46,10 @@ class StdinBomHeaderParityTests(unittest.TestCase):
     def test_library_preserves_only_the_first_leading_bom_across_sources(self) -> None:
         for count in (0, 1, 2):
             for delimiter in (",", None):
-                with self.subTest(boms=count, delimiter=delimiter), tempfile.TemporaryDirectory() as root:
+                with (
+                    self.subTest(boms=count, delimiter=delimiter),
+                    tempfile.TemporaryDirectory() as root,
+                ):
                     text = "\ufeff" * count + "shipment,buyer\nS1,Peñaflor\n"
                     raw = text.encode("utf-8")
                     plain = Path(root) / "orders.csv"
@@ -67,7 +72,10 @@ class StdinBomHeaderParityTests(unittest.TestCase):
     def test_cli_file_and_binary_stdin_agree_for_one_or_two_boms(self) -> None:
         for count in (1, 2):
             for delimiter in ("comma", "auto"):
-                with self.subTest(boms=count, delimiter=delimiter), tempfile.TemporaryDirectory() as root:
+                with (
+                    self.subTest(boms=count, delimiter=delimiter),
+                    tempfile.TemporaryDirectory() as root,
+                ):
                     data = ("\ufeff" * count + "shipment,buyer\nS1,Andes\n").encode("utf-8")
                     source = Path(root) / "orders.csv"
                     source.write_bytes(data)
