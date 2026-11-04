@@ -197,6 +197,44 @@ class ActionPathTests(unittest.TestCase):
                         "exit-code=2\npassed=false\n",
                     )
 
+    def test_action_timeout_fails_without_publishing_partial_report(self):
+        with tempfile.TemporaryDirectory() as temp:
+            workspace = Path(temp) / "workspace"
+            workspace.mkdir()
+            (workspace / "shipments.csv").write_text(
+                "shipment,buyer\\nA1,B1\\n", encoding="utf-8"
+            )
+            output = Path(temp) / "github-output.txt"
+            summary = Path(temp) / "github-summary.md"
+            env = {
+                "OPS_FIELD_BRIEF_INPUT_PATH": "shipments.csv",
+                "OPS_FIELD_BRIEF_INPUT_ARGS": "--required shipment",
+                "OPS_FIELD_BRIEF_ACTION_PATH": str(Path(__file__).resolve().parents[1]),
+                "GITHUB_WORKSPACE": str(workspace),
+                "GITHUB_OUTPUT": str(output),
+                "GITHUB_STEP_SUMMARY": str(summary),
+                "OPS_FIELD_BRIEF_INPUT_SUMMARY": "true",
+            }
+            timeout = subprocess.TimeoutExpired(
+                cmd=["python", "-m", "ops_field_brief"],
+                timeout=run_action.ACTION_CLI_TIMEOUT_SECONDS,
+                output=b"# Operational field brief\\nPartial data",
+            )
+            with patch.dict(os.environ, env, clear=True):
+                with patch.object(
+                    run_action.subprocess, "run", side_effect=timeout
+                ) as mocked:
+                    self.assertEqual(run_action.main(), 3)
+                    self.assertEqual(
+                        mocked.call_args.kwargs["timeout"],
+                        run_action.ACTION_CLI_TIMEOUT_SECONDS,
+                    )
+            self.assertEqual(
+                output.read_text(encoding="utf-8"),
+                "exit-code=3\\npassed=false\\n",
+            )
+            self.assertFalse(summary.exists(), "partial stdout must never be published")
+
     def test_normal_action_flags_are_not_blocked(self):
         run_action._reject_nonexecuting_flags(
             ["--required", "shipment", "--json", "--strict-csv", "--min-rows", "1"]
