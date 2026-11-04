@@ -178,10 +178,7 @@ def _has_valid_report(text: str, *, is_json: bool, exit_code: int = 0) -> bool:
         return False
     # A measured report must be safe to echo in GitHub Actions logs. Raw
     # terminal controls can forge log displays even when numeric fields pass.
-    if any(
-        (ord(char) < 32 and char not in "\n\t") or 127 <= ord(char) <= 159
-        for char in text
-    ):
+    if any((ord(char) < 32 and char not in "\n\t") or 127 <= ord(char) <= 159 for char in text):
         return False
     if is_json:
         try:
