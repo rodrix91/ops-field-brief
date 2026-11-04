@@ -201,9 +201,7 @@ class ActionPathTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             workspace = Path(temp) / "workspace"
             workspace.mkdir()
-            (workspace / "shipments.csv").write_text(
-                "shipment,buyer\nA1,B1\n", encoding="utf-8"
-            )
+            (workspace / "shipments.csv").write_text("shipment,buyer\nA1,B1\n", encoding="utf-8")
             output = Path(temp) / "github-output.txt"
             summary = Path(temp) / "github-summary.md"
             env = {
@@ -221,9 +219,7 @@ class ActionPathTests(unittest.TestCase):
                 output=b"# Operational field brief\nPartial data",
             )
             with patch.dict(os.environ, env, clear=True):
-                with patch.object(
-                    run_action.subprocess, "run", side_effect=timeout
-                ) as mocked:
+                with patch.object(run_action.subprocess, "run", side_effect=timeout) as mocked:
                     self.assertEqual(run_action.main(), 3)
                     self.assertEqual(
                         mocked.call_args.kwargs["timeout"],
