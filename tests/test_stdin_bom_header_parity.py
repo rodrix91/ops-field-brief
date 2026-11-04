@@ -94,7 +94,7 @@ class StdinBomHeaderParityTests(unittest.TestCase):
                         self.assertNotIn(b"Traceback", stdin_result.stderr)
 
     def test_excel_separator_hint_is_not_unwrapped_by_multiple_boms(self) -> None:
-        payload = 'sep=;\nshipment;buyer\nS1;Andes\n'
+        payload = "sep=;\nshipment;buyer\nS1;Andes\n"
         for count in (1, 2):
             with self.subTest(boms=count), tempfile.TemporaryDirectory() as root:
                 data = ("\ufeff" * count + payload).encode("utf-8")
