@@ -11,6 +11,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+# Keep expensive or stalled analyses below the workflow-level job timeout.
+# A timed-out CLI cannot produce a trustworthy measured Action report.
+ACTION_CLI_TIMEOUT_SECONDS = 600
+
 
 def _append_output(name: str, value: str) -> None:
     target = os.getenv("GITHUB_OUTPUT")
@@ -357,14 +361,26 @@ def main() -> int:
     env["PYTHONPATH"] = src if not existing else os.pathsep.join((src, existing))
 
     command = [sys.executable, "-m", "ops_field_brief", csv_path, *extra_args]
-    completed = subprocess.run(
-        command,
-        cwd=os.getenv("GITHUB_WORKSPACE") or None,
-        env=env,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=os.getenv("GITHUB_WORKSPACE") or None,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=ACTION_CLI_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired:
+        # subprocess.run terminates its direct child on timeout. Never
+        # publish partial stdout as a completed report or job summary.
+        print(
+            f"Action analysis exceeded {ACTION_CLI_TIMEOUT_SECONDS} seconds.",
+            file=sys.stderr,
+        )
+        _append_output("exit-code", "3")
+        _append_output("passed", "false")
+        return 3
 
     if completed.stdout:
         sys.stdout.write(completed.stdout)
