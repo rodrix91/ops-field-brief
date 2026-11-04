@@ -47,9 +47,7 @@ class StrictCsvMetadataIntegrityTests(unittest.TestCase):
                     validate_csv_structure(rows)
 
     def test_real_multiline_positions_and_blank_line_errors_stay_unchanged(self) -> None:
-        good = read_csv(
-            Path("-"), stdin=io.StringIO('id,buyer\n1,"North\nSouth"\n2,Paz\n')
-        )
+        good = read_csv(Path("-"), stdin=io.StringIO('id,buyer\n1,"North\nSouth"\n2,Paz\n'))
         self.assertEqual(good.source_lines, (2, 4))
         validate_csv_structure(good)
         with_blank = read_csv(
