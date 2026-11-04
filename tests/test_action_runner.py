@@ -202,7 +202,7 @@ class ActionPathTests(unittest.TestCase):
             workspace = Path(temp) / "workspace"
             workspace.mkdir()
             (workspace / "shipments.csv").write_text(
-                "shipment,buyer\\nA1,B1\\n", encoding="utf-8"
+                "shipment,buyer\nA1,B1\n", encoding="utf-8"
             )
             output = Path(temp) / "github-output.txt"
             summary = Path(temp) / "github-summary.md"
@@ -218,7 +218,7 @@ class ActionPathTests(unittest.TestCase):
             timeout = subprocess.TimeoutExpired(
                 cmd=["python", "-m", "ops_field_brief"],
                 timeout=run_action.ACTION_CLI_TIMEOUT_SECONDS,
-                output=b"# Operational field brief\\nPartial data",
+                output=b"# Operational field brief\nPartial data",
             )
             with patch.dict(os.environ, env, clear=True):
                 with patch.object(
@@ -231,7 +231,7 @@ class ActionPathTests(unittest.TestCase):
                     )
             self.assertEqual(
                 output.read_text(encoding="utf-8"),
-                "exit-code=3\\npassed=false\\n",
+                "exit-code=3\npassed=false\n",
             )
             self.assertFalse(summary.exists(), "partial stdout must never be published")
 
