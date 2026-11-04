@@ -806,7 +806,9 @@ def read_csv(
         if delimiter is None:
             text = stdin.read()
             if is_utf8:
-                text = text.lstrip("\ufeff")
+                # Like utf-8-sig file decoding, remove exactly one BOM.
+                # A second marker belongs to the header and must remain visible.
+                text = text.removeprefix("\ufeff")
             excel_hint = _excel_sep_directive(text)
             if excel_hint is not None:
                 delimiter, text = excel_hint
@@ -835,7 +837,8 @@ def read_csv(
         )
         if is_utf8 and reader.fieldnames and reader.fieldnames[0].startswith("\ufeff"):
             fieldnames = list(reader.fieldnames)
-            fieldnames[0] = fieldnames[0].lstrip("\ufeff")
+            # Preserve any second BOM as actual header text, matching file input.
+            fieldnames[0] = fieldnames[0].removeprefix("\ufeff")
             reader.fieldnames = fieldnames
         return CsvRows(reader, reader.fieldnames)
     # Python's open() can wait indefinitely when the supplied path is a
