@@ -186,14 +186,10 @@ class ActionVerifiedReportTests(unittest.TestCase):
                 huge_rows = json.loads(json.dumps(clean))
                 huge_rows["rows"] = value
                 huge_rows["fields"][0]["filled"] = value
-                self.assertFalse(
-                    run_action._has_valid_report(json.dumps(huge_rows), is_json=True)
-                )
+                self.assertFalse(run_action._has_valid_report(json.dumps(huge_rows), is_json=True))
                 huge_rate = json.loads(json.dumps(clean))
                 huge_rate["fields"][0]["missing_rate"] = value
-                self.assertFalse(
-                    run_action._has_valid_report(json.dumps(huge_rate), is_json=True)
-                )
+                self.assertFalse(run_action._has_valid_report(json.dumps(huge_rate), is_json=True))
 
     def test_exact_safe_integer_row_limit_stays_acceptable(self) -> None:
         clean = json.loads(self._report())
