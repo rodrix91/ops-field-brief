@@ -6,6 +6,8 @@ import os
 import subprocess
 import tempfile
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
+from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
@@ -230,6 +232,81 @@ class ActionPathTests(unittest.TestCase):
                 "exit-code=3\npassed=false\n",
             )
             self.assertFalse(summary.exists(), "partial stdout must never be published")
+
+    def test_invalid_cli_stdout_is_never_published_to_actions_logs(self):
+        with tempfile.TemporaryDirectory() as temp:
+            workspace = Path(temp) / "workspace"
+            workspace.mkdir()
+            (workspace / "shipments.csv").write_text("shipment,buyer\nA1,B1\n", encoding="utf-8")
+            output = Path(temp) / "github-output.txt"
+            summary = Path(temp) / "github-summary.md"
+            env = {
+                "OPS_FIELD_BRIEF_INPUT_PATH": "shipments.csv",
+                "OPS_FIELD_BRIEF_INPUT_ARGS": "--required shipment",
+                "OPS_FIELD_BRIEF_ACTION_PATH": str(Path(__file__).resolve().parents[1]),
+                "GITHUB_WORKSPACE": str(workspace),
+                "GITHUB_OUTPUT": str(output),
+                "GITHUB_STEP_SUMMARY": str(summary),
+                "OPS_FIELD_BRIEF_INPUT_SUMMARY": "true",
+            }
+            for status, expected in ((0, 3), (1, 3), (2, 2)):
+                with self.subTest(status=status):
+                    output.unlink(missing_ok=True)
+                    summary.unlink(missing_ok=True)
+                    cli_result = subprocess.CompletedProcess(
+                        args=[],
+                        returncode=status,
+                        stdout="::warning title=untrusted::forged workflow message\n",
+                        stderr="",
+                    )
+                    printed, errors = StringIO(), StringIO()
+                    with patch.dict(os.environ, env, clear=True):
+                        with patch.object(run_action.subprocess, "run", return_value=cli_result):
+                            with redirect_stdout(printed), redirect_stderr(errors):
+                                self.assertEqual(run_action.main(), expected)
+                    self.assertEqual(printed.getvalue(), "")
+                    self.assertFalse(summary.exists())
+                    self.assertEqual(
+                        output.read_text(encoding="utf-8"),
+                        f"exit-code={expected}\npassed=false\n",
+                    )
+                    if status in (0, 1):
+                        self.assertIn("no valid report", errors.getvalue())
+
+    def test_valid_measured_stdout_is_still_published(self):
+        with tempfile.TemporaryDirectory() as temp:
+            workspace = Path(temp) / "workspace"
+            workspace.mkdir()
+            (workspace / "shipments.csv").write_text("shipment,buyer\nA1,B1\n", encoding="utf-8")
+            output = Path(temp) / "github-output.txt"
+            summary = Path(temp) / "github-summary.md"
+            valid = render_markdown(build_brief([{"shipment": "A1"}], ["shipment"]))
+            self.assertTrue(run_action._has_valid_report(valid, is_json=False))
+            env = {
+                "OPS_FIELD_BRIEF_INPUT_PATH": "shipments.csv",
+                "OPS_FIELD_BRIEF_INPUT_ARGS": "--required shipment",
+                "OPS_FIELD_BRIEF_ACTION_PATH": str(Path(__file__).resolve().parents[1]),
+                "GITHUB_WORKSPACE": str(workspace),
+                "GITHUB_OUTPUT": str(output),
+                "GITHUB_STEP_SUMMARY": str(summary),
+                "OPS_FIELD_BRIEF_INPUT_SUMMARY": "true",
+            }
+            printed = StringIO()
+            cli_result = subprocess.CompletedProcess(args=[], returncode=0, stdout=valid, stderr="")
+            with patch.dict(os.environ, env, clear=True):
+                with patch.object(run_action.subprocess, "run", return_value=cli_result):
+                    with redirect_stdout(printed):
+                        self.assertEqual(run_action.main(), 0)
+            self.assertEqual(printed.getvalue(), valid)
+            self.assertIn(valid, summary.read_text(encoding="utf-8"))
+            self.assertEqual(output.read_text(encoding="utf-8"), "exit-code=0\npassed=true\n")
+
+    def test_terminal_controls_make_a_measured_markdown_report_invalid(self):
+        valid = render_markdown(build_brief([{"shipment": "A1"}], ["shipment"]))
+        self.assertTrue(run_action._has_valid_report(valid, is_json=False))
+        with_escape = valid.replace("shipment", "ship\x1bment")
+        self.assertNotEqual(with_escape, valid)
+        self.assertFalse(run_action._has_valid_report(with_escape, is_json=False))
 
     def test_normal_action_flags_are_not_blocked(self):
         run_action._reject_nonexecuting_flags(

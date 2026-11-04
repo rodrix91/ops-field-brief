@@ -176,6 +176,10 @@ def _has_valid_report(text: str, *, is_json: bool, exit_code: int = 0) -> bool:
     """Reject missing, malformed and self-contradictory action reports."""
     if not text.strip():
         return False
+    # A measured report must be safe to echo in GitHub Actions logs. Raw
+    # terminal controls can forge log displays even when numeric fields pass.
+    if any((ord(char) < 32 and char not in "\n\t") or 127 <= ord(char) <= 159 for char in text):
+        return False
     if is_json:
         try:
             report = json.loads(
@@ -382,22 +386,22 @@ def main() -> int:
         _append_output("passed", "false")
         return 3
 
-    if completed.stdout:
-        sys.stdout.write(completed.stdout)
+    # Validate measured stdout before exposing it to the Actions log or
+    # summary. A failing, forged, or truncated report is not trusted output.
     if completed.stderr:
         sys.stderr.write(completed.stderr)
-
     exit_code = completed.returncode
     is_json = _requests_json(extra_args)
-    invalid_report = exit_code in (0, 1) and not _has_valid_report(
+    valid_report = exit_code in (0, 1) and _has_valid_report(
         completed.stdout, is_json=is_json, exit_code=exit_code
     )
+    invalid_report = exit_code in (0, 1) and not valid_report
     if invalid_report:
         # An exit code alone is not evidence that any CSV was evaluated.
-        # Reject empty stdout and malformed/non-object JSON, but preserve
-        # the original nonzero CLI errors without replacing their meaning.
         print("Action analysis produced no valid report.", file=sys.stderr)
         exit_code = 3
+    if valid_report:
+        sys.stdout.write(completed.stdout)
 
     _append_output("exit-code", str(exit_code))
     _append_output("passed", "true" if exit_code == 0 else "false")
