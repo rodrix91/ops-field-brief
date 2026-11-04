@@ -237,9 +237,7 @@ class ActionPathTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             workspace = Path(temp) / "workspace"
             workspace.mkdir()
-            (workspace / "shipments.csv").write_text(
-                "shipment,buyer\nA1,B1\n", encoding="utf-8"
-            )
+            (workspace / "shipments.csv").write_text("shipment,buyer\nA1,B1\n", encoding="utf-8")
             output = Path(temp) / "github-output.txt"
             summary = Path(temp) / "github-summary.md"
             env = {
@@ -256,7 +254,8 @@ class ActionPathTests(unittest.TestCase):
                     output.unlink(missing_ok=True)
                     summary.unlink(missing_ok=True)
                     cli_result = subprocess.CompletedProcess(
-                        args=[], returncode=status,
+                        args=[],
+                        returncode=status,
                         stdout="::warning title=untrusted::forged workflow message\n",
                         stderr="",
                     )
@@ -278,9 +277,7 @@ class ActionPathTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             workspace = Path(temp) / "workspace"
             workspace.mkdir()
-            (workspace / "shipments.csv").write_text(
-                "shipment,buyer\nA1,B1\n", encoding="utf-8"
-            )
+            (workspace / "shipments.csv").write_text("shipment,buyer\nA1,B1\n", encoding="utf-8")
             output = Path(temp) / "github-output.txt"
             summary = Path(temp) / "github-summary.md"
             valid = render_markdown(build_brief([{"shipment": "A1"}], ["shipment"]))
@@ -295,18 +292,14 @@ class ActionPathTests(unittest.TestCase):
                 "OPS_FIELD_BRIEF_INPUT_SUMMARY": "true",
             }
             printed = StringIO()
-            cli_result = subprocess.CompletedProcess(
-                args=[], returncode=0, stdout=valid, stderr=""
-            )
+            cli_result = subprocess.CompletedProcess(args=[], returncode=0, stdout=valid, stderr="")
             with patch.dict(os.environ, env, clear=True):
                 with patch.object(run_action.subprocess, "run", return_value=cli_result):
                     with redirect_stdout(printed):
                         self.assertEqual(run_action.main(), 0)
             self.assertEqual(printed.getvalue(), valid)
             self.assertIn(valid, summary.read_text(encoding="utf-8"))
-            self.assertEqual(
-                output.read_text(encoding="utf-8"), "exit-code=0\npassed=true\n"
-            )
+            self.assertEqual(output.read_text(encoding="utf-8"), "exit-code=0\npassed=true\n")
 
     def test_terminal_controls_make_a_measured_markdown_report_invalid(self):
         valid = render_markdown(build_brief([{"shipment": "A1"}], ["shipment"]))
