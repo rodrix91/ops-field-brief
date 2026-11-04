@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter
+from collections.abc import Mapping
 from unicodedata import normalize
 
 
@@ -43,8 +44,23 @@ def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool
     if repeated:
         raise ValueError("duplicate CSV header columns: " + ", ".join(repeated))
 
-    source_lines: tuple[int, ...] = getattr(rows, "source_lines", ())
+    source_lines = getattr(rows, "source_lines", ())
+    # CsvRows carries an optional physical line for *every* parsed record.
+    # Caller-built instances may be mutated after construction. Reject
+    # inconsistent metadata before indexing so a strict validation failure
+    # never crashes with IndexError or reports a fabricated source line.
+    if (
+        not isinstance(source_lines, (tuple, list))
+        or (source_lines and len(source_lines) != len(rows))
+        or any(type(line) is not int or line < 1 for line in source_lines)
+        or any(left >= right for left, right in zip(source_lines, source_lines[1:]))
+    ):
+        raise ValueError("CSV source line metadata must be positive, ordered, and match data rows")
     for row_number, row in enumerate(rows, 1):
+        # Public Python callers can also construct or mutate the row list.
+        # Report invalid record types as validation failures, not TypeError.
+        if not isinstance(row, Mapping):
+            raise ValueError(f"CSV data row {row_number} must be a mapping")
         # Keep the long-standing logical record number, and append the actual
         # starting file line for readers that retain physical CSV positions.
         suffix = f" (source line {source_lines[row_number - 1]})" if source_lines else ""
@@ -56,5 +72,11 @@ def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool
     # Defer this check until after ragged-row validation to preserve the
     # existing, more specific diagnostics for malformed records.
     skipped = getattr(rows, "blank_source_lines", ())
+    if (
+        not isinstance(skipped, (tuple, list))
+        or any(type(line) is not int or line < 1 for line in skipped)
+        or any(left >= right for left, right in zip(skipped, skipped[1:]))
+    ):
+        raise ValueError("CSV blank source line metadata must be positive and ordered")
     if skipped:
         raise ValueError(f"blank CSV data row at source line {skipped[0]}")
