@@ -186,7 +186,10 @@ def _decoded_stdin(encoding: str):
     if raw is None:
         return sys.stdin
     normalized = encoding.lower().replace("_", "-")
-    codec = "utf-8-sig" if normalized in ("utf-8", "utf8", "utf-8-sig") else encoding
+    # Preserve BOM bytes until read_csv() handles exactly one leading marker.
+    # Otherwise an initial utf-8-sig decode plus CSV-level stripping can
+    # silently remove two BOMs on stdin but only one on file and gzip input.
+    codec = "utf-8" if normalized in ("utf-8", "utf8", "utf-8-sig") else encoding
     return io.StringIO(raw.read().decode(codec))
 
 
