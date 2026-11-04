@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reject directories, FIFOs and other nonregular CSV input paths in the standalone CLI and public `read_csv()` API, consistent with the existing GitHub Action input policy. This prevents a named pipe without a writer from indefinitely blocking the parser. Preserve missing-file errors, normal files, gzip exports, stdin and symlinks to regular files; add cross-platform tests with a POSIX FIFO regression.
+
 - Reject non-string header metadata in direct `validate_csv_structure()` calls with a clear `ValueError` instead of an `AttributeError`. Preserve valid CSV headers, existing blank-header diagnostics, casefold behavior and source data; add focused public API regression tests.
 
 - Reject non-string column names in `build_brief(max_missing_columns=...)` with a clear `ValueError` before constructing unknown-column diagnostics. Preserve field-specific share validation, valid special-character column names, CLI behavior and report output; add public Python API regressions.
