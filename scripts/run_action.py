@@ -14,6 +14,16 @@ from pathlib import Path
 # Keep expensive or stalled analyses below the workflow-level job timeout.
 # A timed-out CLI cannot produce a trustworthy measured Action report.
 ACTION_CLI_TIMEOUT_SECONDS = 600
+# JSON and Markdown counters must remain portable across common consumers
+# and never reach Python's integer-string conversion limit.
+MAX_REPORT_COUNT = (1 << 53) - 1
+
+
+def _bounded_report_count(value: str) -> int | None:
+    if len(value) > len(str(MAX_REPORT_COUNT)):
+        return None
+    amount = int(value)
+    return amount if amount <= MAX_REPORT_COUNT else None
 
 
 def _append_output(name: str, value: str) -> None:
@@ -112,7 +122,9 @@ def _has_valid_markdown_report(text: str, exit_code: int) -> bool:
     rows_match = re.fullmatch(r"- Rows: (0|[1-9][0-9]*)", lines[2])
     if rows_match is None:
         return False
-    rows = int(rows_match.group(1))
+    rows = _bounded_report_count(rows_match.group(1))
+    if rows is None:
+        return False
     try:
         section = lines.index("## Required fields")
     except ValueError:
@@ -134,7 +146,10 @@ def _has_valid_markdown_report(text: str, exit_code: int) -> bool:
         if field is None:
             return False
         name, filled_text, missing_text, shown_rate = field.groups()
-        filled, missing = int(filled_text), int(missing_text)
+        filled = _bounded_report_count(filled_text)
+        missing = _bounded_report_count(missing_text)
+        if filled is None or missing is None:
+            return False
         if (
             not name.strip()
             or name in seen_fields
@@ -200,7 +215,7 @@ def _has_valid_report(text: str, *, is_json: bool, exit_code: int = 0) -> bool:
         failed_fields = report.get("failed_fields")
         if (
             type(rows) is not int
-            or rows < 0
+            or not 0 <= rows <= MAX_REPORT_COUNT
             or not isinstance(fields, list)
             or not fields
             or not isinstance(failed_fields, list)
@@ -217,8 +232,8 @@ def _has_valid_report(text: str, *, is_json: bool, exit_code: int = 0) -> bool:
             and field["missing"] >= 0
             and field["filled"] + field["missing"] == rows
             and type(field.get("missing_rate")) in (int, float)
-            and math.isfinite(field["missing_rate"])
             and 0 <= field["missing_rate"] <= 1
+            and math.isfinite(field["missing_rate"])
             and field["missing_rate"] == (round(field["missing"] / rows, 4) if rows else 0)
             for field in fields
         ):

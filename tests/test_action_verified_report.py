@@ -163,6 +163,41 @@ class ActionVerifiedReportTests(unittest.TestCase):
         escaped_name = render_markdown(build_brief([{"SLA|met": "yes"}], ["SLA|met"]))
         self.assertTrue(run_action._has_valid_report(escaped_name, is_json=False, exit_code=0))
 
+    def test_extreme_markdown_counters_are_rejected_without_integer_errors(self) -> None:
+        source = render_markdown(build_brief([{"id": "A"}], ["id"]))
+        self.assertTrue(run_action._has_valid_report(source, is_json=False))
+        for count in ("9" * 5000, str(run_action.MAX_REPORT_COUNT + 1)):
+            with self.subTest(length=len(count)):
+                for corrupted in (
+                    source.replace("- Rows: 1", "- Rows: " + count),
+                    source.replace("| id | 1 | 0 | 0.0% |", f"| id | {count} | 0 | 0.0% |"),
+                    source.replace("| id | 1 | 0 | 0.0% |", f"| id | 1 | {count} | 0.0% |"),
+                ):
+                    self.assertNotEqual(corrupted, source)
+                    self.assertFalse(
+                        run_action._has_valid_report(corrupted, is_json=False, exit_code=0)
+                    )
+
+    def test_extreme_json_rows_and_rates_are_rejected_without_overflow(self) -> None:
+        clean = json.loads(self._report())
+        self.assertTrue(run_action._has_valid_report(json.dumps(clean), is_json=True))
+        for value in (run_action.MAX_REPORT_COUNT + 1, 10**400):
+            with self.subTest(value=str(value)[:20]):
+                huge_rows = json.loads(json.dumps(clean))
+                huge_rows["rows"] = value
+                huge_rows["fields"][0]["filled"] = value
+                self.assertFalse(run_action._has_valid_report(json.dumps(huge_rows), is_json=True))
+                huge_rate = json.loads(json.dumps(clean))
+                huge_rate["fields"][0]["missing_rate"] = value
+                self.assertFalse(run_action._has_valid_report(json.dumps(huge_rate), is_json=True))
+
+    def test_exact_safe_integer_row_limit_stays_acceptable(self) -> None:
+        clean = json.loads(self._report())
+        safe_max = run_action.MAX_REPORT_COUNT
+        clean["rows"] = safe_max
+        clean["fields"][0]["filled"] = safe_max
+        self.assertTrue(run_action._has_valid_report(json.dumps(clean), is_json=True))
+
     def test_json_report_shape_and_counts_fail_closed(self) -> None:
         clean = json.loads(self._report())
         invalid = (
