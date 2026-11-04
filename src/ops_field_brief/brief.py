@@ -838,6 +838,12 @@ def read_csv(
             fieldnames[0] = fieldnames[0].lstrip("\ufeff")
             reader.fieldnames = fieldnames
         return CsvRows(reader, reader.fieldnames)
+    # Python's open() can wait indefinitely when the supplied path is a
+    # named pipe without a writer. The reusable Action already rejects
+    # nonregular inputs; apply the same guard to direct CLI/library calls.
+    # Keep missing-file errors unchanged and allow symlinks to regular CSVs.
+    if path.exists() and not path.is_file():
+        raise ValueError("CSV input must be a regular file")
     # Accept compressed operational exports without changing CSV parsing.
     # The suffix selects compression; stdin stays a plain text stream.
     if path.suffix.lower() == ".gz":
