@@ -796,11 +796,13 @@ def read_csv(
     if delimiter is not None and len(delimiter) != 1:
         raise ValueError("delimiter must be exactly one character")
     try:
-        codecs.lookup(encoding)
+        canonical_encoding = codecs.lookup(encoding).name
     except LookupError as exc:
         raise ValueError(f"unknown CSV encoding: {encoding}") from exc
-    # Excel UTF-8 exports often start with a BOM. utf-8-sig strips it and still reads plain utf-8.
-    is_utf8 = encoding.lower().replace("_", "-") in ("utf-8", "utf8", "utf-8-sig")
+    # Recognize every valid alias of UTF-8, including Windows cp65001 and u8.
+    # Otherwise the same BOM-prefixed file can be accepted or rejected solely
+    # because its encoding was spelled differently.
+    is_utf8 = canonical_encoding in ("utf-8", "utf-8-sig")
     codec = "utf-8-sig" if is_utf8 else encoding
     if stdin is not None:
         if delimiter is None:

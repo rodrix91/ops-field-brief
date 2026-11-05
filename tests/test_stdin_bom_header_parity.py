@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class StdinBomHeaderParityTests(unittest.TestCase):
     def _cli(
-        self, path: str, payload: bytes | None, delimiter: str
+        self, path: str, payload: bytes | None, delimiter: str, encoding: str = "utf-8"
     ) -> subprocess.CompletedProcess[bytes]:
         command = [
             sys.executable,
@@ -30,6 +30,8 @@ class StdinBomHeaderParityTests(unittest.TestCase):
             "shipment,buyer",
             "--strict-csv",
             "--json",
+            "--encoding",
+            encoding,
         ]
         if delimiter == "auto":
             command.extend(("--delimiter", "auto"))
@@ -105,6 +107,42 @@ class StdinBomHeaderParityTests(unittest.TestCase):
                 self.assertEqual(stdin_result.returncode, file_result.returncode)
                 self.assertEqual(stdin_result.stdout, file_result.stdout)
                 self.assertEqual(file_result.returncode, 0 if count == 1 else 2)
+
+    def test_utf8_codec_aliases_keep_file_and_stdin_bom_contract(self) -> None:
+        # Both aliases are accepted by Python's codec registry. Previously
+        # neither was recognized as UTF-8 by the manual spelling comparison,
+        # and the BOM became a literal column name. Validate file/stdin parity
+        # for both explicit and automatically detected CSV separators.
+        for encoding in ("cp65001", "u8"):
+            for boms in (0, 1, 2):
+                for delimiter in ("comma", "auto"):
+                    with (
+                        self.subTest(encoding=encoding, boms=boms, delimiter=delimiter),
+                        tempfile.TemporaryDirectory() as root,
+                    ):
+                        raw = ("\ufeff" * boms + "shipment,buyer\nS1,Tarija\n").encode("utf-8")
+                        source = Path(root) / "orders.csv"
+                        source.write_bytes(raw)
+                        on_disk = self._cli(str(source), None, delimiter, encoding)
+                        from_pipe = self._cli("-", raw, delimiter, encoding)
+                        self.assertEqual(from_pipe.returncode, on_disk.returncode)
+                        self.assertEqual(from_pipe.stdout, on_disk.stdout)
+                        self.assertEqual(from_pipe.stderr, on_disk.stderr)
+                        self.assertEqual(on_disk.returncode, 0 if boms < 2 else 2)
+                        if boms < 2:
+                            self.assertEqual(json.loads(on_disk.stdout)["rows"], 1)
+                        else:
+                            self.assertIn(b"shipment", on_disk.stderr)
+
+    def test_library_utf8_aliases_remove_exactly_one_bom(self) -> None:
+        for alias in ("cp65001", "u8", "UTF_8_SIG"):
+            for count in (0, 1, 2):
+                with self.subTest(alias=alias, boms=count):
+                    raw = "\ufeff" * count + "shipment,buyer\nS1,Tarija\n"
+                    data = read_csv(Path("-"), encoding=alias, strict=True, stdin=io.StringIO(raw))
+                    expected_header = ("\ufeff" * max(count - 1, 0) + "shipment", "buyer")
+                    self.assertEqual(data.fieldnames, expected_header)
+                    self.assertEqual(data[0]["buyer"], "Tarija")
 
 
 if __name__ == "__main__":
