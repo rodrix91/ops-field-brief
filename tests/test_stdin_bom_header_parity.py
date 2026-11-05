@@ -108,7 +108,6 @@ class StdinBomHeaderParityTests(unittest.TestCase):
                 self.assertEqual(stdin_result.stdout, file_result.stdout)
                 self.assertEqual(file_result.returncode, 0 if count == 1 else 2)
 
-
     def test_utf8_codec_aliases_keep_file_and_stdin_bom_contract(self) -> None:
         # Both aliases are accepted by Python's codec registry. Previously
         # neither was recognized as UTF-8 by the manual spelling comparison,
@@ -121,9 +120,7 @@ class StdinBomHeaderParityTests(unittest.TestCase):
                         self.subTest(encoding=encoding, boms=boms, delimiter=delimiter),
                         tempfile.TemporaryDirectory() as root,
                     ):
-                        raw = (
-                            "\ufeff" * boms + "shipment,buyer\nS1,Tarija\n"
-                        ).encode("utf-8")
+                        raw = ("\ufeff" * boms + "shipment,buyer\nS1,Tarija\n").encode("utf-8")
                         source = Path(root) / "orders.csv"
                         source.write_bytes(raw)
                         on_disk = self._cli(str(source), None, delimiter, encoding)
@@ -142,12 +139,8 @@ class StdinBomHeaderParityTests(unittest.TestCase):
             for count in (0, 1, 2):
                 with self.subTest(alias=alias, boms=count):
                     raw = "\ufeff" * count + "shipment,buyer\nS1,Tarija\n"
-                    data = read_csv(
-                        Path("-"), encoding=alias, strict=True, stdin=io.StringIO(raw)
-                    )
-                    expected_header = (
-                        "\ufeff" * max(count - 1, 0) + "shipment", "buyer"
-                    )
+                    data = read_csv(Path("-"), encoding=alias, strict=True, stdin=io.StringIO(raw))
+                    expected_header = ("\ufeff" * max(count - 1, 0) + "shipment", "buyer")
                     self.assertEqual(data.fieldnames, expected_header)
                     self.assertEqual(data[0]["buyer"], "Tarija")
 
