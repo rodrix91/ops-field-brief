@@ -79,8 +79,10 @@ class ActionUnicodeOutputTests(unittest.TestCase):
             }
             stdout = io.StringIO()
             stderr = io.StringIO()
+            # Keep Windows SystemRoot/Path and other interpreter bootstrap
+            # variables intact. Override only the encoding and Action inputs.
             with (
-                patch.dict(os.environ, env, clear=True),
+                patch.dict(os.environ, env),
                 contextlib.redirect_stdout(stdout),
                 contextlib.redirect_stderr(stderr),
             ):
