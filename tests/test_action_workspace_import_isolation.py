@@ -76,9 +76,7 @@ class ActionModuleIsolationTests(unittest.TestCase):
     def test_cli_subprocess_uses_action_directory_not_workspace(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             workspace = Path(directory)
-            (workspace / "shipments.csv").write_text(
-                "shipment\nA\n", encoding="utf-8"
-            )
+            (workspace / "shipments.csv").write_text("shipment\nA\n", encoding="utf-8")
             env = {
                 "OPS_FIELD_BRIEF_ACTION_PATH": str(ACTION_ROOT),
                 "OPS_FIELD_BRIEF_INPUT_PATH": "shipments.csv",
@@ -87,7 +85,8 @@ class ActionModuleIsolationTests(unittest.TestCase):
                 "GITHUB_WORKSPACE": str(workspace),
             }
             measured = subprocess.CompletedProcess(
-                args=[], returncode=0,
+                args=[],
+                returncode=0,
                 stdout=render_markdown(build_brief([{"shipment": "A"}], ["shipment"])),
                 stderr="",
             )
