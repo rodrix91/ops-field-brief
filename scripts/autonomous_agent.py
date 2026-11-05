@@ -81,6 +81,19 @@ def audit_repository() -> dict:
     }
 
 
+class _NoCredentialRedirects(urllib.request.HTTPRedirectHandler):
+    """Refuse redirects rather than forwarding the Gemini key to another URL."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def _open_without_redirects(request: urllib.request.Request, timeout: int):
+    """Open one trusted API endpoint; never forward secret headers on 30x."""
+    opener = urllib.request.build_opener(_NoCredentialRedirects)
+    return opener.open(request, timeout=timeout)
+
+
 def query_gemini_api(prompt: str, api_key: str) -> str | None:
     """Queries Google Gemini API using only the Python standard library."""
     # Keep credentials out of URLs, which may be recorded in HTTP and error logs.
@@ -95,7 +108,7 @@ def query_gemini_api(prompt: str, api_key: str) -> str | None:
     )
 
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with _open_without_redirects(req, timeout=30) as resp:
             response_bytes = resp.read(MAX_GEMINI_RESPONSE_BYTES + 1)
             if len(response_bytes) > MAX_GEMINI_RESPONSE_BYTES:
                 return None

@@ -90,10 +90,40 @@ class AutonomousAgentTests(unittest.TestCase):
                 (root / "tests" / "test_valid.py").write_text("def test_valid(): pass\n")
                 self.assertEqual(agent.audit_repository()["test_files"], ["test_valid.py"])
 
+    def test_gemini_request_disables_http_redirects_and_never_replays_key(self):
+        secret = "test-secret-header"
+        request = agent.urllib.request.Request(
+            "https://generativelanguage.googleapis.com/v1beta/models/test",
+            data=b"{}",
+            headers={"x-goog-api-key": secret},
+            method="POST",
+        )
+        handler = agent._NoCredentialRedirects()
+        for status in (301, 302, 303, 307, 308):
+            with self.subTest(status=status):
+                self.assertIsNone(
+                    handler.redirect_request(
+                        request,
+                        None,
+                        status,
+                        "Redirect",
+                        {},
+                        "https://untrusted.example/steal",
+                    ),
+                )
+
+        with patch.object(agent.urllib.request, "build_opener") as build_opener:
+            expected = object()
+            build_opener.return_value.open.return_value = expected
+            self.assertIs(agent._open_without_redirects(request, 30), expected)
+            build_opener.assert_called_once_with(agent._NoCredentialRedirects)
+            build_opener.return_value.open.assert_called_once_with(request, timeout=30)
+            self.assertEqual(request.get_header("X-goog-api-key"), secret)
+
     def test_gemini_authenticates_in_header_without_exposing_key_in_url(self):
         secret = "example-secret-should-not-appear-in-url"
         body = b'{"candidates":[{"content":{"parts":[{"text":"assessment"}]}}]}'
-        with patch.object(agent.urllib.request, "urlopen") as urlopen:
+        with patch.object(agent, "_open_without_redirects") as urlopen:
             urlopen.return_value.__enter__.return_value.read.return_value = body
             self.assertEqual(agent.query_gemini_api("Review the audit", secret), "assessment")
         request = urlopen.call_args.args[0]
@@ -118,7 +148,7 @@ class AutonomousAgentTests(unittest.TestCase):
             (valid + b" " * (maximum - len(valid)), "assessment"),
             (valid + b" " * (maximum + 1 - len(valid)), None),
         )
-        with patch.object(agent.urllib.request, "urlopen") as urlopen:
+        with patch.object(agent, "_open_without_redirects") as urlopen:
             reader = urlopen.return_value.__enter__.return_value.read
             for response, expected in responses:
                 with self.subTest(size=len(response)):
@@ -133,7 +163,7 @@ class AutonomousAgentTests(unittest.TestCase):
         # Neither behavior should disrupt the independently verified local audit.
         response = b"[" * 1200 + b"0" + b"]" * 1200
         with (
-            patch.object(agent.urllib.request, "urlopen") as urlopen,
+            patch.object(agent, "_open_without_redirects") as urlopen,
             redirect_stderr(io.StringIO()),
         ):
             urlopen.return_value.__enter__.return_value.read.return_value = response
@@ -142,7 +172,7 @@ class AutonomousAgentTests(unittest.TestCase):
         # Force the decoder failure to verify that the exception handler works
         # independently of the host interpreter's recursion threshold.
         with (
-            patch.object(agent.urllib.request, "urlopen") as urlopen,
+            patch.object(agent, "_open_without_redirects") as urlopen,
             patch.object(agent.json, "loads", side_effect=RecursionError("nested data")),
             redirect_stderr(io.StringIO()) as errors,
         ):
@@ -163,7 +193,7 @@ class AutonomousAgentTests(unittest.TestCase):
             {"candidates": [{"content": {"parts": [None, {"text": 3}]}}]},
             {"candidates": [{"content": {"parts": [{"text": "   "}]}}]},
         )
-        with patch.object(agent.urllib.request, "urlopen") as urlopen:
+        with patch.object(agent, "_open_without_redirects") as urlopen:
             for payload in malformed:
                 with self.subTest(payload=payload):
                     urlopen.return_value.__enter__.return_value.read.return_value = json.dumps(
@@ -180,7 +210,7 @@ class AutonomousAgentTests(unittest.TestCase):
             {"text": "Later"},
         ]
         payload = {"candidates": [{"content": {"parts": parts}}]}
-        with patch.object(agent.urllib.request, "urlopen") as urlopen:
+        with patch.object(agent, "_open_without_redirects") as urlopen:
             urlopen.return_value.__enter__.return_value.read.return_value = json.dumps(
                 payload
             ).encode("utf-8")
@@ -197,7 +227,7 @@ class AutonomousAgentTests(unittest.TestCase):
                 {"content": {"parts": [{"text": "Later assessment"}]}},
             ]
         }
-        with patch.object(agent.urllib.request, "urlopen") as urlopen:
+        with patch.object(agent, "_open_without_redirects") as urlopen:
             urlopen.return_value.__enter__.return_value.read.return_value = json.dumps(
                 response
             ).encode("utf-8")
@@ -211,7 +241,7 @@ class AutonomousAgentTests(unittest.TestCase):
             ]
         }
         all_invalid = {"candidates": [None, {}, {"content": {"parts": ["nothing", {"text": 1}]}}]}
-        with patch.object(agent.urllib.request, "urlopen") as urlopen:
+        with patch.object(agent, "_open_without_redirects") as urlopen:
             for payload, expected in ((first, "First"), (all_invalid, None)):
                 with self.subTest(expected=expected):
                     urlopen.return_value.__enter__.return_value.read.return_value = json.dumps(
@@ -228,7 +258,7 @@ class AutonomousAgentTests(unittest.TestCase):
                 output = io.StringIO()
                 audit = self.healthy_audit()
                 with (
-                    patch.object(agent.urllib.request, "urlopen") as urlopen,
+                    patch.object(agent, "_open_without_redirects") as urlopen,
                     patch.object(agent, "run_tests", return_value=(True, "OK")),
                     patch.object(agent, "audit_repository", return_value=audit),
                     patch.dict(os.environ, {"GEMINI_API_KEY": secret}, clear=True),
@@ -246,7 +276,7 @@ class AutonomousAgentTests(unittest.TestCase):
         error = agent.urllib.error.URLError(f"diagnostic contained {secret}")
         output = io.StringIO()
         with (
-            patch.object(agent.urllib.request, "urlopen", side_effect=error),
+            patch.object(agent, "_open_without_redirects", side_effect=error),
             redirect_stderr(output),
         ):
             self.assertIsNone(agent.query_gemini_api("Review", secret))
