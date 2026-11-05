@@ -80,8 +80,8 @@ class AutonomousAgentTests(unittest.TestCase):
 
     def test_test_log_tail_preserves_partial_utf8_as_replacement(self):
         with tempfile.TemporaryFile() as handle:
-            handle.write(b"partial utf8: \\xe2\\x82")
-            self.assertIn("\\ufffd", agent._test_log_tail(handle))
+            handle.write(b"partial utf8: \xe2\x82")
+            self.assertIn("\ufffd", agent._test_log_tail(handle))
 
     def test_hung_unittest_subprocess_fails_without_running_an_unbounded_audit(self):
         failure = subprocess.TimeoutExpired(cmd=["python", "-m", "unittest"], timeout=300)
