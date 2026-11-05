@@ -283,6 +283,31 @@ class AutonomousAgentTests(unittest.TestCase):
         self.assertNotIn(secret, output.getvalue())
         self.assertIn("[REDACTED]", output.getvalue())
 
+    def test_gemini_transport_error_is_escaped_and_bounded(self):
+        secret = "never-log-this-api-key"
+        message = (
+            "upstream failure\n::error file=workflow.yml::forged result\r"
+            "\x1b[31m\u202e" + secret + "A" * 5000
+        )
+        error = agent.urllib.error.URLError(message)
+        output = io.StringIO()
+        with (
+            patch.object(agent, "_open_without_redirects", side_effect=error),
+            redirect_stderr(output),
+        ):
+            self.assertIsNone(agent.query_gemini_api("Review", secret))
+        log = output.getvalue()
+        marker = "Gemini API request note: "
+        self.assertTrue(log.startswith(marker))
+        self.assertEqual(len(log.splitlines()), 1, "transport errors occupy one CI log line")
+        safe_detail = json.loads(log[len(marker):])
+        self.assertIn("[REDACTED]", safe_detail)
+        self.assertLessEqual(len(safe_detail), 1000)
+        self.assertNotIn(secret, log)
+        self.assertNotIn("\x1b", log)
+        self.assertNotIn("\u202e", log)
+        self.assertNotIn("\n::error", log)
+
     def test_external_feedback_is_escaped_redacted_and_bounded_in_ci_logs(self):
         secret = "never-echo-this-api-key"
         feedback = (
