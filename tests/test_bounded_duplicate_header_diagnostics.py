@@ -34,8 +34,13 @@ class BoundedDuplicateHeaderDiagnosticsTests(unittest.TestCase):
         )
 
     def test_control_characters_and_bidi_formatting_are_escaped(self) -> None:
-        for name in ("buyer\nregion", "buyer\rregion", "buyer\tregion",
-                     "buyer\x1b[31m", "buyer\u202eregion"):
+        for name in (
+            "buyer\nregion",
+            "buyer\rregion",
+            "buyer\tregion",
+            "buyer\x1b[31m",
+            "buyer\u202eregion",
+        ):
             with self.subTest(name=repr(name)):
                 message = self._error(name, name)
                 self.assertIn("duplicate CSV header columns:", message)
@@ -61,10 +66,7 @@ class BoundedDuplicateHeaderDiagnosticsTests(unittest.TestCase):
         self.assertLess(len(output), 220)
 
     def test_many_duplicate_groups_are_summarized_in_input_order(self) -> None:
-        headers = tuple(
-            name for index in range(12)
-            for name in (f"field{index}", f"field{index}")
-        )
+        headers = tuple(name for index in range(12) for name in (f"field{index}", f"field{index}"))
         message = self._error(*headers)
         self.assertEqual(
             message,
@@ -81,8 +83,13 @@ class BoundedDuplicateHeaderDiagnosticsTests(unittest.TestCase):
         env = {**os.environ, "PYTHONPATH": str(ROOT / "src")}
         result = subprocess.run(
             [
-                sys.executable, "-m", "ops_field_brief", "-",
-                "--required", "id,buyer", "--strict-csv",
+                sys.executable,
+                "-m",
+                "ops_field_brief",
+                "-",
+                "--required",
+                "id,buyer",
+                "--strict-csv",
             ],
             cwd=ROOT,
             env=env,
