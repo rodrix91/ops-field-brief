@@ -23,7 +23,7 @@ class ActionUnicodeOutputTests(unittest.TestCase):
             workspace = Path(directory) / "workspace"
             workspace.mkdir()
             source = workspace / "envíos.csv"
-            source.write_text("pedido,región\\nA,東京\\n", encoding="utf-8")
+            source.write_text("pedido,región\nA,東京\n", encoding="utf-8")
             output = Path(directory) / "action-output.txt"
             summary = Path(directory) / "summary.md"
             expected = render_markdown(
@@ -56,14 +56,14 @@ class ActionUnicodeOutputTests(unittest.TestCase):
             self.assertEqual(options["env"]["PYTHONPATH"].split(os.pathsep)[0], str(ROOT / "src"))
             self.assertIn("東京", stdout.getvalue())
             self.assertIn("東京", summary.read_text(encoding="utf-8"))
-            self.assertEqual(output.read_text(encoding="utf-8"), "exit-code=0\\npassed=true\\n")
+            self.assertEqual(output.read_text(encoding="utf-8"), "exit-code=0\npassed=true\n")
 
     def test_actual_cli_preserves_non_ascii_report_under_a_legacy_parent_override(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             workspace = Path(directory) / "workspace"
             workspace.mkdir()
             (workspace / "envíos.csv").write_text(
-                "pedido,región\\nA,東京\\nB,Bolivia\\n", encoding="utf-8"
+                "pedido,región\nA,東京\nB,Bolivia\n", encoding="utf-8"
             )
             output = Path(directory) / "action-output.txt"
             summary = Path(directory) / "summary.md"
@@ -89,7 +89,7 @@ class ActionUnicodeOutputTests(unittest.TestCase):
             self.assertIn("東京", stdout.getvalue())
             self.assertIn("región", stdout.getvalue())
             self.assertIn("東京", summary.read_text(encoding="utf-8"))
-            self.assertEqual(output.read_text(encoding="utf-8"), "exit-code=0\\npassed=true\\n")
+            self.assertEqual(output.read_text(encoding="utf-8"), "exit-code=0\npassed=true\n")
 
     def test_action_entrypoint_explicitly_configures_utf8_for_its_own_console(self) -> None:
         workflow = (ROOT / "action.yml").read_text(encoding="utf-8")
