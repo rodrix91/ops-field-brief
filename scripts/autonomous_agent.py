@@ -142,9 +142,10 @@ def query_gemini_api(prompt: str, api_key: str) -> str | None:
         UnicodeError,
         RecursionError,
     ) as err:
-        # Do not disclose credentials if a transport exception includes them.
+        # Keep API keys private; encode untrusted transport text on one log line
+        # to prevent forged CI annotations, terminal escapes and huge messages.
         detail = str(err).replace(api_key, "[REDACTED]") if api_key else str(err)
-        sys.stderr.write(f"Gemini API request note: {detail}\n")
+        sys.stderr.write(f"Gemini API request note: {json.dumps(detail[:1000])}\n")
         return None
     return None
 
