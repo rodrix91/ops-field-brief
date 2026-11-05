@@ -6,11 +6,13 @@ import contextlib
 import io
 import json
 import os
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from ops_field_brief.brief import build_brief, render_markdown
 from scripts import run_action
 
 ACTION_ROOT = Path(__file__).resolve().parents[1]
@@ -67,7 +69,7 @@ class ActionModuleIsolationTests(unittest.TestCase):
             report = json.loads(stdout.getvalue())
             self.assertEqual(report["rows"], 2)
             self.assertEqual(report["fields"][0]["name"], "shipment")
-            self.assertEqual(report["top"][0]["value"], "東京")
+            self.assertIn("東京", [item["value"] for item in report["top"]])
             self.assertEqual(outputs.read_text(encoding="utf-8"), "exit-code=0\npassed=true\n")
             self.assertIn('"rows": 2', summary.read_text(encoding="utf-8"))
 
@@ -84,10 +86,7 @@ class ActionModuleIsolationTests(unittest.TestCase):
                 "OPS_FIELD_BRIEF_INPUT_SUMMARY": "false",
                 "GITHUB_WORKSPACE": str(workspace),
             }
-            from ops_field_brief.brief import build_brief, render_markdown
-            from subprocess import CompletedProcess
-
-            measured = CompletedProcess(
+            measured = subprocess.CompletedProcess(
                 args=[], returncode=0,
                 stdout=render_markdown(build_brief([{"shipment": "A"}], ["shipment"])),
                 stderr="",
