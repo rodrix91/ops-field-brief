@@ -38,4 +38,6 @@ runs:
         OPS_FIELD_BRIEF_INPUT_PATH: ${{ inputs.path }}
         OPS_FIELD_BRIEF_INPUT_ARGS: ${{ inputs.args }}
         OPS_FIELD_BRIEF_INPUT_SUMMARY: ${{ inputs.summary }}
+        # Include the Python runner's own stdout/stderr on legacy Windows code pages.
+        PYTHONIOENCODING: utf-8
       run: python "${{ github.action_path }}/scripts/run_action.py"

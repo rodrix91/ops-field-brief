@@ -375,6 +375,9 @@ def main() -> int:
 
     action_path = Path(os.environ["OPS_FIELD_BRIEF_ACTION_PATH"]).resolve()
     env = dict(os.environ)
+    # The Action must produce and decode the same Unicode report on Linux,
+    # Windows and macOS, regardless of the caller's console code page.
+    env["PYTHONIOENCODING"] = "utf-8"
     src = str(action_path / "src")
     existing = env.get("PYTHONPATH")
     env["PYTHONPATH"] = src if not existing else os.pathsep.join((src, existing))
@@ -387,6 +390,7 @@ def main() -> int:
             env=env,
             capture_output=True,
             text=True,
+            encoding="utf-8",
             check=False,
             timeout=ACTION_CLI_TIMEOUT_SECONDS,
         )
