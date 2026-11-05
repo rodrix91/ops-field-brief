@@ -13,6 +13,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -21,6 +22,17 @@ ROOT = Path(__file__).resolve().parents[1]
 # The external assessment is optional. Do not allow an unbounded API payload
 # to exhaust memory in an otherwise healthy local engineering audit.
 MAX_GEMINI_RESPONSE_BYTES = 1024 * 1024
+# An interrupted or faulty test can produce huge stdout/stderr. Keep the
+# audit's in-memory log bounded while preserving the final unittest summary.
+MAX_TEST_LOG_BYTES = 64 * 1024
+
+
+def _test_log_tail(handle) -> str:
+    handle.seek(0, os.SEEK_END)
+    total = handle.tell()
+    handle.seek(max(0, total - MAX_TEST_LOG_BYTES))
+    decoded = handle.read().decode("utf-8", errors="replace")
+    return ("[earlier test output omitted]\n" if total > MAX_TEST_LOG_BYTES else "") + decoded
 
 
 def run_tests() -> tuple[bool, str]:
@@ -30,22 +42,28 @@ def run_tests() -> tuple[bool, str]:
     # A stalled test must not hold the scheduled runner indefinitely.
     # Keep this below the workflow's 15-minute job timeout.
     timeout_seconds = 300
+    # Redirect both streams to temporary binary files instead of capturing
+    # unlimited bytes in memory. Read only their tails after the process
+    # exits; unittest prints its trustworthy final summary at stderr's end.
     try:
-        result = subprocess.run(
-            [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"],
-            cwd=ROOT,
-            env=env,
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=timeout_seconds,
-        )
+        with tempfile.TemporaryFile() as stdout_log, tempfile.TemporaryFile() as stderr_log:
+            result = subprocess.run(
+                [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"],
+                cwd=ROOT,
+                env=env,
+                stdout=stdout_log,
+                stderr=stderr_log,
+                check=False,
+                timeout=timeout_seconds,
+            )
+            stdout_tail = _test_log_tail(stdout_log)
+            stderr_tail = _test_log_tail(stderr_log)
     except subprocess.TimeoutExpired:
         return False, f"Unit test suite exceeded {timeout_seconds} seconds."
-    output = result.stdout + "\n" + result.stderr
+    output = stdout_tail + "\n" + stderr_tail
     # unittest exits with code zero even when discovery finds no tests.
-    # Parse only its stderr summary, not arbitrary output from the tests.
-    counts = re.findall(r"(?m)^Ran ([0-9]+) tests? in [0-9.]+s$", result.stderr)
+    # Parse only the final stderr summary, not arbitrary output from tests.
+    counts = re.findall(r"(?m)^Ran ([0-9]+) tests? in [0-9.]+s$", stderr_tail)
     if result.returncode != 0:
         return False, output.strip()
     if not counts or int(counts[-1]) == 0:

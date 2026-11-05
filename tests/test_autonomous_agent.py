@@ -23,6 +23,16 @@ class AutonomousAgentTests(unittest.TestCase):
             "changelog_characters": 40,
         }
 
+    @staticmethod
+    def simulated_suite(stdout: str, stderr: str, code: int = 0):
+        # Mimic a real child process writing into the provided file handles.
+        def execute(command, **kwargs):
+            kwargs["stdout"].write(stdout.encode("utf-8"))
+            kwargs["stderr"].write(stderr.encode("utf-8"))
+            return subprocess.CompletedProcess(args=command, returncode=code)
+
+        return execute
+
     def test_run_tests_rejects_empty_or_missing_unittest_summaries(self):
         outcomes = (
             ("Ran 0 tests in 0.000s\n\nOK\n", "", "no tests"),
@@ -31,13 +41,11 @@ class AutonomousAgentTests(unittest.TestCase):
         )
         for stderr, stdout, label in outcomes:
             with self.subTest(label=label):
-                completed = subprocess.CompletedProcess(
-                    args=["python", "-m", "unittest"],
-                    returncode=0,
-                    stdout=stdout,
-                    stderr=stderr,
-                )
-                with patch.object(agent.subprocess, "run", return_value=completed):
+                with patch.object(
+                    agent.subprocess,
+                    "run",
+                    side_effect=self.simulated_suite(stdout, stderr),
+                ):
                     passed, log = agent.run_tests()
                 self.assertFalse(passed)
                 self.assertIn("No unittest test cases were executed.", log)
@@ -46,17 +54,38 @@ class AutonomousAgentTests(unittest.TestCase):
         summary = "Ran 1 test in 0.001s\n\nOK\n"
         for code, expected in ((0, True), (1, False)):
             with self.subTest(code=code):
-                completed = subprocess.CompletedProcess(
-                    args=["python", "-m", "unittest"],
-                    returncode=code,
-                    stdout="Example output",
-                    stderr=summary,
-                )
-                with patch.object(agent.subprocess, "run", return_value=completed) as execute:
+                with patch.object(
+                    agent.subprocess,
+                    "run",
+                    side_effect=self.simulated_suite("Example output", summary, code),
+                ) as execute:
                     passed, log = agent.run_tests()
                 self.assertEqual(passed, expected)
                 self.assertIn("Ran 1 test", log)
                 self.assertEqual(execute.call_args.kwargs["check"], False)
+                self.assertNotIn("capture_output", execute.call_args.kwargs)
+
+    def test_run_tests_bounds_large_output_and_reads_the_final_summary(self):
+        limit = agent.MAX_TEST_LOG_BYTES
+        stdout = "early-private-log " + "x" * (limit * 2) + "stdout-tail"
+        stderr = "y" * (limit * 2) + "\nRan 431 tests in 9.954s\n\nOK\n"
+        with patch.object(
+            agent.subprocess,
+            "run",
+            side_effect=self.simulated_suite(stdout, stderr),
+        ):
+            passed, log = agent.run_tests()
+        self.assertTrue(passed)
+        self.assertIn("Ran 431 tests in 9.954s", log)
+        self.assertIn("stdout-tail", log)
+        self.assertIn("[earlier test output omitted]", log)
+        self.assertNotIn("early-private-log", log)
+        self.assertLess(len(log.encode("utf-8")), limit * 2 + 150)
+
+    def test_test_log_tail_preserves_partial_utf8_as_replacement(self):
+        with tempfile.TemporaryFile() as handle:
+            handle.write(b"partial utf8: \xe2\x82")
+            self.assertIn("\ufffd", agent._test_log_tail(handle))
 
     def test_hung_unittest_subprocess_fails_without_running_an_unbounded_audit(self):
         failure = subprocess.TimeoutExpired(cmd=["python", "-m", "unittest"], timeout=300)
