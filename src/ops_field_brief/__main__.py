@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import codecs
 import io
 import sys
 import zlib
@@ -185,11 +186,11 @@ def _decoded_stdin(encoding: str):
     raw = getattr(sys.stdin, "buffer", None)
     if raw is None:
         return sys.stdin
-    normalized = encoding.lower().replace("_", "-")
-    # Preserve BOM bytes until read_csv() handles exactly one leading marker.
-    # Otherwise an initial utf-8-sig decode plus CSV-level stripping can
-    # silently remove two BOMs on stdin but only one on file and gzip input.
-    codec = "utf-8" if normalized in ("utf-8", "utf8", "utf-8-sig") else encoding
+    canonical = codecs.lookup(encoding).name
+    # Preserve BOM bytes for every valid UTF-8 alias until read_csv() removes
+    # exactly one. Decoding as utf-8-sig here could erase a second marker and
+    # make stdin disagree with file and gzip inputs.
+    codec = "utf-8" if canonical in ("utf-8", "utf-8-sig") else encoding
     return io.StringIO(raw.read().decode(codec))
 
 
