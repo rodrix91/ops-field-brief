@@ -103,7 +103,11 @@ class AutonomousAgentTests(unittest.TestCase):
             with self.subTest(status=status):
                 self.assertIsNone(
                     handler.redirect_request(
-                        request, None, status, "Redirect", {},
+                        request,
+                        None,
+                        status,
+                        "Redirect",
+                        {},
                         "https://untrusted.example/steal",
                     ),
                 )
