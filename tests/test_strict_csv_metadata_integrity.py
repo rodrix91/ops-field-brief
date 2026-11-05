@@ -38,6 +38,29 @@ class StrictCsvMetadataIntegrityTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "CSV data row 1 must be a mapping"):
                     validate_csv_structure(rows)
 
+    def test_caller_constructed_extra_columns_are_rejected_without_leaking_values(self) -> None:
+        # DictReader puts surplus CSV cells under None; direct API callers
+        # can use arbitrary keys and must not bypass strict CSV validation.
+        for extra_key in ("unexpected", 7, "forged\\n::error::annotation"):
+            with self.subTest(extra_key=extra_key):
+                row = {"id": "A1", extra_key: "private-data-do-not-echo"}
+                rows = CsvRows([row], ["id"])
+                rows.source_lines = (6,)
+                with self.assertRaisesRegex(
+                    ValueError, r"CSV data row 1 has more fields than the header \\(source line 6\\)"
+                ) as caught:
+                    validate_csv_structure(rows)
+                self.assertNotIn("private-data-do-not-echo", str(caught.exception))
+                self.assertNotIn("::error::", str(caught.exception))
+                self.assertEqual(rows[0], row)
+
+    def test_exact_declared_headers_and_record_keys_still_pass(self) -> None:
+        records = [{" order id ": "A1", "Región": "Tarija"}]
+        rows = CsvRows(records, [" order id ", "Región"])
+        validate_csv_structure(rows)
+        validate_csv_structure(rows, casefold_headers=True)
+        self.assertEqual(rows, records)
+
     def test_corrupt_skipped_line_metadata_cannot_be_reported_as_real(self) -> None:
         for invalid in (None, "2", (0,), (-4,), (True,), (2, 2), (5, 3), ("2",)):
             with self.subTest(invalid=invalid):
