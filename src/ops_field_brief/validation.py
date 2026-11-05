@@ -7,6 +7,20 @@ from collections.abc import Mapping
 from unicodedata import normalize
 
 
+def _diagnostic_header(name: str) -> str:
+    """Bound untrusted duplicate-header labels without changing comparisons."""
+    fragment = name[:80]
+    # Embedded newlines, terminal escapes and bidi controls must not format
+    # themselves as active characters inside CLI or GitHub Actions logs.
+    displayed = fragment if fragment.isprintable() else repr(fragment)
+    truncated = len(name) > 80
+    # Escape sequences can expand substantially under repr().
+    if len(displayed) > 120:
+        displayed = displayed[:117] + "..."
+        truncated = True
+    return displayed + (" [truncated]" if truncated else "")
+
+
 def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool = False) -> None:
     """Reject ambiguous headers and ragged rows without changing default parsing.
 
@@ -43,7 +57,11 @@ def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool
     compared = [normalize("NFC", name.casefold()) if casefold_headers else name for name in names]
     repeated = [name for name, count in Counter(compared).items() if count > 1]
     if repeated:
-        raise ValueError("duplicate CSV header columns: " + ", ".join(repeated))
+        # Report a bounded number of bounded labels. A CSV may contain many
+        # distinct duplicated columns or very large/control-bearing names.
+        displayed = ", ".join(_diagnostic_header(name) for name in repeated[:3])
+        rest = f" (+{len(repeated) - 3} more)" if len(repeated) > 3 else ""
+        raise ValueError("duplicate CSV header columns: " + displayed + rest)
     # Use the exact source header spelling, not its normalized comparison
     # form: strict parsing must not silently rewrite column identifiers.
     declared_fields = set(header)
