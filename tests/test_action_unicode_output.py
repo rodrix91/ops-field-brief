@@ -87,7 +87,7 @@ class ActionUnicodeOutputTests(unittest.TestCase):
                 result = run_action.main()
             self.assertEqual(result, 0, stderr.getvalue())
             self.assertIn("東京", stdout.getvalue())
-            self.assertIn("región", stdout.getvalue())
+            self.assertIn("pedido", stdout.getvalue())
             self.assertIn("東京", summary.read_text(encoding="utf-8"))
             self.assertEqual(output.read_text(encoding="utf-8"), "exit-code=0\npassed=true\n")
 
