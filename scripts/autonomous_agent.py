@@ -35,7 +35,6 @@ def _test_log_tail(handle) -> str:
     return ("[earlier test output omitted]\n" if total > MAX_TEST_LOG_BYTES else "") + decoded
 
 
-
 def run_tests() -> tuple[bool, str]:
     """Runs the full unit test suite using standard library unittest."""
     env = dict(os.environ)
