@@ -41,15 +41,17 @@ class StrictCsvMetadataIntegrityTests(unittest.TestCase):
     def test_caller_constructed_extra_columns_are_rejected_without_leaking_values(self) -> None:
         # DictReader puts surplus CSV cells under None; direct API callers
         # can use arbitrary keys and must not bypass strict CSV validation.
-        for extra_key in ("unexpected", 7, "forged\\n::error::annotation"):
+        for extra_key in ("unexpected", 7, "forged\n::error::annotation"):
             with self.subTest(extra_key=extra_key):
                 row = {"id": "A1", extra_key: "private-data-do-not-echo"}
                 rows = CsvRows([row], ["id"])
                 rows.source_lines = (6,)
-                with self.assertRaisesRegex(
-                    ValueError, r"CSV data row 1 has more fields than the header \\(source line 6\\)"
-                ) as caught:
+                with self.assertRaises(ValueError) as caught:
                     validate_csv_structure(rows)
+                self.assertIn(
+                    "CSV data row 1 has more fields than the header (source line 6)",
+                    str(caught.exception),
+                )
                 self.assertNotIn("private-data-do-not-echo", str(caught.exception))
                 self.assertNotIn("::error::", str(caught.exception))
                 self.assertEqual(rows[0], row)
