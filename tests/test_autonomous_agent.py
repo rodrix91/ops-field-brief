@@ -42,7 +42,8 @@ class AutonomousAgentTests(unittest.TestCase):
         for stderr, stdout, label in outcomes:
             with self.subTest(label=label):
                 with patch.object(
-                    agent.subprocess, "run",
+                    agent.subprocess,
+                    "run",
                     side_effect=self.simulated_suite(stdout, stderr),
                 ):
                     passed, log = agent.run_tests()
@@ -54,7 +55,8 @@ class AutonomousAgentTests(unittest.TestCase):
         for code, expected in ((0, True), (1, False)):
             with self.subTest(code=code):
                 with patch.object(
-                    agent.subprocess, "run",
+                    agent.subprocess,
+                    "run",
                     side_effect=self.simulated_suite("Example output", summary, code),
                 ) as execute:
                     passed, log = agent.run_tests()
@@ -66,9 +68,11 @@ class AutonomousAgentTests(unittest.TestCase):
     def test_run_tests_bounds_large_output_and_reads_the_final_summary(self):
         limit = agent.MAX_TEST_LOG_BYTES
         stdout = "early-private-log " + "x" * (limit * 2) + "stdout-tail"
-        stderr = "y" * (limit * 2) + "Ran 431 tests in 9.954s\n\nOK\n"
+        stderr = "y" * (limit * 2) + "\nRan 431 tests in 9.954s\n\nOK\n"
         with patch.object(
-            agent.subprocess, "run", side_effect=self.simulated_suite(stdout, stderr),
+            agent.subprocess,
+            "run",
+            side_effect=self.simulated_suite(stdout, stderr),
         ):
             passed, log = agent.run_tests()
         self.assertTrue(passed)
