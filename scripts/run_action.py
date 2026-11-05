@@ -382,11 +382,17 @@ def main() -> int:
     existing = env.get("PYTHONPATH")
     env["PYTHONPATH"] = src if not existing else os.pathsep.join((src, existing))
 
+    # A checked-out workflow workspace is untrusted. With "python -m",
+    # Python puts the child working directory first on sys.path, before
+    # PYTHONPATH. Running from GITHUB_WORKSPACE would therefore let a checked-
+    # out ops_field_brief/__main__.py shadow the Action's trusted package.
+    # The CSV path is already resolved and checked within GITHUB_WORKSPACE,
+    # so run from the Action's own directory to preserve that trust boundary.
     command = [sys.executable, "-m", "ops_field_brief", csv_path, *extra_args]
     try:
         completed = subprocess.run(
             command,
-            cwd=os.getenv("GITHUB_WORKSPACE") or None,
+            cwd=action_path,
             env=env,
             capture_output=True,
             text=True,
