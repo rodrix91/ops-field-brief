@@ -300,7 +300,7 @@ class AutonomousAgentTests(unittest.TestCase):
         marker = "Gemini API request note: "
         self.assertTrue(log.startswith(marker))
         self.assertEqual(len(log.splitlines()), 1, "transport errors occupy one CI log line")
-        safe_detail = json.loads(log[len(marker):])
+        safe_detail = json.loads(log[len(marker) :])
         self.assertIn("[REDACTED]", safe_detail)
         self.assertLessEqual(len(safe_detail), 1000)
         self.assertNotIn(secret, log)
