@@ -14,7 +14,8 @@ def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool
     files. Set casefold_headers to also reject Unicode case-equivalent labels,
     without renaming input columns or changing the default strict behavior.
     DictReader maps surplus fields under a None key and missing fields
-    to None values, so both cases can be detected without re-reading the CSV.
+    to None values. Caller-constructed records may also contain arbitrary
+    undeclared keys, which strict validation must reject explicitly.
     """
     # Direct library calls must not treat "false", 1 or other truthy values
     # as an opt-in for case-insensitive header checks.
@@ -43,6 +44,9 @@ def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool
     repeated = [name for name, count in Counter(compared).items() if count > 1]
     if repeated:
         raise ValueError("duplicate CSV header columns: " + ", ".join(repeated))
+    # Use the exact source header spelling, not its normalized comparison
+    # form: strict parsing must not silently rewrite column identifiers.
+    declared_fields = set(header)
 
     source_lines = getattr(rows, "source_lines", ())
     # CsvRows carries an optional physical line for *every* parsed record.
@@ -64,7 +68,10 @@ def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool
         # Keep the long-standing logical record number, and append the actual
         # starting file line for readers that retain physical CSV positions.
         suffix = f" (source line {source_lines[row_number - 1]})" if source_lines else ""
-        if None in row:
+        # DictReader uses None for overflow cells, but caller-constructed
+        # mappings may hide an extra field behind any other key. Do not
+        # echo arbitrary field names or values in the diagnostic.
+        if None in row or any(key not in declared_fields for key in row):
             raise ValueError(f"CSV data row {row_number} has more fields than the header{suffix}")
         if any(row.get(name) is None for name in header):
             raise ValueError(f"CSV data row {row_number} has fewer fields than the header{suffix}")
