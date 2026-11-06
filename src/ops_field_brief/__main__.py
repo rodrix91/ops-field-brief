@@ -224,15 +224,13 @@ def main(argv: list[str] | None = None) -> int:
                 raise ValueError("--max-missing-column expects NAME=SHARE")
             if name in missing_limits:
                 raise ValueError(
-                    "duplicate --max-missing-column field: "
-                    + _diagnostic_column_names([name])
+                    "duplicate --max-missing-column field: " + _diagnostic_column_names([name])
                 )
             try:
                 missing_limits[name] = float(share)
             except ValueError:
                 raise ValueError(
-                    "invalid --max-missing-column share: "
-                    + _diagnostic_column_names([share])
+                    "invalid --max-missing-column share: " + _diagnostic_column_names([share])
                 ) from None
         rows = read_csv(
             args.csv,
