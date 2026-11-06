@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from unicodedata import normalize
 
 
@@ -19,6 +19,13 @@ def _diagnostic_header(name: str) -> str:
         displayed = displayed[:117] + "..."
         truncated = True
     return displayed + (" [truncated]" if truncated else "")
+
+
+def _diagnostic_column_names(names: Sequence[str]) -> str:
+    """Display a bounded list of untrusted column names without changing matching."""
+    shown = ", ".join(_diagnostic_header(name) for name in names[:3])
+    extra = len(names) - 3
+    return shown + (f" (+{extra} more)" if extra > 0 else "")
 
 
 def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool = False) -> None:
@@ -59,9 +66,7 @@ def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool
     if repeated:
         # Report a bounded number of bounded labels. A CSV may contain many
         # distinct duplicated columns or very large/control-bearing names.
-        displayed = ", ".join(_diagnostic_header(name) for name in repeated[:3])
-        rest = f" (+{len(repeated) - 3} more)" if len(repeated) > 3 else ""
-        raise ValueError("duplicate CSV header columns: " + displayed + rest)
+        raise ValueError("duplicate CSV header columns: " + _diagnostic_column_names(repeated))
     # Use the exact source header spelling, not its normalized comparison
     # form: strict parsing must not silently rewrite column identifiers.
     declared_fields = set(header)

@@ -19,6 +19,8 @@ from pathlib import Path
 from typing import Any
 from unicodedata import normalize
 
+from .validation import _diagnostic_column_names
+
 MISSING = {"", "na", "n/a", "null", "none", "s/d", "s.d.", "n/d", "n.d.", "-"}
 
 
@@ -483,13 +485,16 @@ def build_brief(
     unknown_overrides = [name for name in overrides if name not in required]
     if unknown_overrides:
         raise ValueError(
-            "max_missing_columns must reference required fields: " + ", ".join(unknown_overrides)
+            "max_missing_columns must reference required fields: "
+            + _diagnostic_column_names(unknown_overrides)
         )
     if not rows and not required:
         raise ValueError("required fields are needed when the file has no header row")
     duplicate_required = [name for name, count in Counter(required).items() if count > 1]
     if duplicate_required:
-        raise ValueError("duplicate required fields: " + ", ".join(duplicate_required))
+        raise ValueError(
+            "duplicate required fields: " + _diagnostic_column_names(duplicate_required)
+        )
 
     if key is not None and key_fields is not None:
         raise ValueError("use either key or key_fields, not both")
@@ -500,7 +505,7 @@ def build_brief(
         name for name, count in Counter(effective_key_fields).items() if count > 1
     ]
     if repeated_key_fields:
-        raise ValueError("duplicate key fields: " + ", ".join(repeated_key_fields))
+        raise ValueError("duplicate key fields: " + _diagnostic_column_names(repeated_key_fields))
     if max_duplicates is not None and not effective_key_fields:
         raise ValueError("max_duplicates requires --key")
     if min_complete_keys is not None and not effective_key_fields:
@@ -527,7 +532,7 @@ def build_brief(
     if group and group not in header:
         unknown.append(group)
     if unknown:
-        raise ValueError("unknown columns: " + ", ".join(unknown))
+        raise ValueError("unknown columns: " + _diagnostic_column_names(unknown))
 
     fills = {name: FieldFill(name, 0, 0) for name in required}
     keys: list[tuple[str, ...]] = []
