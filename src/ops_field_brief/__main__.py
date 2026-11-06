@@ -11,7 +11,7 @@ from pathlib import Path
 
 from ops_field_brief import __version__
 from ops_field_brief.brief import DELIMITERS, build_brief, read_csv, render
-from ops_field_brief.validation import validate_csv_structure
+from ops_field_brief.validation import _diagnostic_column_names, validate_csv_structure
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -223,11 +223,17 @@ def main(argv: list[str] | None = None) -> int:
             if not separator or not name or not share.strip():
                 raise ValueError("--max-missing-column expects NAME=SHARE")
             if name in missing_limits:
-                raise ValueError(f"duplicate --max-missing-column field: {name}")
+                raise ValueError(
+                    "duplicate --max-missing-column field: "
+                    + _diagnostic_column_names([name])
+                )
             try:
                 missing_limits[name] = float(share)
             except ValueError:
-                raise ValueError(f"invalid --max-missing-column share: {share}") from None
+                raise ValueError(
+                    "invalid --max-missing-column share: "
+                    + _diagnostic_column_names([share])
+                ) from None
         rows = read_csv(
             args.csv,
             delimiter=None if args.delimiter == "auto" else DELIMITERS[args.delimiter],
