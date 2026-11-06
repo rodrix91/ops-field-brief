@@ -24,14 +24,19 @@ class BoundedColumnSelectionDiagnosticsTests(unittest.TestCase):
     def test_short_names_keep_actionable_error_messages(self) -> None:
         rows = [{"shipment": "S1", "buyer": "Andes"}]
         cases = (
-            (lambda: build_brief(rows, ["shipment"], max_missing_columns={"other": 0.5}),
-             "max_missing_columns must reference required fields: other"),
-            (lambda: build_brief(rows, ["shipment", "shipment"]),
-             "duplicate required fields: shipment"),
-            (lambda: build_brief(rows, ["shipment"], key_fields=["buyer", "buyer"]),
-             "duplicate key fields: buyer"),
-            (lambda: build_brief(rows, ["shipment", "missing"]),
-             "unknown columns: missing"),
+            (
+                lambda: build_brief(rows, ["shipment"], max_missing_columns={"other": 0.5}),
+                "max_missing_columns must reference required fields: other",
+            ),
+            (
+                lambda: build_brief(rows, ["shipment", "shipment"]),
+                "duplicate required fields: shipment",
+            ),
+            (
+                lambda: build_brief(rows, ["shipment"], key_fields=["buyer", "buyer"]),
+                "duplicate key fields: buyer",
+            ),
+            (lambda: build_brief(rows, ["shipment", "missing"]), "unknown columns: missing"),
         )
         for call, expected in cases:
             with self.subTest(expected=expected):
@@ -79,8 +84,12 @@ class BoundedColumnSelectionDiagnosticsTests(unittest.TestCase):
                 (base + ["--required", "shipment," + malicious], "unknown columns:"),
                 (
                     base
-                    + ["--max-missing-column", malicious + "=0.5",
-                       "--max-missing-column", malicious + "=0.2"],
+                    + [
+                        "--max-missing-column",
+                        malicious + "=0.5",
+                        "--max-missing-column",
+                        malicious + "=0.2",
+                    ],
                     "duplicate --max-missing-column field:",
                 ),
                 (
