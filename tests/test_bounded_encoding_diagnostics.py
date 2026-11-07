@@ -9,10 +9,18 @@ from pathlib import Path
 from unittest.mock import patch
 
 from ops_field_brief.__main__ import main
-from ops_field_brief.brief import read_csv
+from ops_field_brief.brief import _validated_text_encoding, read_csv
 
 
 class BoundedEncodingDiagnosticTests(unittest.TestCase):
+    def test_shared_codec_validator_rejects_nontext_inputs(self) -> None:
+        # Even internal direct callers must not pass arbitrary objects to
+        # codecs.lookup(), which could run user-defined conversion methods.
+        for invalid in (None, True, 42, b"utf-8", [], {}):
+            with self.subTest(type=type(invalid).__name__):
+                with self.assertRaisesRegex(ValueError, "encoding must be a string"):
+                    _validated_text_encoding(invalid)
+
     def test_malformed_encoding_diagnostics_are_bounded_and_noninjectable(self) -> None:
         values = (
             "forged\n::error::fake\r\x1b[31m\u202eSECRET",
