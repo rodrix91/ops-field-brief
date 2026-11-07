@@ -9,7 +9,13 @@ import zlib
 from pathlib import Path
 
 from ops_field_brief import __version__
-from ops_field_brief.brief import DELIMITERS, _validated_text_encoding, build_brief, read_csv, render
+from ops_field_brief.brief import (
+    DELIMITERS,
+    _validated_text_encoding,
+    build_brief,
+    read_csv,
+    render,
+)
 from ops_field_brief.validation import _diagnostic_column_names, validate_csv_structure
 
 
