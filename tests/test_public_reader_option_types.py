@@ -42,6 +42,22 @@ class ReaderOptionTypeTests(unittest.TestCase):
                     read_csv(Path("-"), stdin=stream, encoding=value)
                 self.assertEqual(stream.tell(), 0)
 
+    def test_binary_codecs_are_rejected_before_consuming_stdin(self) -> None:
+        for codec in ("base64_codec", "hex_codec", "zlib_codec", "rot_13"):
+            with self.subTest(encoding=codec):
+                stream = io.StringIO("id,buyer\nA1,Andes\n")
+                for delimiter in (",", None):
+                    with self.assertRaisesRegex(ValueError, "CSV encoding must be a text codec"):
+                        read_csv(Path("-"), stdin=stream, encoding=codec, delimiter=delimiter)
+                    self.assertEqual(stream.tell(), 0)
+
+    def test_binary_codecs_are_rejected_before_opening_files(self) -> None:
+        missing = Path("not-a-real-file-for-binary-encoding-validation.csv")
+        for codec in ("base64_codec", "hex_codec", "zlib_codec", "rot_13"):
+            with self.subTest(encoding=codec):
+                with self.assertRaisesRegex(ValueError, "CSV encoding must be a text codec"):
+                    read_csv(missing, encoding=codec)
+
     def test_malformed_option_values_precede_missing_file(self) -> None:
         missing = Path("not-a-real-file-for-reader-validation.csv")
         for options, message in (
