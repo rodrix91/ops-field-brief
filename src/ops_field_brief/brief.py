@@ -369,9 +369,7 @@ def build_brief(
 ) -> Brief:
     # CSV readers supply a list of mappings; direct library callers may not.
     # Validate shape before deriving a header from rows[0].keys().
-    if not isinstance(rows, (list, tuple)) or any(
-        not isinstance(row, Mapping) for row in rows
-    ):
+    if not isinstance(rows, (list, tuple)) or any(not isinstance(row, Mapping) for row in rows):
         raise ValueError("rows must be a sequence of CSV field mappings")
     if not _valid_share(max_missing):
         raise ValueError("max_missing must be between 0 and 1")
