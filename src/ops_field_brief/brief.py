@@ -801,9 +801,12 @@ def read_csv(
     if delimiter is not None and len(delimiter) != 1:
         raise ValueError("delimiter must be exactly one character")
     try:
-        canonical_encoding = codecs.lookup(encoding).name
+        codec_info = codecs.lookup(encoding)
     except LookupError as exc:
         raise ValueError(f"unknown CSV encoding: {encoding}") from exc
+    if not getattr(codec_info, "_is_text_encoding", True):
+        raise ValueError(f"CSV encoding must be a text codec: {encoding}")
+    canonical_encoding = codec_info.name
     # Recognize every valid alias of UTF-8, including Windows cp65001 and u8.
     # Otherwise the same BOM-prefixed file can be accepted or rejected solely
     # because its encoding was spelled differently.
