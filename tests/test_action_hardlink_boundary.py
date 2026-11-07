@@ -27,7 +27,7 @@ class HardlinkedActionInputTests(unittest.TestCase):
                 os.link(outside, alias)
             except (OSError, NotImplementedError) as error:
                 self.skipTest(f"Hardlinks unavailable on this runner: {error}")
-            self.assertEqual(alias.resolve(), alias)
+            self.assertEqual(alias.resolve(), workspace.resolve() / alias.name)
             self.assertGreater(alias.stat().st_nlink, 1)
             with self.assertRaisesRegex(ValueError, "must not be a hard-linked CSV"):
                 run_action._validated_csv_path("shipments.csv", str(workspace))
