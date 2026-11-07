@@ -34,9 +34,7 @@ class PublicRowValueValidationTests(unittest.TestCase):
                 with self.assertRaisesRegex(
                     ValueError, "CSV data row 2 selected values must be strings or None"
                 ) as error:
-                    build_brief(
-                        [{"id": "ok", "region": "South"}, selected], ["id"], **options
-                    )
+                    build_brief([{"id": "ok", "region": "South"}, selected], ["id"], **options)
                 self.assertNotIn("secret", str(error.exception))
                 self.assertLess(len(str(error.exception)), 100)
 
