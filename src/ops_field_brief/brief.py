@@ -367,6 +367,10 @@ def build_brief(
     min_distinct_keys: int | None = None,
     max_distinct_keys: int | None = None,
 ) -> Brief:
+    # CSV readers supply a list of mappings; direct library callers may not.
+    # Validate shape before deriving a header from rows[0].keys().
+    if not isinstance(rows, (list, tuple)) or any(not isinstance(row, Mapping) for row in rows):
+        raise ValueError("rows must be a sequence of CSV field mappings")
     if not _valid_share(max_missing):
         raise ValueError("max_missing must be between 0 and 1")
     if isinstance(top_n, bool) or not isinstance(top_n, int):
@@ -533,6 +537,20 @@ def build_brief(
         unknown.append(group)
     if unknown:
         raise ValueError("unknown columns: " + _diagnostic_column_names(unknown))
+
+    # The CSV parser supplies strings or None for missing fields. Reject
+    # malformed direct-call values used in the metrics before .strip() leaks
+    # AttributeError. Ignore unselected/overflow columns in non-strict mode.
+    selected_columns = set(required) | set(effective_key_fields)
+    if group:
+        selected_columns.add(group)
+    for row_number, row in enumerate(rows, 1):
+        for name in selected_columns:
+            selected_value = row.get(name)
+            if selected_value is not None and not isinstance(selected_value, str):
+                raise ValueError(
+                    f"CSV data row {row_number} selected values must be strings or None"
+                )
 
     fills = {name: FieldFill(name, 0, 0) for name in required}
     keys: list[tuple[str, ...]] = []
