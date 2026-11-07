@@ -92,6 +92,11 @@ def _validated_csv_path(raw: str, workspace: str | None) -> Path:
     # subprocess indefinitely. Reject nonregular paths before execution.
     if not resolved.is_file():
         raise ValueError("Action input path must name an existing regular CSV file.")
+    # realpath() cannot distinguish a hardlink from an independent file.
+    # The same inode may be reachable via a private path outside the checkout.
+    # Reject such aliases before spawning the CLI and reading any CSV bytes.
+    if resolved.stat().st_nlink != 1:
+        raise ValueError("Action input path must not be a hard-linked CSV file.")
     return resolved
 
 
