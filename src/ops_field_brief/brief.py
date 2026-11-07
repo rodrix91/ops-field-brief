@@ -800,6 +800,26 @@ def _excel_sep_directive(text: str) -> tuple[str, str] | None:
     return None
 
 
+def _validated_text_encoding(encoding: str) -> codecs.CodecInfo:
+    """Resolve a text codec before reading files, with bounded safe diagnostics."""
+    if not isinstance(encoding, str):
+        raise ValueError("encoding must be a string")
+    # An encoding is a short codec identifier, not a data payload. Avoid
+    # arbitrarily long codec lookups or echoing malformed CLI input into logs.
+    if len(encoding) > 128:
+        raise ValueError("CSV encoding name exceeds 128 characters")
+    label = _diagnostic_column_names([encoding])
+    try:
+        codec_info = codecs.lookup(encoding)
+    except (LookupError, ValueError) as exc:
+        # Some malformed codec names (including embedded NULs) raise
+        # ValueError, not LookupError. Never print their raw contents.
+        raise ValueError(f"unknown CSV encoding: {label}") from exc
+    if not getattr(codec_info, "_is_text_encoding", True):
+        raise ValueError(f"CSV encoding must be a text codec: {label}")
+    return codec_info
+
+
 def read_csv(
     path: Path,
     delimiter: str | None = ",",
@@ -818,12 +838,7 @@ def read_csv(
         raise ValueError("strict must be a boolean")
     if delimiter is not None and len(delimiter) != 1:
         raise ValueError("delimiter must be exactly one character")
-    try:
-        codec_info = codecs.lookup(encoding)
-    except LookupError as exc:
-        raise ValueError(f"unknown CSV encoding: {encoding}") from exc
-    if not getattr(codec_info, "_is_text_encoding", True):
-        raise ValueError(f"CSV encoding must be a text codec: {encoding}")
+    codec_info = _validated_text_encoding(encoding)
     canonical_encoding = codec_info.name
     # Recognize every valid alias of UTF-8, including Windows cp65001 and u8.
     # Otherwise the same BOM-prefixed file can be accepted or rejected solely

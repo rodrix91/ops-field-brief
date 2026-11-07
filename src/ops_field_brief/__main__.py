@@ -3,14 +3,19 @@
 from __future__ import annotations
 
 import argparse
-import codecs
 import io
 import sys
 import zlib
 from pathlib import Path
 
 from ops_field_brief import __version__
-from ops_field_brief.brief import DELIMITERS, build_brief, read_csv, render
+from ops_field_brief.brief import (
+    DELIMITERS,
+    _validated_text_encoding,
+    build_brief,
+    read_csv,
+    render,
+)
 from ops_field_brief.validation import _diagnostic_column_names, validate_csv_structure
 
 
@@ -186,7 +191,7 @@ def _decoded_stdin(encoding: str):
     raw = getattr(sys.stdin, "buffer", None)
     if raw is None:
         return sys.stdin
-    canonical = codecs.lookup(encoding).name
+    canonical = _validated_text_encoding(encoding).name
     # Preserve BOM bytes for every valid UTF-8 alias until read_csv() removes
     # exactly one. Decoding as utf-8-sig here could erase a second marker and
     # make stdin disagree with file and gzip inputs.
