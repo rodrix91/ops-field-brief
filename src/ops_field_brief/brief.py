@@ -546,8 +546,8 @@ def build_brief(
         selected_columns.add(group)
     for row_number, row in enumerate(rows, 1):
         for name in selected_columns:
-            value = row.get(name)
-            if value is not None and not isinstance(value, str):
+            selected_value = row.get(name)
+            if selected_value is not None and not isinstance(selected_value, str):
                 raise ValueError(
                     f"CSV data row {row_number} selected values must be strings or None"
                 )
