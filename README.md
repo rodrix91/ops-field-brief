@@ -682,6 +682,8 @@ The suite covers required-field fill rates and thresholds, composite business ke
 
 ## Maintenance
 
+The existing read-only 17-job CI matrix can also be started on demand through **Actions → ci → Run workflow** on GitHub. This runs the same lint, formatting, type, branch-coverage, Python/OS, wheel and reusable-Action tests as pull requests; it does not publish a release or change any repository settings.
+
 The tool is intentionally small and focused. Changes are kept additive. Existing behavior and history are preserved.
 
 The scheduled weekly engineering audit is local-only and read-only. Even if `GEMINI_API_KEY` exists in the environment, the maintenance script will not make an external API call unless a manual run also passes `--allow-external-api`.
