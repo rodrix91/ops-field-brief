@@ -80,7 +80,7 @@ def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool
         not isinstance(source_lines, (tuple, list))
         or (source_lines and len(source_lines) != len(rows))
         or any(type(line) is not int or line < 1 for line in source_lines)
-        or any(left >= right for left, right in zip(source_lines, source_lines[1:], strict=False))
+        or any(left >= right for left, right in zip(source_lines, source_lines[1:]))
     ):
         raise ValueError("CSV source line metadata must be positive, ordered, and match data rows")
     for row_number, row in enumerate(rows, 1):
@@ -105,7 +105,7 @@ def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool
     if (
         not isinstance(skipped, (tuple, list))
         or any(type(line) is not int or line < 1 for line in skipped)
-        or any(left >= right for left, right in zip(skipped, skipped[1:], strict=False))
+        or any(left >= right for left, right in zip(skipped, skipped[1:]))
     ):
         raise ValueError("CSV blank source line metadata must be positive and ordered")
     if skipped:
