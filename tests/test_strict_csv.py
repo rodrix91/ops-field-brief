@@ -1,5 +1,6 @@
-from __future__ import annotations
 """Regression tests for opt-in structural validation of operational CSV files."""
+
+from __future__ import annotations
 
 import io
 import os

@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Fix Python 3.9/3.10 compatibility in `validate_csv_structure()` by removing non-standard `strict=False` keyword from `zip()`, and restore future annotations in strict CSV tests.
+- Simplify ordered source-line metadata checks in `validate_csv_structure()` using index comparisons instead of `zip()`, preserving Python 3.9–3.14 compatibility and Ruff `B905` compliance, and add future annotations to strict CSV tests.
 
 - Reject directories, FIFOs and other nonregular CSV input paths in the standalone CLI and public `read_csv()` API, consistent with the existing GitHub Action input policy. This prevents a named pipe without a writer from indefinitely blocking the parser. Preserve missing-file errors, normal files, gzip exports, stdin and symlinks to regular files; add cross-platform tests with a POSIX FIFO regression.
 
