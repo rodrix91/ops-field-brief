@@ -45,6 +45,8 @@ def validate_csv_structure(rows: list[dict[str, str]], *, casefold_headers: bool
     header = getattr(rows, "fieldnames", None)
     if header is None:
         raise ValueError("strict CSV validation requires a parsed header")
+    if not isinstance(header, (tuple, list)):
+        raise ValueError("CSV header metadata must be a tuple or list")
     if not header:
         raise ValueError("CSV has no header row")
 

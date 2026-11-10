@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Require `rows.fieldnames` to be a `tuple` or `list` in `validate_csv_structure()`, rejecting strings, mappings, sets and one-shot generators with a clear `ValueError` instead of splitting strings into single-character columns or exhausting iterators.
+
 - Simplify ordered source-line metadata checks in `validate_csv_structure()` using index comparisons instead of `zip()`, preserving Python 3.9–3.14 compatibility and Ruff `B905` compliance, and add future annotations to strict CSV tests.
 
 - Reject directories, FIFOs and other nonregular CSV input paths in the standalone CLI and public `read_csv()` API, consistent with the existing GitHub Action input policy. This prevents a named pipe without a writer from indefinitely blocking the parser. Preserve missing-file errors, normal files, gzip exports, stdin and symlinks to regular files; add cross-platform tests with a POSIX FIFO regression.

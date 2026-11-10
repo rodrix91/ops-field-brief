@@ -32,6 +32,27 @@ class StrictCsvHeaderTypeTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "blank CSV header at column 2"):
                     validate_csv_structure(rows)
 
+    def test_non_sequence_header_metadata_raises_value_error(self) -> None:
+        record = {"id": "A1", "buyer": "Andes"}
+        invalid_containers = (
+            "id,buyer",
+            b"id,buyer",
+            123,
+            True,
+            {"id": 1, "buyer": 2},
+            {"id", "buyer"},
+            (name for name in ("id", "buyer")),
+        )
+        for container in invalid_containers:
+            for casefold in (False, True):
+                with self.subTest(container=repr(container), casefold=casefold):
+                    rows = CsvRows([record.copy()], ("id", "buyer"))
+                    rows.fieldnames = container  # type: ignore[assignment]
+                    with self.assertRaisesRegex(
+                        ValueError, "CSV header metadata must be a tuple or list"
+                    ):
+                        validate_csv_structure(rows, casefold_headers=casefold)
+
     def test_valid_headers_still_pass_and_preserve_original_names(self) -> None:
         record = {"order id": "A1", "Región": "Tarija"}
         rows = CsvRows([record.copy()], tuple(record))
