@@ -15,8 +15,7 @@ class TrailingLockContinuationTests(unittest.TestCase):
             with self.subTest(trailing=trailing), tempfile.TemporaryDirectory() as directory:
                 lock = Path(directory) / "requirements-dev.lock"
                 lock.write_text(
-                    f"ruff==0.17.3 {slash}\n    --hash=sha256:{digest} {slash}\n"
-                    + trailing,
+                    f"ruff==0.17.3 {slash}\n    --hash=sha256:{digest} {slash}\n" + trailing,
                     encoding="utf-8",
                 )
                 with self.assertRaisesRegex(ValueError, "dangling line continuation"):
