@@ -159,13 +159,18 @@ jobs:
           "$RUNNER_TEMP/venv/bin/ops-field-brief" examples/shipments.csv --required shipment --key shipment --max-duplicates 1 > /dev/null
 
   installed-cli:
-    name: installed wheel and CLI (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+    name: installed wheel and CLI (${{ matrix.runner || matrix.os }})
+    runs-on: ${{ matrix.runner || matrix.os }}
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+        # Run packaged CLI smoke on Intel while the ARM64 queue is degraded.
+        # The platform matrix above still exercises Apple Silicon Python 3.14.
+        include:
+          - os: macos-latest
+            runner: macos-15-intel
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
