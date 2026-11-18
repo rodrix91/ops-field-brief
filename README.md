@@ -18,6 +18,8 @@ It is a complement to [csv-quality-report](https://github.com/rodrix91/csv-quali
 
 Status: 0.3.0 with additional Unreleased work, verified by the tests in this repository. It is not a production pipeline. See [CHANGELOG.md](CHANGELOG.md).
 
+**Release history and future publishing safety:** [GitHub release guide](docs/release-publishing.md). The historical v0.3.0 release still requires an explicitly verified tag push on its exact release commit; a merged version change does not create a GitHub Release automatically.
+
 Topics (set on the repository): `csv`, `data-quality`, `operations`, `cli`, `python`, `standard-library`.
 
 For a concise checklist of operational gates, example commands, and safe CI integration, see the [operations playbook](docs/README.md).

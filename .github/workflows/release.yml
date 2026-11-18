@@ -36,8 +36,11 @@ jobs:
             exit 1
           fi
 
-      - name: Install build tooling
-        run: python -m pip install --disable-pip-version-check build==1.6.1
+      - name: Verify fully hashed build dependency lock
+        run: python scripts/check_dev_lock.py
+
+      - name: Install fully hashed build and test tooling
+        run: python -m pip install --disable-pip-version-check --require-hashes -r requirements-dev.lock
 
       - name: Build wheel and source distribution
         run: python -m build --outdir dist .
@@ -70,7 +73,14 @@ jobs:
             dist/*.whl
             dist/*.tar.gz
 
-      - name: Publish GitHub release
+      - name: Publish a new GitHub release without altering existing assets
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$TAG" dist/* --verify-tag --title "$TAG" --generate-notes
+        run: |
+          # Releases are immutable historical artifacts. A rerun must not
+          # silently replace a previously published wheel or source archive.
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "::error::Release $TAG already exists; refusing to overwrite published files."
+            exit 1
+          fi
+          gh release create "$TAG" dist/* --verify-tag --title "$TAG" --generate-notes
